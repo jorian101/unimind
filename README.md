@@ -1,6 +1,6 @@
 # Guía de Instalación y Uso
 
-## Instalación
+## Instalación (aun no oficial)
 
 1. Clona el repositorio:
 
@@ -22,90 +22,85 @@
    - Abre `frontend/index.html` en un navegador web
    - O sirve la carpeta `frontend` con un servidor web
 
-## Uso
-
-- Accede al frontend en `http://localhost/frontend/`
-- Usa las credenciales de prueba:
-  - Estudiante: estudiante@example.com / 123456
-  - Admin: admin@example.com / admin123
-
 ## API Endpoints
 
 Ver `docs/api.md` para detalles completos de la API.
 
 # Estructura del Proyecto
 
-Ver `docs/muak.md` para detalles completos de la estructura.
+Ver `docs/manuak.md` para detalles completos de la estructura.
 
-stress-monitoring-system/
+```
+appweb-control-ansiedad/
 │
-├── backend/ # Backend PHP puro
-│ ├── config/ # Configuración de BD, CORS, etc.
-│ │ ├── database.php
-│ │ └── cors.php
-│ │
-│ ├── controllers/ # Controladores MVC
-│ │ ├── AuthController.php
-│ │ ├── UserController.php
-│ │ ├── TestController.php
-│ │ ├── ReportController.php
-│ │ └── AlertController.php
-│ │
-│ ├── models/ # Modelos (ORM manual)
-│ │ ├── User.php
-│ │ ├── Test.php
-│ │ ├── Result.php
-│ │ └── Report.php
-│ │
-│ ├── views/ # Vistas (si usas PHP como template)
-│ │ ├── dashboard.php
-│ │ ├── login.php
-│ │ └── admin/
-│ │
-│ ├── api/ # API REST para app móvil y frontend
-│ │ ├── index.php # Router API
-│ │ ├── routes/
-│ │ │ ├── auth.php
-│ │ │ ├── tests.php
-│ │ │ ├── users.php
-│ │ │ └── reports.php
-│ │
-│ ├── middleware/ # Autenticación, validaciones
-│ │ └── AuthMiddleware.php
-│ │
-│ └── utils/ # Helpers, validaciones, JWT, etc.
-│ ├── JwtHelper.php
-│ └── Validation.php
+├── backend/
+│   ├── config/
+│   │   ├── database.php
+│   │   └── cors.php
+│   │
+│   ├── controllers/
+│   │   ├── AuthController.php
+│   │   ├── UserController.php
+│   │   ├── TestController.php
+│   │   ├── ReportController.php
+│   │   └── AlertController.php
+│   │
+│   ├── models/
+│   │   ├── User.php
+│   │   ├── Test.php
+│   │   ├── Result.php
+│   │   └── Report.php
+│   │
+│   ├── views/
+│   │   ├── templates/
+│   │   │   ├── header.php
+│   │   │   ├── footer.php
+│   │   │   └── layout.php
+│   │   └── partials/
+│   │       └── messages.php
+│   │
+│   ├── api/
+│   │   ├── index.php
+│   │   └── routes/
+│   │       ├── auth.php
+│   │       ├── users.php
+│   │       ├── tests.php
+│   │       └── reports.php
+│   │
+│   ├── middleware/
+│   │   └── AuthMiddleware.php
+│   │
+│   └── utils/
+│       ├── JwtHelper.php
+│       └── Validation.php
 │
-├── frontend/ # Frontend vanilla (HTML, CSS, JS)
-│ ├── assets/
-│ │ ├── css/
-│ │ ├── js/
-│ │ └── img/
-│ ├── pages/
-│ │ ├── login.html
-│ │ ├── student-dashboard.html
-│ │ ├── admin-dashboard.html
-│ │ └── test.html
-│ └── index.html
+├── frontend/
+│   ├── assets/
+│   │   ├── css/
+│   │   │   ├── style.css
+│   │   │   └── theme.css
+│   │   ├── js/
+│   │   │   └── main.js
+│   │   └── img/
+│   │
+│   ├── components/
+│   │   ├── header.html
+│   │   └── footer.html
+│   │
+│   ├── pages/
+│   │   ├── administrador/
+│   │   ├── estudiante/
+│   │   └── profesor/
+│   │
+│   └── index.html
 │
-├── mobile/ # App con Ionic
-│ ├── src/
-│ │ ├── app/
-│ │ │ ├── services/
-│ │ │ ├── pages/
-│ │ │ └── guards/
-│ │ └── environments/
-│ ├── android/ # Generado por Capacitor
-│ ├── ios/ # Generado por Capacitor
-│ └── www/ # Build web de Ionic
+├── database/
+│   ├── schema.sql
+│   └── seed.sql
 │
-├── database/ # Scripts SQL
-│ ├── schema.sql
-│ └── seed.sql
-│
-├── docs/ # Documentación del proyecto
-│ ├── api.md
-│ └── manual.md
+├── docs/
+│   ├── api.md
+│   └── manual.md
 │
 └── .gitignore
+```
