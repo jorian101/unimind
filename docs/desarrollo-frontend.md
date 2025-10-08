@@ -28,10 +28,13 @@ El frontend está organizado de la siguiente manera:
 2. **Editar Estilos**:
    - Modifica `assets/css/style.css` para estilos generales.
    - Modifica `assets/css/theme.css` para temas y colores.
+   - **Recomendaciones para Clases CSS**: Usa nombres de clases descriptivos y específicos para evitar conflictos y mejorar la mantenibilidad. Evita selectores globales como `button` o directos a etiquetas HTML (ej. `div`); en su lugar, usa clases como `.btn-primary-action` o `.header-navigation-link`. Se recomienda adoptar la metodología BEM (Block Element Modifier) para estructurar clases, por ejemplo: `.block__element--modifier`. Si no aplicas BEM manualmente, indica a GitHub Copilot que genere nombres de clases siguiendo esta convención para asegurar consistencia y escalabilidad. Esto facilita la reutilización y reduce efectos secundarios inesperados.
+   - **Diseño Responsivo**: Asegúrate de que las páginas sean responsivas para anchos de pantalla de 390px (móviles pequeños), 768px (tablets), 1024px (laptops) y 1440px (escritorios). Implementa media queries en CSS para estos breakpoints y diseña fluidamente entre ellos usando unidades relativas como `em`, `rem` o porcentajes para un escalado suave.
 
 3. **Agregar JavaScript**:
    - Edita `assets/js/main.js` para lógica del lado cliente.
    - Si necesitas scripts específicos para páginas, puedes incluirlos directamente en el HTML o crear nuevos archivos JS.
+   - **Recomendación de Herramientas**: Usa GitHub Copilot para pulir nombres de clases CSS, optimizar código JavaScript y sugerir mejoras en la estructura HTML, lo que acelera el desarrollo y asegura consistencia.
 
 4. **Usar Componentes**:
    - Los componentes en `components/` están pensados para ser incluidos dinámicamente con JavaScript (por ejemplo, usando fetch para cargar header.html y footer.html).
