@@ -8,56 +8,6 @@
 
 - **Editor de Código**: Recomendamos Visual Studio Code (VS Code) para editar los archivos.
 
-## Configuración Inicial
-
-### Para Usuarios de Windows
-
-1. **Clona el Repositorio en htdocs**:
-   - Abre la carpeta `htdocs` de XAMPP (generalmente `C:\xampp\htdocs\`).
-   - Abre la línea de comandos (CMD o PowerShell) y navega a esa carpeta:
-     ```
-     cd C:\xampp\htdocs
-     ```
-   - Clona el repositorio:
-     ```
-     git clone https://github.com/jorian101/unimind.git
-     ```
-     Esto creará la carpeta `unimind` dentro de `htdocs`.
-
-2. **Inicia XAMPP**:
-   - Abre la aplicación XAMPP desde el menú Inicio.
-   - Inicia el módulo Apache (no necesitas MySQL ni PHP por ahora, solo para el frontend).
-
-### Para Usuarios de Linux
-
-1. **Clona el Repositorio en htdocs**:
-   - Abre la carpeta `htdocs` de XAMPP (generalmente `/opt/lampp/htdocs/`).
-   - Abre la terminal y navega a esa carpeta:
-     ```
-     cd /opt/lampp/htdocs
-     ```
-   - Clona el repositorio:
-     ```
-     git clone https://github.com/jorian101/unimind.git
-     ```
-     Esto creará la carpeta `unimind` dentro de `htdocs`.
-
-2. **Inicia XAMPP**:
-   - Abre la aplicación XAMPP (puedes usar `sudo /opt/lampp/lampp start`).
-   - Inicia el módulo Apache (no necesitas MySQL ni PHP por ahora, solo para el frontend).
-
-## Ejecutar el Frontend
-
-1. **Accede al Frontend**:
-   - Abre tu navegador web.
-     - Ve a `http://localhost/unimind/frontend/index.html`.
-   - Deberías ver la página inicial del sistema de monitoreo de estrés.
-
-2. **Desarrollo y Pruebas**:
-   - Edita los archivos en tu editor de código (desde la carpeta clonada en `htdocs/unimind`).
-   - Para ver los cambios, recarga la página en el navegador.
-   - Si realizas cambios en archivos estáticos (HTML, CSS, JS), no necesitas reiniciar Apache; solo recarga la página.
-
 ## Estructura del Frontend
 
 El frontend está organizado de la siguiente manera:
