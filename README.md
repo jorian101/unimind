@@ -52,7 +52,7 @@
 
 ## Flujo de Trabajo con Git
 
-Después de ejecutar el frontend y verificar que funciona correctamente:
+Después de ejecutar el frontend y verificar que funciona correctamente, procede a programar pero dentro de la rama `develop`:
 
 1. **Crea la rama 'develop'**:
    - Desde la rama principal (main), crea y cambia a la rama 'develop':
@@ -190,6 +190,15 @@ unimind/
 ├── docs/
 │   ├── api.md
 │   └── manual.md
+├── mobile/ (Ionic que se crea automaticamente, aun no se usa)
+│   └── src/
+│       └── app/
+│           ├── pages/
+│           │   ├── login/
+│           │   ├── student/
+│           │   ├── teacher/
+│           │   └── admin/
+│           └── services/
 │
 └── .gitignore
 ```
