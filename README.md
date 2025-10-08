@@ -50,6 +50,51 @@
    - Para ver los cambios, recarga la página en el navegador.
    - Si realizas cambios en archivos estáticos (HTML, CSS, JS), no necesitas reiniciar Apache; solo recarga la página.
 
+## Flujo de Trabajo con Git
+
+Después de ejecutar el frontend y verificar que funciona correctamente:
+
+1. **Crea la rama 'develop'**:
+   - Desde la rama principal (main), crea y cambia a la rama 'develop':
+     ```
+     git checkout -b develop
+     ```
+   - Actualiza tu rama 'develop' con el repositorio remoto:
+     ```
+     git pull origin develop
+     ```
+
+2. **Para cada módulo o rol**:
+   - Crea una rama de feature en el formato `feature/rama-modulo` (reemplaza 'rama-modulo' con el nombre del módulo o rol, ej. `feature/login-estudiante`):
+     ```
+     git checkout -b feature/rama-modulo
+     ```
+   - Realiza los cambios necesarios en la rama.
+   - Una vez completados, haz commit de los cambios:
+     ```
+     git add .
+     git commit -m "feat: descripción de los cambios"
+     ```
+     **Nota**: Los commits siguen el formato de Conventional Commits y dependen de Husky para su validación mediante commitlint. Lee la sección "¿Cómo deberías proceder para evitar errores?" en `docs/husky-explicacion.md`.
+   - Para mantener la rama feature al día con 'develop', haz merge de 'develop' en tu rama feature:
+     ```
+     git checkout develop
+     git pull origin develop
+     git checkout feature/rama-modulo
+     git merge develop
+     ```
+     Resuelve cualquier conflicto si surge.
+   - Sube la rama al remoto:
+     ```
+     git push origin feature/rama-modulo
+     ```
+   - Crea una Pull Request (PR) desde `feature/rama-modulo` hacia `develop` en GitHub/GitLab.
+   - Espera revisión y aprueba la PR para mergear a `develop`.
+
+**Recomendación**: Repasa conceptos básicos de Git (ramas, commits, push/pull) y Pull Requests para un flujo de trabajo colaborativo eficiente. Recursos útiles: documentación oficial de Git y guías de GitHub sobre PRs.
+
+**Observaciones**: En algunas ocasiones se trabajará en la misma rama `develop`. Las ramas `feature` son útiles cuando cada miembro del equipo hace varias interfaces por su cuenta y evitamos conflictos.
+
 ### Siguientes pasos
 
 1. Configura la base de datos:
