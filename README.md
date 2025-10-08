@@ -5,8 +5,8 @@
 1. Clona el repositorio:
 
    ```
-   git clone https://github.com/jorian101/appweb-control-ansiedad.git
-   cd appweb-control-ansiedad
+   git clone https://github.com/jorian101/unimind.git
+   cd unimind
    ```
 
 2. Configura la base de datos:
@@ -31,7 +31,7 @@ Ver `docs/api.md` para detalles completos de la API.
 Ver `docs/manuak.md` para detalles completos de la estructura.
 
 ```
-appweb-control-ansiedad/
+unimind/
 │
 ├── backend/
 │   ├── config/

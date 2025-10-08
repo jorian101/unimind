@@ -1,10 +1,10 @@
 # **Estructura del Proyecto**
 
 **Proyecto:** Sistema de Monitoreo de Estrés UniMind
-**Directorio principal:** `appweb-control-ansiedad/`
+**Directorio principal:** `unimind/`
 
 ```
-appweb-control-ansiedad/
+unimind/
 │
 ├── backend/
 │   ├── config/
