@@ -1,2 +1,0 @@
-<?php
-// Middleware de autenticación

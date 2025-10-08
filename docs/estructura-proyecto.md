@@ -1,239 +1,247 @@
-# **Estructura del Proyecto**
+Excelente, Jorian 🔥
+Te voy a dar **una explicación completa, profesional y clara de cada carpeta del proyecto `unimind/`**, acompañada de **un README.md** realista que puedes usar directamente en tu repositorio.
 
-**Proyecto:** Sistema de Monitoreo de Estrés UniMind
-**Directorio principal:** `unimind/`
+Además, te indicaré **qué archivos son obligatorios** y qué tipo de archivos se pueden ir creando según las funcionalidades (sin mencionar los requerimientos explícitamente, pero reflejando su lógica).
+
+---
+
+## 🧩 EXPLICACIÓN DETALLADA DE LA ESTRUCTURA MVC
 
 ```
 unimind/
 │
-├── backend/
-│   ├── config/
-│   │   ├── database.php
-│   │   └── cors.php
-│   │
-│   ├── controllers/
-│   │   ├── AuthController.php
-│   │   ├── UserController.php
-│   │   ├── TestController.php
-│   │   ├── ReportController.php
-│   │   └── AlertController.php
-│   │
-│   ├── models/
-│   │   ├── User.php
-│   │   ├── Test.php
-│   │   ├── Result.php
-│   │   └── Report.php
-│   │
-│   ├── views/
-│   │   ├── templates/
-│   │   │   ├── header.php
-│   │   │   ├── footer.php
-│   │   │   └── layout.php
-│   │   └── partials/
-│   │       └── messages.php
-│   │
-│   ├── api/
-│   │   ├── index.php
-│   │   └── routes/
-│   │       ├── auth.php
-│   │       ├── users.php
-│   │       ├── tests.php
-│   │       └── reports.php
-│   │
-│   ├── middleware/
-│   │   └── AuthMiddleware.php
-│   │
-│   └── utils/
-│       ├── JwtHelper.php
-│       └── Validation.php
+├── config/
+│├── database.php
+│└── app.php
 │
-├── frontend/
-│   ├── assets/
-│   │   ├── css/
-│   │   │   ├── style.css
-│   │   │   └── theme.css
-│   │   ├── js/
-│   │   │   └── main.js
-│   │   └── img/
-│   │
-│   ├── components/
-│   │   ├── header.html
-│   │   └── footer.html
-│   │
-│   ├── pages/
-│   │   ├── administrador/
-│   │   ├── estudiante/
-│   │   └── profesor/
-│   │
-│   └── index.html
+├── controllers/
+│├── AuthController.php
+│├── UserController.php
+│├── TestController.php
+│├── ReportController.php
+│└── AlertController.php
+│
+├── models/
+│├── User.php
+│├── Test.php
+│├── Result.php
+│└── Report.php
+│
+├── views/
+│├── administrador/
+│├── profesor/
+│├── estudiante/
+│├── auth/
+│├── header.php
+│├── footer.php
+│└── sidebar.php
+│
+├── public/
+│├── css/
+│├── js/
+│└── img/
+│
+├── middleware/
+│└── AuthMiddleware.php
+│
+├── utils/
+│├── Validation.php
+│└── SessionHelper.php
 │
 ├── database/
-│   ├── schema.sql
-│   └── seed.sql
+│├── schema.sql
+│└── seed.sql
 │
 ├── docs/
-│   ├── api.md
-│   └── manual.md
+│├── manual.md
+│└── api.md
 │
+├── index.php
 └── .gitignore
 ```
 
 ---
 
-## **Descripción de la estructura**
+### 📁 `config/`
 
-### **backend/**
+Contiene **toda la configuración global del sistema**.
+Permite separar la lógica de negocio de los parámetros técnicos.
 
-Contiene toda la lógica del servidor desarrollada en **PHP puro**, siguiendo el patrón **MVC (Modelo - Vista - Controlador)**.
+- `database.php`: define las credenciales y parámetros de conexión a la base de datos (host, usuario, contraseña, nombre de la base).
+- `app.php`: contiene variables globales como el nombre del sistema, URL base, controlador por defecto, zona horaria, etc.
 
-- **config/**
-  Archivos esenciales de configuración del sistema.
-  - `database.php`: Define la conexión a la base de datos mediante PDO (host, usuario, contraseña, nombre BD).
-  - `cors.php`: Permite peticiones desde el frontend (CORS).
-
-- **controllers/**
-  Controladores que procesan las solicitudes HTTP, comunican los modelos y retornan respuestas JSON o vistas renderizadas.
-  Ejemplo: `UserController.php` para gestionar usuarios o `TestController.php` para registrar tests.
-
-- **models/**
-  Contiene las clases que representan entidades de la base de datos (usuarios, tests, resultados, reportes).
-  Ejemplo: `Result.php` podría tener un método `getByUser()` para recuperar los resultados de un estudiante.
-
-- **views/**
-  Carpeta destinada a **plantillas y vistas del backend**.
-  Aunque el sistema usa un **frontend independiente**, esta carpeta puede servir para:
-  - Prototipos o vistas generadas directamente por PHP.
-  - Plantillas comunes (`header.php`, `footer.php`) o mensajes de error.
-  - Renderizados simples cuando el backend se usa de forma autónoma (por ejemplo, pruebas, logs o plantillas de correo).
-
-  Estructura interna sugerida:
-  - `templates/`: contiene las vistas principales o layout base.
-  - `partials/`: fragmentos reutilizables (mensajes, alertas, etc.).
-
-- **api/**
-  Punto de entrada principal de la API.
-  - `index.php`: Router principal que recibe todas las peticiones y carga las rutas definidas.
-  - `routes/`: Define las rutas REST (`auth.php`, `users.php`, etc.), cada una enlaza con su controlador.
-
-- **middleware/**
-  Capas intermedias como la verificación de tokens o validaciones de acceso.
-  Ejemplo: `AuthMiddleware.php` asegura que solo usuarios autenticados accedan a determinadas rutas.
-
-- **utils/**
-  Funciones auxiliares y helpers.
-  Ejemplo:
-  - `JwtHelper.php`: para generar y verificar tokens JWT.
-  - `Validation.php`: validaciones básicas de formularios y datos.
+💡 _Archivos obligatorios:_ `database.php`, `app.php`
 
 ---
 
-### **frontend/**
+### 📁 `controllers/`
 
-Contiene la interfaz del sistema web, organizada para adaptarse a los **tres roles principales**: administrador, profesor y estudiante.
+Aquí viven los **controladores**, que coordinan la lógica entre los modelos y las vistas.
+Cada controlador representa un módulo o área del sistema.
 
-- **assets/**
-  Archivos estáticos reutilizables.
-  - `css/`: estilos globales del sistema (`style.css`) y variables de tema (`theme.css`).
-  - `js/`: scripts generales (`main.js`).
-  - `img/`: recursos gráficos (logos, íconos, banners).
+Ejemplos:
 
-- **components/**
-  Contiene componentes visuales **comunes a todas las páginas**, como:
-  - `header.html`: barra superior del sistema.
-  - `footer.html`: pie de página con información institucional.
-    _(Nota: estos son archivos fijos y obligatorios)._
+- `AuthController.php`: controla el inicio/cierre de sesión y la validación de usuarios.
+- `UserController.php`: gestiona usuarios y roles del sistema.
+- `TestController.php`: maneja la creación, ejecución y almacenamiento de tests.
+- `ReportController.php`: genera y muestra reportes.
+- `AlertController.php`: envía alertas o notificaciones a usuarios específicos.
 
-- **pages/**
-  Carpeta principal de vistas del frontend, separadas por **rol de usuario**:
-  - `administrador/`: gestión de usuarios, reportes.
-  - `estudiante/`: test, historial, monitoreo personal.
-  - `profesor/`: visualización de alertas o niveles de estrés.
-
-  Ejemplos de páginas posibles:
-  - `dashboard.html`
-  - `perfil.html`
-  - `test.html`
-
-- **index.html**
-  Página inicial (punto de entrada).
-  - Es **obligatoria**.
-  - Puede redirigir al login o dashboard según sesión.
+💡 _Archivos obligatorios:_ `AuthController.php`, `UserController.php`
+_(Los demás pueden añadirse según el avance de módulos)._
 
 ---
 
-### **database/**
+### 📁 `models/`
 
-Incluye los scripts SQL de creación e inicialización de la base de datos.
+Define las **clases que representan los datos del sistema y sus operaciones** (CRUD).
+Cada archivo refleja una tabla o entidad de la base de datos.
 
-- `schema.sql`: estructura de tablas (`usuarios`, `tests`, `resultados`, `reportes`).
-- `seed.sql`: carga de datos iniciales (roles, usuarios de prueba, tipos de test).
+Ejemplos:
 
----
+- `User.php`: contiene propiedades (id, nombre, rol, estado) y métodos para gestionar usuarios.
+- `Test.php`: representa los cuestionarios realizados por los usuarios.
+- `Result.php`: almacena los resultados individuales de los tests.
+- `Report.php`: permite generar informes consolidados con filtros.
 
-### **docs/**
-
-Documentación técnica y funcional.
-
-- `api.md`: endpoints de la API, parámetros y ejemplos.
-- `manual.md`: descripción de la arquitectura, estructura y despliegue.
+💡 _Archivos obligatorios:_ `User.php`, `Test.php`
 
 ---
 
-### **.gitignore**
+### 📁 `views/`
 
-Define los archivos y carpetas excluidos del control de versiones (por ejemplo: `/vendor/`, `.env`, `/node_modules/`, logs, builds).
+Contiene las **interfaces visuales (plantillas HTML/PHP)** que ven los usuarios.
+Se organiza por rol para mantener el control de accesos y vistas personalizadas.
+
+Estructura:
+
+- `administrador/` → paneles de control, gestión de usuarios, reportes.
+- `profesor/` → seguimiento de estudiantes, alertas.
+- `estudiante/` → tests, historial y progreso personal.
+- `auth/` → pantallas de login y registro.
+- `header.php`, `footer.php`, `sidebar.php` → componentes reutilizables en todas las páginas.
+
+Ejemplo de vista:
+
+```php
+<!-- views/estudiante/test.php -->
+<?php include '../header.php'; ?>
+<h2>Test de Ansiedad</h2>
+<form method="POST" action="/test/guardar">
+  <!-- preguntas -->
+</form>
+<?php include '../footer.php'; ?>
+```
+
+💡 _Archivos obligatorios:_
+`header.php`, `footer.php`, `auth/login.php`, `auth/registro.php`
 
 ---
 
-## **Notas generales**
+### 📁 `public/`
 
-- La separación **backend / frontend** facilita el mantenimiento y escalabilidad.
-- Las carpetas `views/`, `controllers/` y `models/` constituyen el núcleo del patrón **MVC**.
-- Los únicos archivos **obligatorios** del frontend son:
-  - `index.html`
-  - `components/header.html`
-  - `components/footer.html`
+Aquí se guardan **recursos estáticos** accesibles desde el navegador.
+Se carga desde el servidor (por ejemplo, `localhost/unimind/public/`).
 
-- Las carpetas de roles (`administrador/`, `profesor/`, `estudiante/`) son fijas.
-- Las rutas del backend deben corresponder a los módulos definidos (`usuarios`, `tests`, `reportes`, `alertas`).
+Subcarpetas:
+
+- `css/` → archivos de estilos como `style.css`, `theme.css`.
+- `js/` → scripts del sistema, validaciones, gráficos.
+- `img/` → logotipos, íconos e imágenes usadas en las vistas.
+
+💡 _Archivos obligatorios:_ `css/style.css`, `js/main.js`, `img/logo.png`
 
 ---
 
-## **Archivos que deben crearse por el momento**
+### 📁 `middleware/`
 
-Como el proyecto está en etapa inicial y aún **no se definen completamente los controladores, modelos ni rutas**, se recomienda crear solo los archivos base para comenzar con la configuración y pruebas.
+Incluye **filtros de seguridad o validación previa** antes de ejecutar una acción.
+Por ejemplo:
 
-**🔧 En `backend/`:**
+- `AuthMiddleware.php`: verifica si un usuario está autenticado antes de acceder a páginas privadas.
 
-- `config/database.php`
-- `config/cors.php`
-- `api/index.php`
-- `middleware/AuthMiddleware.php`
-- `utils/JwtHelper.php`
-- `utils/Validation.php`
+💡 _Archivo obligatorio:_ `AuthMiddleware.php`
 
-_(Las carpetas `controllers/`, `models/`, `views/` y `api/routes/` pueden dejarse vacías inicialmente —usa `.gitkeep` para conservarlas en GitHub)._
+---
 
-**🎨 En `frontend/`:**
+### 📁 `utils/`
 
-- `index.html`
-- `components/header.html`
-- `components/footer.html`
-- `assets/css/style.css`
-- `assets/css/theme.css`
-- `assets/js/main.js`
-- Carpetas vacías para `pages/administrador/`, `pages/estudiante/` y `pages/profesor/`.
+Guarda **funciones de apoyo reutilizables**, como validaciones, manejo de sesiones, o formatos.
 
-**🗃️ En `database/`:**
+Ejemplos:
 
-- `schema.sql` (tablas básicas)
-- `seed.sql` (datos iniciales mínimos)
+- `Validation.php`: reglas de validación de formularios.
+- `SessionHelper.php`: gestiona sesiones activas, cierres y expiraciones.
 
-**📘 En `docs/`:**
+💡 _Opcional pero recomendado._
 
-- `manual.md` (documentación del proyecto y estructura)
-- `api.md` (plantilla inicial de endpoints)
+---
 
-**📄 En raíz:**
+### 📁 `database/`
 
-- `.gitignore` (para excluir `/vendor/`, `.env`, etc.)
+Contiene **los archivos SQL del proyecto**.
+
+- `schema.sql`: define las tablas, relaciones y restricciones de la base de datos.
+- `seed.sql`: inserta datos de prueba o iniciales (usuarios, roles, tests, etc.).
+
+💡 _Archivos obligatorios:_ `schema.sql`
+
+---
+
+### 📁 `docs/`
+
+Incluye **documentación técnica y manuales del sistema**.
+
+- `manual.md`: guía para instalación, uso y estructura del proyecto.
+- `api.md`: documentación de endpoints si se expone una API.
+
+💡 _Opcional pero recomendado para mantenimiento._
+
+---
+
+### 📄 `index.php`
+
+Es el **punto de entrada principal del sistema**.
+Normalmente inicializa la app cargando configuraciones, rutas y controladores.
+Ejemplo:
+
+```php
+require_once 'config/app.php';
+require_once 'config/database.php';
+require_once 'controllers/AuthController.php';
+```
+
+💡 _Archivo obligatorio._
+
+---
+
+### 📄 `.gitignore`
+
+Define qué archivos y carpetas no deben subirse al repositorio.
+Ejemplo:
+
+```
+/vendor/
+/node_modules/
+/config/database.php
+.env
+```
+
+💡 _Archivo obligatorio para control de versiones._
+
+---
+
+## ✅ Archivos que **sí o sí** debe tener el proyecto
+
+| Tipo          | Archivo                                                           | Motivo                           |
+| ------------- | ----------------------------------------------------------------- | -------------------------------- |
+| Configuración | `config/app.php`, `config/database.php`                           | Inicialización del sistema       |
+| Controladores | `AuthController.php`, `UserController.php`                        | Manejo base de usuarios          |
+| Modelos       | `User.php`, `Test.php`                                            | Datos esenciales                 |
+| Vistas        | `auth/login.php`, `auth/registro.php`, `header.php`, `footer.php` | Interfaz mínima                  |
+| Público       | `css/style.css`, `js/main.js`, `img/logo.png`                     | Apariencia y scripts             |
+| Seguridad     | `middleware/AuthMiddleware.php`                                   | Control de accesos               |
+| Base de datos | `schema.sql`                                                      | Estructura de datos              |
+| Sistema       | `index.php`, `.gitignore`                                         | Ejecución y control de versiones |
+
+---

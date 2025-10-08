@@ -1,1 +1,0 @@
-// Scripts principales del frontend
