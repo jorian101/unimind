@@ -1,0 +1,17 @@
+# <tipo>: <descripción breve>
+#
+# <descripción detallada opcional>
+#
+# Tipos válidos:
+# feat:     Nueva funcionalidad
+# fix:      Corrección de bug
+# docs:     Cambios en documentación
+# style:    Cambios de formato (espacios, punto y coma, etc)
+# refactor: Refactoring de código
+# test:     Agregar o modificar tests
+# chore:    Tareas de mantenimiento
+# perf:     Mejoras de rendimiento
+# ci:       Cambios en CI/CD
+# build:    Cambios en el sistema de build
+#
+# Ejemplo: feat: agregar validación de email en formulario login

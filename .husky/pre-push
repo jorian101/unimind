@@ -1,0 +1,41 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Ejecutando pre-push hooks..."
+
+# Obtener rama actual
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+# Ramas protegidas que no permiten push directo
+protected_branches="main master production"
+
+# Verificar si la rama actual está protegida
+for branch in $protected_branches; do
+  if [ "$current_branch" = "$branch" ]; then
+    echo "❌ ERROR: No se permite push directo a la rama '$branch'"
+    echo "💡 Usa Pull Request para enviar cambios a ramas protegidas"
+    exit 1
+  fi
+done
+
+# Validar nombre de rama (feature/, fix/, hotfix/, etc.)
+if ! echo "$current_branch" | grep -qE "^(feature|fix|hotfix|release|chore|docs)\/[a-z0-9-]+$|^(main|master|develop)$"; then
+  echo "❌ ERROR: Nombre de rama inválido: '$current_branch'"
+  echo "💡 Usa el formato: feature/nombre-funcionalidad, fix/nombre-bug, etc."
+  exit 1
+fi
+
+# Ejecutar tests completos antes del push
+if [ -f "package.json" ] && grep -q '"test"' package.json; then
+  echo "🧪 Ejecutando suite completa de tests..."
+  npm test -- --watchAll=false --coverage
+fi
+
+# Verificar que no hay archivos sin commitear
+if ! git diff-index --quiet HEAD --; then
+  echo "❌ ERROR: Hay cambios sin commitear"
+  echo "💡 Haz commit de todos los cambios antes del push"
+  exit 1
+fi
+
+echo "✅ Pre-push hooks completados - Push permitido"
