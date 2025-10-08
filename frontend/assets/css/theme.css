@@ -1,1 +1,38 @@
-/* Variables de tema y colores */
+:root {
+  /* Color accent */
+  --acc-100: #b2ebf2;
+  --acc-300: #4dd0e1;
+  --acc-500: #008196;
+  --acc-700: #006064;
+  --acc-900: #00363a;
+
+  /* Color background */
+  --bg-100: #fff; /* Color blanco*/
+  --bg-300: #f2f3f4;
+  --bg-500: #ecedee;
+  --bg-700: #d0d1d3;
+  --bg-900: #a6a8ab;
+
+  /* Color primario */
+  --pri-300: #c72344;
+  --pri-500: #70001e;
+  --pri-700: #520016;
+  --pri-900: #33000d;
+
+  /* Color secundario */
+  --sec-100: #f0d5c1;
+  --sec-300: #d6986b;
+  --sec-500: #a9704d;
+  --sec-700: #6a442f;
+  --sec-900: #2e1c13;
+
+  /* Color variable */
+  --var-100: #eef5f9;
+  --var-300: #ced4da;
+  --var-500: #99abb4;
+  --var-700: #455a64;
+  --var-900: #212529;
+
+  /* Font family */
+  --font: "Inter", sans-serif;
+}
