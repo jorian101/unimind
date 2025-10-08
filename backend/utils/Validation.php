@@ -1,0 +1,2 @@
+<?php
+// Utilidades de validación
