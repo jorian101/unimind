@@ -32,4 +32,7 @@
   --var-500: #99abb4;
   --var-700: #455a64;
   --var-900: #212529;
+
+  /* Font family */
+  --font: "Inter", sans-serif;
 }
