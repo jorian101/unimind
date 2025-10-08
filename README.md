@@ -190,6 +190,15 @@ unimind/
 ├── docs/
 │   ├── api.md
 │   └── manual.md
+├── mobile/ (Ionic que se crea automaticamente, aun no se usa)
+│   └── src/
+│       └── app/
+│           ├── pages/
+│           │   ├── login/
+│           │   ├── student/
+│           │   ├── teacher/
+│           │   └── admin/
+│           └── services/
 │
 └── .gitignore
 ```
