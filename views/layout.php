@@ -1,38 +1,25 @@
-<?php
-/**
- * Layout principal que incluye sidebar + header fijo
- * Componentes modulares y reutilizables
- */
-?>
-
-<!-- Sidebar independiente -->
 <?php include 'sidebar.php'; ?>
 
-<!-- Header fijo alineado con sidebar -->
 <?php include 'header.php'; ?>
 
-<!-- CSS necesarios para el layout -->
 <link rel="stylesheet" href="public/css/theme.css">
 <link rel="stylesheet" href="views/sidebar.css">
 <link rel="stylesheet" href="views/header.css">
 <link rel="stylesheet" href="views/page-header.css">
 
-<!-- JavaScript necesario para el layout -->
 <script src="public/js/main.js"></script>
 <script src="public/js/header.js"></script>
 <script src="public/js/page-header.js"></script>
 
 <style>
-/* Layout con sidebar y header fijo */
 .layout-wrapper {
     position: relative;
     min-height: 100vh;
 }
 
-/* Contenido principal responsive automático - considerando header fijo */
 .main-content {
     margin-left: 280px;
-    margin-top: 60px; /* Altura del header fijo */
+    margin-top: 60px;
     padding: 2rem;
     transition: margin-left 0.3s ease;
     min-height: calc(100vh - 60px);
@@ -84,7 +71,6 @@
     }
 }
 
-/* El page-header ahora va dentro del contenido */
 .page-content-wrapper {
     max-width: 1200px;
     margin: 0 auto;

@@ -1,10 +1,4 @@
 <?php
-/**
- * Componente Header simplificado
- * Solo contiene notificaciones y perfil, alineado con el sidebar
- */
-
-// Obtener parámetros básicos
 $currentRole = $_GET['role'] ?? 'estudiante';
 $userName = 'Usuario Actual'; // Esto vendría de la sesión/BD
 ?>

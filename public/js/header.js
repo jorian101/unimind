@@ -1,8 +1,3 @@
-/**
- * Header Component JavaScript
- * Maneja la interactividad del header simplificado (notificaciones y perfil)
- */
-
 class HeaderComponent {
   constructor() {
     this.header = document.getElementById("main-header");
@@ -20,7 +15,6 @@ class HeaderComponent {
     this.setupResponsiveHandler();
   }
 
-  // Configurar botones de acción
   setupActionButtons() {
     this.actionButtons.forEach((button) => {
       button.addEventListener("click", () => {
@@ -30,25 +24,21 @@ class HeaderComponent {
     });
   }
 
-  // Manejar clics en botones de acción
   handleActionClick(action, button) {
     switch (action) {
       case "Notificaciones":
         this.showNotifications();
         break;
       default:
-        // Acción no reconocida, no hacer nada
         break;
     }
 
-    // Animación visual
     button.style.transform = "scale(0.95)";
     setTimeout(() => {
       button.style.transform = "";
     }, 150);
   }
 
-  // Configurar menú de usuario
   setupUserMenu() {
     if (this.userInfo) {
       this.userInfo.addEventListener("click", () => {
@@ -57,7 +47,6 @@ class HeaderComponent {
     }
   }
 
-  // Mostrar menú de usuario
   showUserMenu() {
     const existingMenu = document.querySelector(".user-dropdown");
     if (existingMenu) {
@@ -77,7 +66,6 @@ class HeaderComponent {
     this.userInfo.style.position = "relative";
     this.userInfo.appendChild(dropdown);
 
-    // Cerrar al hacer clic fuera
     setTimeout(() => {
       document.addEventListener(
         "click",
@@ -91,15 +79,12 @@ class HeaderComponent {
     }, 100);
   }
 
-  // Sincronizar con el estado del sidebar
   syncWithSidebar() {
-    // Escuchar evento personalizado del sidebar
     document.addEventListener("sidebarToggle", (e) => {
       this.updateHeaderPosition(e.detail.collapsed);
     });
   }
 
-  // Actualizar posición del header según el estado del sidebar
   updateHeaderPosition(collapsed = null) {
     if (collapsed === null) {
       collapsed = this.sidebar?.classList.contains("collapsed");
@@ -108,7 +93,6 @@ class HeaderComponent {
     document.body.classList.toggle("sidebar-collapsed", collapsed);
   }
 
-  // Configurar manejo responsive
   setupResponsiveHandler() {
     const breakpoints = [
       { max: 390, class: "mobile-small" },
@@ -120,12 +104,10 @@ class HeaderComponent {
     const updateResponsive = () => {
       const width = window.innerWidth;
 
-      // Remover todas las clases responsive
       breakpoints.forEach((bp) => {
         this.header?.classList.remove(bp.class);
       });
 
-      // Agregar clase apropiada
       for (const bp of breakpoints) {
         if ((bp.max && width <= bp.max) || (bp.min && width >= bp.min)) {
           this.header?.classList.add(bp.class);
@@ -135,16 +117,14 @@ class HeaderComponent {
     };
 
     window.addEventListener("resize", updateResponsive);
-    updateResponsive(); // Ejecutar al inicializar
+    updateResponsive();
   }
 
-  // Mostrar notificaciones
   showNotifications() {
     // Implementar panel de notificaciones
   }
 }
 
-// Función para inicializar el header con props personalizados
 function initializeHeader(customProps = {}) {
   document.addEventListener("DOMContentLoaded", () => {
     const headerComponent = new HeaderComponent();
@@ -153,17 +133,14 @@ function initializeHeader(customProps = {}) {
       headerComponent.updateHeaderProps(customProps);
     }
 
-    // Exponer la instancia globalmente para uso externo
     window.headerComponent = headerComponent;
   });
 }
 
-// Función helper para uso desde PHP
 function setHeaderProps(props) {
   if (window.headerComponent) {
     window.headerComponent.updateHeaderProps(props);
   } else {
-    // Si aún no está inicializado, almacenar para cuando esté listo
     window.pendingHeaderProps = props;
     document.addEventListener("DOMContentLoaded", () => {
       if (window.pendingHeaderProps && window.headerComponent) {
@@ -174,9 +151,7 @@ function setHeaderProps(props) {
   }
 }
 
-// Auto-inicializar
 initializeHeader();
 
-// Exponer funciones globalmente
 window.setHeaderProps = setHeaderProps;
 window.initializeHeader = initializeHeader;

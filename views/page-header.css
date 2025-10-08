@@ -145,7 +145,6 @@
   }
 }
 
-/* Estados especiales */
 .page-header--loading {
   opacity: 0.7;
   pointer-events: none;
@@ -156,7 +155,6 @@
   background: linear-gradient(135deg, var(--pri-50) 0%, var(--bg-100) 100%);
 }
 
-/* Animaciones */
 @keyframes pageHeaderSlideIn {
   from {
     opacity: 0;
@@ -172,7 +170,6 @@
   animation: pageHeaderSlideIn 0.3s ease-out;
 }
 
-/* Efectos hover para breadcrumb navegable */
 .page-header__breadcrumb-item--navigable {
   position: relative;
 }
