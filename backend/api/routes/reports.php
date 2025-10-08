@@ -1,2 +1,0 @@
-<?php
-// Rutas de reportes

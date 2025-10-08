@@ -1,54 +1,158 @@
-# Guía de Instalación y Uso
+# UniMind - Sistema de Monitoreo de Estrés
+
+## Página de Prueba con Sidebar Responsive
+
+Proyecto simplificado que muestra una página de prueba con sidebar completamente funcional y responsive.
+
+## Estructura Actual del Proyecto
+
+Ver manual.md para detalles completos de la API.
+
+```
+unimind/
+│
+├── config/
+│   ├── database.php
+│   └── app.php
+│
+├── controllers/
+│   ├── AuthController.php
+│   ├── UserController.php
+│   ├── TestController.php
+│   ├── ReportController.php
+│   └── AlertController.php
+│
+├── models/
+│   ├── User.php
+│   ├── Test.php
+│   ├── Result.php
+│   └── Report.php
+│
+├── views/
+│   ├── administrador/
+│   │   ├── dashboard.php
+│   │   ├── usuarios.php
+│   │   └── reportes.php
+│   │
+│   ├── profesor/
+│   │   ├── alertas.php
+│   │   └── estudiantes.php
+│   │
+│   ├── estudiante/
+│   │   ├── test.php
+│   │   ├── historial.php
+│   │   └── progreso.php
+│   │
+│   ├── auth/
+│   │   ├── login.php
+│   │   └── registro.php
+│   │
+│   ├── header.php
+│   ├── footer.php
+│   ├── sidebar.php
+├── public/
+│   ├── css/
+│   │   ├── style.css         # Estilos generales
+│   │   └── theme.css         # Tema del sistema
+│   ├── js/
+│   │   └── main.js
+│   └── img/
+│       └── logo.png
+│
+├── middleware/
+│   └── AuthMiddleware.php
+│
+├── utils/
+│   ├── Validation.php
+│   └── SessionHelper.php
+│
+├── database/
+│   ├── schema.sql
+│   └── seed.sql
+│
+├── docs/
+│   ├── manual.md
+│   └── api.md
+│
+├── index.php
+└── .gitignore
+
+```
 
 ## Configuración Inicial
 
 ### Para Usuarios de Windows
 
 1. **Clona el Repositorio en htdocs**:
-   - Abre la carpeta `htdocs` de XAMPP (generalmente `C:\xampp\htdocs\`).
-   - Abre la línea de comandos (CMD o PowerShell) y navega a esa carpeta:
-     ```
-     cd C:\xampp\htdocs
-     ```
-   - Clona el repositorio:
-     ```
-     git clone https://github.com/jorian101/unimind.git
-     ```
-     Esto creará la carpeta `unimind` dentro de `htdocs`.
-   - Dentro de la carpeta `unimind` realiza:
-     ```
-     npm i
-     ```
+
+   ```cmd
+   cd C:\xampp\htdocs
+   git clone https://github.com/jorian101/unimind.git
+   cd unimind
+   npm install
+   ```
 
 2. **Inicia XAMPP**:
-   - Abre la aplicación XAMPP desde el menú Inicio.
-   - Inicia el módulo Apache (no necesitas MySQL ni PHP por ahora, solo para el frontend).
+   - Solo necesitas Apache (PHP)
+   - No necesitas MySQL
 
 ### Para Usuarios de Linux
 
 1. **Clona el Repositorio en htdocs**:
-   - Abre la carpeta `htdocs` de XAMPP (generalmente `/opt/lampp/htdocs/`).
-   - Abre la terminal y navega a esa carpeta:
-     ```
-     cd /opt/lampp/htdocs
-     ```
-   - Clona el repositorio:
-     ```
-     git clone https://github.com/jorian101/unimind.git
-     ```
-     Esto creará la carpeta `unimind` dentro de `htdocs`.
 
-## Ejecutar el Frontend
+   ```bash
+   cd /opt/lampp/htdocs
+   git clone https://github.com/jorian101/unimind.git
+   cd unimind
+   npm install
+   ```
 
-1. **Accede al Frontend**:
-   - Abre tu navegador web.
-     - Ve a `http://localhost/unimind/frontend/index.html`.
-   - Deberías ver la página inicial del sistema de monitoreo de estrés.
+2. **Inicia XAMPP**:
+   ```bash
+   sudo /opt/lampp/lampp start
+   ```
 
-2. **Desarrollo y Pruebas**:
-   - Edita los archivos en tu editor de código (desde la carpeta clonada en `htdocs/unimind`).
-   - Para ver los cambios, recarga la página en el navegador.
-   - Si realizas cambios en archivos estáticos (HTML, CSS, JS), no necesitas reiniciar Apache; solo recarga la página.
+## Ejecutar la Aplicación
+
+1. **Acceso Principal**:
+   - Ve a: `http://localhost/unimind`
+   - Verás una página de prueba con el texto "Prueba" y el sidebar a la izquierda
+
+2. **Funcionalidades de la Página de Prueba**:
+   - Sidebar responsive completamente funcional
+   - Toggle manual del sidebar con botón
+   - Notificaciones de prueba
+   - Diseño adaptable a móvil
+
+## Características Actuales
+
+### ✅ **Implementado**
+
+- Página de prueba simple con texto "Prueba"
+- Sidebar responsive con menú de ejemplo
+- Header con botón toggle para sidebar
+- Footer informativo
+- JavaScript funcional para toggle del sidebar
+- Diseño completamente responsive
+
+### 📱 **Sidebar Features**
+
+- Se oculta/muestra automáticamente según el tamaño de pantalla
+- Overlay en móvil para mejor UX
+- Menú de ejemplo con iconos FontAwesome
+- Animaciones suaves
+- Usuario demo en footer del sidebar
+
+### 🎨 **Componentes Reutilizables**
+
+- **header.php**: Header con navegación y toggle
+- **footer.php**: Footer simple
+- **sidebar.php**: Sidebar completamente funcional
+- **test-page.php**: Página principal de prueba
+
+Ver `docs/manual.md` para detalles técnicos de implementación.
+
+- Si realizas cambios en archivos estáticos (HTML, CSS, JS), no necesitas reiniciar Apache; solo recarga la página.
 
 ## Flujo de Trabajo con Git
 
@@ -114,91 +218,3 @@ Después de ejecutar el frontend y verificar que funciona correctamente, procede
 ## API Endpoints
 
 Ver `docs/api.md` para detalles completos de la API.
-
-# Estructura del Proyecto
-
-Ver `docs/manual.md` para detalles completos de la estructura.
-
-```
-unimind/
-│
-├── backend/
-│   ├── config/
-│   │   ├── database.php
-│   │   └── cors.php
-│   │
-│   ├── controllers/
-│   │   ├── AuthController.php
-│   │   ├── UserController.php
-│   │   ├── TestController.php
-│   │   ├── ReportController.php
-│   │   └── AlertController.php
-│   │
-│   ├── models/
-│   │   ├── User.php
-│   │   ├── Test.php
-│   │   ├── Result.php
-│   │   └── Report.php
-│   │
-│   ├── views/
-│   │   ├── templates/
-│   │   │   ├── header.php
-│   │   │   ├── footer.php
-│   │   │   └── layout.php
-│   │   └── partials/
-│   │       └── messages.php
-│   │
-│   ├── api/
-│   │   ├── index.php
-│   │   └── routes/
-│   │       ├── auth.php
-│   │       ├── users.php
-│   │       ├── tests.php
-│   │       └── reports.php
-│   │
-│   ├── middleware/
-│   │   └── AuthMiddleware.php
-│   │
-│   └── utils/
-│       ├── JwtHelper.php
-│       └── Validation.php
-│
-├── frontend/
-│   ├── assets/
-│   │   ├── css/
-│   │   │   ├── style.css
-│   │   │   └── theme.css
-│   │   ├── js/
-│   │   │   └── main.js
-│   │   └── img/
-│   │
-│   ├── components/
-│   │   ├── header.html
-│   │   └── footer.html
-│   │
-│   ├── pages/
-│   │   ├── administrador/
-│   │   ├── estudiante/
-│   │   └── profesor/
-│   │
-│   └── index.html
-│
-├── database/
-│   ├── schema.sql
-│   └── seed.sql
-│
-├── docs/
-│   ├── api.md
-│   └── manual.md
-├── mobile/ (Ionic que se crea automaticamente, aun no se usa)
-│   └── src/
-│       └── app/
-│           ├── pages/
-│           │   ├── login/
-│           │   ├── student/
-│           │   ├── teacher/
-│           │   └── admin/
-│           └── services/
-│
-└── .gitignore
-```

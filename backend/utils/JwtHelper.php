@@ -1,2 +1,0 @@
-<?php
-// Helper para JWT
