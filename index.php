@@ -12,9 +12,10 @@ $currentPage = $router->getCurrentPage();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniMind - <?php echo ucfirst($currentRole); ?></title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="public/css/style.css">
-    <link rel="stylesheet" href="public/css/theme.css">
+    <link rel="stylesheet" href="public/css/style.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="public/css/theme.css?v=<?php echo time(); ?>">
 </head>
 <body>
     <div class="layout-wrapper">

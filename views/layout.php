@@ -3,10 +3,10 @@
 <?php include 'header.php'; ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="public/css/theme.css">
-<link rel="stylesheet" href="views/sidebar.css">
-<link rel="stylesheet" href="views/header.css">
-<link rel="stylesheet" href="views/page-header.css">
+<link rel="stylesheet" href="public/css/theme.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="views/sidebar.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="views/header.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="views/page-header.css?v=<?php echo time(); ?>">
 
 <script src="public/js/main-simple.js?v=<?php echo time(); ?>"></script>
 <script src="public/js/header.js"></script>
