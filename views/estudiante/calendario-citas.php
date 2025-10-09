@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__DIR__) . '/page-header-component.php';
+require_once dirname(__DIR__) . '/pageHeader.php';
 renderPageHeader('Calendario de Citas', ['Inicio', 'Calendario de Citas']);
 ?>
 

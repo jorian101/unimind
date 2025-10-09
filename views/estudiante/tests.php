@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__DIR__) . '/./page-header-component.php';
+require_once dirname(__DIR__) . '/./pageHeader.php';
 renderPageHeader('Tests y Evaluaciones', ['Inicio', 'Tests y Evaluaciones']);
 ?>
 

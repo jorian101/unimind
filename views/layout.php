@@ -6,7 +6,8 @@
 <link rel="stylesheet" href="public/css/theme.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="views/sidebar.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="views/header.css?v=<?php echo time(); ?>">
-<link rel="stylesheet" href="views/page-header.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="views/pageHeader.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="views/estudiante/inicio.css?v=<?php echo time(); ?>">
 
 <script src="public/js/main-simple.js?v=<?php echo time(); ?>"></script>
 <script>
@@ -81,5 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
 .page-content-wrapper {
     max-width: 1200px;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
 }
 </style>
