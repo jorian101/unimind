@@ -11,7 +11,6 @@
 }
 
 html {
-  font-size: 16px;
   line-height: 1.5;
 }
 
@@ -31,20 +30,12 @@ body {
 }
 
 @media (min-width: 390px) {
-  html {
-    font-size: 14px;
-  }
-
   .container {
     padding: 0 1rem;
   }
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-
   .container {
     padding: 0 2rem;
   }
@@ -65,10 +56,6 @@ body {
 
 /* Mobile responsiveness */
 @media (max-width: 767px) {
-  html {
-    font-size: 14px;
-  }
-
   .container {
     padding: 0 0.5rem;
   }
