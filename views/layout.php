@@ -9,6 +9,10 @@
 <link rel="stylesheet" href="views/pageHeader.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="views/estudiante/inicio.css?v=<?php echo time(); ?>">
 
+<?php if(($_GET['page'] ?? '') === 'dashboard'): ?>
+<link rel="stylesheet" href="views/estudiante/dashboard.css?v=<?php echo time(); ?>">
+<?php endif; ?>
+
 <!-- Apply initial state IMMEDIATELY before any CSS loads -->
 <script>
 // CRITICAL: Apply state before DOM renders to prevent flash

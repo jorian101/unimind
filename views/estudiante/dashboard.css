@@ -1,0 +1,348 @@
+.dashboard-container {
+  font-family: var(--font);
+  color: var(--pri-500);
+  max-width: 1200px;
+  padding: 1.25rem;
+  background: var(--bg-100);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ======== Tarjetas principales ======== */
+.cards-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.card {
+  flex: 1;
+  min-width: 280px;
+  background: var(--bg-100);
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--bg-500);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+  font-size: calc(0.9975rem + 0.6vw);
+  margin-bottom: 0.3rem;
+  font-weight: 600;
+}
+
+.card small {
+  color: var(--var-700);
+  font-size: calc(0.8375rem + 0.075vw);
+}
+
+.card .percent {
+  font-size: calc(1.5rem + 1.5vw);
+  font-weight: 600;
+  margin-top: 0.5rem;
+  line-height: 1.2;
+}
+
+.bar {
+  height: 10px;
+  border-radius: 10px;
+  background: var(--bg-500);
+  margin-top: 0.5rem;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  transition: width 0.8s ease-out;
+  border-radius: 10px;
+}
+
+.level {
+  margin-top: 0.5rem;
+  color: var(--var-700);
+  font-weight: 500;
+  font-size: calc(0.875rem + 0.075vw);
+}
+
+/* ======== Estado general ======== */
+.general {
+  background: var(--bg-100);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  border: 1px solid var(--bg-500);
+}
+
+.general-header {
+  font-size: calc(1rem + 0.5vw);
+  font-weight: 600;
+  color: var(--pri-500);
+}
+
+.general-sub {
+  color: var(--var-700);
+  margin-bottom: 1rem;
+  font-size: calc(0.875rem + 0.075vw);
+}
+
+.general-body {
+  background: var(--bg-300);
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.general-body span {
+  font-weight: 500;
+}
+
+.status {
+  background: var(--acc-100);
+  color: var(--acc-700);
+  padding: 0.375rem 1rem;
+  border-radius: 20px;
+  font-size: calc(0.8375rem + 0.075vw);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dashboard-btn {
+  background: var(--pri-500);
+  color: var(--bg-100);
+  border: none;
+  width: 100%;
+  padding: 0.875rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: calc(0.90375rem + 0.045vw);
+  transition: all 0.2s ease;
+  font-family: var(--font);
+}
+
+.dashboard-btn:hover {
+  background: var(--pri-600);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(112, 0, 30, 0.3);
+}
+
+/* ======== Métricas finales ======== */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.metric {
+  text-align: center;
+  background: var(--bg-100);
+  border-radius: 10px;
+  padding: 1.25rem 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--bg-500);
+  transition: all 0.3s ease;
+}
+
+.metric:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.metric .value {
+  font-size: calc(1.25rem + 0.75vw);
+  color: var(--pri-500);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+}
+
+.metric .label {
+  color: var(--var-700);
+  font-size: calc(0.8375rem + 0.075vw);
+  font-weight: 500;
+}
+
+/* Responsive Breakpoints */
+
+/* Mobile Small (≤ 390px) */
+@media (max-width: 390px) {
+  .dashboard-container {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .cards-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .card {
+    min-width: auto;
+    padding: 1rem;
+  }
+
+  .general {
+    padding: 1rem;
+  }
+
+  .general-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .metric {
+    padding: 1rem;
+  }
+}
+
+/* Mobile (391px - 767px) */
+@media (min-width: 391px) and (max-width: 767px) {
+  .cards-row {
+    flex-direction: column;
+  }
+
+  .card {
+    min-width: auto;
+  }
+
+  .general-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cards-row {
+    flex-wrap: nowrap;
+  }
+
+  .card {
+    min-width: 250px;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Desktop Medium (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .dashboard-container {
+    padding: 1.5rem;
+  }
+
+  .cards-row {
+    flex-wrap: nowrap;
+  }
+}
+
+/* Desktop Large (≥ 1440px) */
+@media (min-width: 1440px) {
+  .dashboard-container {
+    max-width: 1400px;
+    padding: 2rem;
+    gap: 1.5rem;
+  }
+
+  .cards-row {
+    gap: 1.5rem;
+  }
+
+  .general {
+    padding: 2rem;
+  }
+
+  .metrics {
+    gap: 1.5rem;
+  }
+
+  .metric {
+    padding: 1.5rem;
+  }
+}
+
+/* Loading states */
+.dashboard-container.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.card.loading,
+.metric.loading {
+  animation: pulse 1.5s infinite;
+}
+
+/* Smooth transitions for responsive changes */
+.card,
+.metric,
+.general {
+  transition: all 0.3s ease;
+}
+
+/* Hover effects for touch devices */
+@media (hover: none) {
+  .card:hover,
+  .metric:hover,
+  .dashboard-btn:hover {
+    transform: none;
+  }
+}
+
+/* Color variants for different stress/anxiety levels */
+.card--stress {
+  border-color: #d5a8a0;
+}
+
+.card--stress h3 {
+  color: var(--pri-500);
+}
+
+.card--stress .bar-fill {
+  background: var(--pri-600);
+}
+
+.card--anxiety {
+  border-color: #a7d8d8;
+}
+
+.card--anxiety h3 {
+  color: var(--acc-700);
+}
+
+.card--anxiety .bar-fill {
+  background: var(--acc-700);
+}

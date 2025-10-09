@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sidebar = document.getElementById("sidebar");
     const toggle = document.querySelector(".sidebar__menu-toggle");
     const overlay = document.getElementById("sidebar-overlay");
-    const isMobile = window.innerWidth <= 768; // Changed to match CSS
+    const isMobile = window.innerWidth <= 768;
 
     if (isMobile && sidebar.classList.contains("sidebar--show")) {
       // Si se hace clic fuera del sidebar y no es el botón toggle
