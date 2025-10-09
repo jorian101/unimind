@@ -33,4 +33,4 @@ $sidebarProps = getSidebarConfig($currentRole);
         </select>
     </div>
 </aside>
-</aside>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
