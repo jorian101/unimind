@@ -1,5 +1,5 @@
 .sidebar {
-  width: var(--initial-sidebar-width, 280px);
+  width: 280px;
   height: calc(100vh - 60px);
   background-color: var(--pri-900);
   color: var(--bg-100);
@@ -115,13 +115,11 @@
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 280px;
+    width: 280px !important;
     transform: translateX(-100%);
-    transition:
-      transform 0.3s ease,
-      width 0.3s ease;
+    transition: transform 0.3s ease;
     z-index: 1001;
-    top: 56px; /* Adjust for mobile header height */
+    top: 56px;
     height: calc(100vh - 56px);
   }
 
@@ -130,7 +128,13 @@
   }
 
   .sidebar--collapsed {
-    width: 280px;
+    width: 280px !important;
+    transform: translateX(-100%);
+  }
+
+  /* Override initially collapsed state on mobile */
+  .sidebar-initially-collapsed .sidebar {
+    width: 280px !important;
     transform: translateX(-100%);
   }
 }

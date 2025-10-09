@@ -17,18 +17,11 @@
     
     // Get saved state immediately
     var savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-    var isMobile = window.innerWidth < 768;
+    var isMobile = window.innerWidth < 769; // Changed to match CSS breakpoint
     
     if (!isMobile && savedCollapsed) {
-        // Apply collapsed state immediately via CSS variables and classes
-        document.documentElement.style.setProperty('--initial-sidebar-width', '60px');
-        document.documentElement.style.setProperty('--initial-main-margin', '60px');
-        
         // Add class to html element immediately
         document.documentElement.classList.add('sidebar-initially-collapsed');
-    } else {
-        document.documentElement.style.setProperty('--initial-sidebar-width', '280px');
-        document.documentElement.style.setProperty('--initial-main-margin', '280px');
     }
     
     // Prevent any transitions during initial load
@@ -42,9 +35,9 @@
     min-height: 100vh;
 }
 
-/* Use CSS variables set by JavaScript for initial state */
+/* Restore normal main-content behavior */
 .main-content {
-    margin-left: var(--initial-main-margin, 280px);
+    margin-left: 280px;
     margin-top: 60px;
     padding: 2rem;
     transition: margin-left 0.3s ease;
@@ -53,13 +46,9 @@
     opacity: 1;
 }
 
-/* Override for initially collapsed state */
+/* Handle initial collapsed state */
 .sidebar-initially-collapsed .main-content {
     margin-left: 60px !important;
-}
-
-.sidebar-initially-collapsed .sidebar {
-    width: 60px !important;
 }
 
 /* Disable all transitions during initial load */
@@ -82,8 +71,13 @@ body.sidebar-collapsed .main-content {
         padding: 1rem;
         min-height: calc(100vh - 56px);
     }
+    
+    .sidebar-initially-collapsed .main-content {
+        margin-left: 0 !important;
+    }
 }
 
+/* Fix 768px breakpoint to behave like mobile */
 @media (max-width: 768px) and (min-width: 391px) {
     .main-content {
         margin-left: 0 !important;
@@ -91,11 +85,15 @@ body.sidebar-collapsed .main-content {
         padding: 1.5rem;
         min-height: calc(100vh - 56px);
     }
+    
+    .sidebar-initially-collapsed .main-content {
+        margin-left: 0 !important;
+    }
 }
 
 @media (max-width: 1024px) and (min-width: 769px) {
     .main-content {
-        margin-left: var(--initial-main-margin, 240px);
+        margin-left: 240px;
     }
     
     body.sidebar-collapsed .main-content {
@@ -109,7 +107,7 @@ body.sidebar-collapsed .main-content {
 
 @media (min-width: 1441px) {
     .main-content {
-        margin-left: var(--initial-main-margin, 320px);
+        margin-left: 320px;
         margin-top: 64px;
         padding: 2.5rem;
         min-height: calc(100vh - 64px);

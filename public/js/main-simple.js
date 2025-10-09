@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Get elements and initial state
   const sidebar = document.getElementById("sidebar");
   const body = document.body;
-  const isMobile = window.innerWidth < 768;
+  const isMobile = window.innerWidth <= 768; // Changed to match CSS
   const savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
 
   // Synchronize JavaScript state with CSS-applied initial state
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function applySidebarState(collapsed) {
     const sidebar = document.getElementById("sidebar");
     const body = document.body;
-    const isMobile = window.innerWidth < 768;
+    const isMobile = window.innerWidth <= 768; // Changed to match CSS
 
     if (!sidebar || isMobile) return;
 
@@ -155,10 +155,10 @@ document.addEventListener("DOMContentLoaded", function () {
     toggle.onclick = function () {
       const sidebar = document.getElementById("sidebar");
       const body = document.body;
-      const isMobile = window.innerWidth < 768;
+      const isMobile = window.innerWidth <= 768; // Changed to match CSS
 
       if (isMobile) {
-        // En móvil, alternar visibilidad
+        // En móvil (incluye 768px), alternar visibilidad
         sidebar.classList.toggle("sidebar--show");
         const overlay = document.getElementById("sidebar-overlay");
         if (sidebar.classList.contains("sidebar--show")) {
@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("resize", function () {
     const sidebar = document.getElementById("sidebar");
     const body = document.body;
-    const isMobile = window.innerWidth < 768;
+    const isMobile = window.innerWidth <= 768; // Changed to match CSS
 
     if (isMobile) {
       // En móvil, remover clases de desktop pero NO cambiar el estado guardado
@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sidebar = document.getElementById("sidebar");
     const toggle = document.querySelector(".sidebar__menu-toggle");
     const overlay = document.getElementById("sidebar-overlay");
-    const isMobile = window.innerWidth < 768;
+    const isMobile = window.innerWidth <= 768; // Changed to match CSS
 
     if (isMobile && sidebar.classList.contains("sidebar--show")) {
       // Si se hace clic fuera del sidebar y no es el botón toggle
