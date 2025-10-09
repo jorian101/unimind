@@ -1,8 +1,9 @@
 <?php
-require_once dirname(__DIR__) . '/./pageHeader.php';
+require_once dirname(__DIR__) . '/pageHeader.php';
 renderPageHeader('Evaluaciones', ['Inicio', 'Evaluaciones']);
 ?>
 <link rel="stylesheet" href="views/estudiante/tests.css?v=<?php echo time(); ?>">
+
 <div class="tests-list">
     <div class="test-item">
         <div class="test-header">
@@ -18,9 +19,15 @@ renderPageHeader('Evaluaciones', ['Inicio', 'Evaluaciones']);
             </div>
         </div>
         <div class="test-actions">
-            <button class="btn-primary">Iniciar Test</button>
+            <button class="btn-primary iniciar-test"
+                data-id="pss-4"
+                data-name="PSS-4 (Estrés)"
+                data-questions="4">
+                Iniciar Test
+            </button>
         </div>
     </div>
+
     <div class="test-item">
         <div class="test-header">
             <h3><i class="fas fa-brain"></i> GAD-2 (Ansiedad)</h3>
@@ -38,6 +45,7 @@ renderPageHeader('Evaluaciones', ['Inicio', 'Evaluaciones']);
             <button class="btn-secondary">Ver Resultados</button>
         </div>
     </div>
+
     <div class="test-item">
         <div class="test-header">
             <h3><i class="fas fa-bullseye"></i> PSS-10 + GAD-7 (Seguimiento general)</h3>
@@ -52,7 +60,27 @@ renderPageHeader('Evaluaciones', ['Inicio', 'Evaluaciones']);
             </div>
         </div>
         <div class="test-actions">
-            <button class="btn-primary">Iniciar Test</button>
+            <button class="btn-primary iniciar-test"
+                data-id="pss10-gad7"
+                data-name="PSS-10 + GAD-7 (Seguimiento general)"
+                data-questions="17">
+                Iniciar Test
+            </button>
         </div>
     </div>
 </div>
+
+<script>
+// === Funcionalidad agregada (sin alterar CSS ni estructura) ===
+document.querySelectorAll('.iniciar-test').forEach(button => {
+    button.addEventListener('click', () => {
+        const testId = button.dataset.id;
+        const testName = encodeURIComponent(button.dataset.name);
+        const questions = button.dataset.questions;
+
+        // Redirige al formulario con los parámetros del test seleccionado
+        const url = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
+        window.location.href = url;
+    });
+});
+</script>

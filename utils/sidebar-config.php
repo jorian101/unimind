@@ -1,7 +1,7 @@
 <?php
 function getSidebarConfig($role, $currentPage = null) {
     // Only these specific pages should show UniMind sidebar
-    $unimindPages = ['dashboard', 'tests', 'historial', 'recomendaciones', 'calendario-citas'];
+    $unimindPages = ['dashboard', 'tests', 'historial', 'formulario', 'recomendaciones', 'calendario-citas'];
     $isUnimind = $currentPage && in_array($currentPage, $unimindPages);
     
     $configs = [
