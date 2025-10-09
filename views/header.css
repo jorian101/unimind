@@ -1,10 +1,9 @@
-/* Header simplificado que se alinea con el sidebar */
 .main-header {
   position: fixed;
   top: 0;
-  left: 0; /* Full width, not pushed by sidebar */
+  left: 0;
   right: 0;
-  height: 60px; /* Misma altura que sidebar-header */
+  height: 60px;
   background: var(--bg-100);
   border-bottom: 1px solid var(--bg-500);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -71,7 +70,6 @@
   transform: translateY(-1px);
 }
 
-/* Badge de notificaciones */
 .main-header__notification-badge {
   position: absolute;
   top: -4px;
@@ -90,7 +88,6 @@
   border: 2px solid var(--bg-100);
 }
 
-/* Información del usuario */
 .main-header__user-info {
   display: flex;
   align-items: center;
@@ -367,7 +364,6 @@
   }
 }
 
-/* Estilos de Iconos y Contenedor de Perfil */
 .header-items-right {
   display: flex;
   align-items: center;
@@ -424,19 +420,21 @@
 
 .dropdown-menu {
   position: absolute;
-  top: 45px;
+  top: 100%;
   right: 0;
   width: 250px;
   background-color: var(--bg-100);
   border: 1px solid var(--bg-500);
   border-radius: 5px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  z-index: 20;
+  z-index: 1000;
   display: none;
+  margin-top: 5px;
 }
 
 .dropdown-menu.visible {
-  display: block;
+  display: block !important;
+  opacity: 1;
 }
 
 .dropdown-menu a {

@@ -49,13 +49,20 @@ class HeaderComponent {
   }
 
   setupProfileMenu() {
+    console.log("Setting up profile menu...");
     const profileToggle = document.getElementById("profileToggle");
     const profileMenu = document.getElementById("profileMenu");
 
+    console.log("Profile toggle:", profileToggle);
+    console.log("Profile menu:", profileMenu);
+
     if (profileToggle && profileMenu) {
       profileToggle.addEventListener("click", (e) => {
+        console.log("Profile toggle clicked!");
         e.stopPropagation();
         const isVisible = profileMenu.classList.contains("visible");
+        console.log("Is visible:", isVisible);
+
         if (isVisible) {
           this.closeProfileMenu();
         } else {
@@ -63,25 +70,29 @@ class HeaderComponent {
         }
       });
 
-      // Close menu when clicking outside
       document.addEventListener("click", (e) => {
         if (!profileToggle.contains(e.target)) {
           this.closeProfileMenu();
         }
       });
+    } else {
+      console.error("Profile toggle or menu not found!");
     }
   }
 
   openProfileMenu() {
+    console.log("Opening profile menu...");
     const profileToggle = document.getElementById("profileToggle");
     const profileMenu = document.getElementById("profileMenu");
     if (profileMenu) {
       profileMenu.classList.add("visible");
       profileToggle.classList.add("active");
+      console.log("Menu should be visible now");
     }
   }
 
   closeProfileMenu() {
+    console.log("Closing profile menu...");
     const profileToggle = document.getElementById("profileToggle");
     const profileMenu = document.getElementById("profileMenu");
     if (profileMenu) {
@@ -168,33 +179,12 @@ class HeaderComponent {
   }
 }
 
-function initializeHeader(customProps = {}) {
+if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
-    const headerComponent = new HeaderComponent();
-
-    if (Object.keys(customProps).length > 0) {
-      headerComponent.updateHeaderProps(customProps);
-    }
-
-    window.headerComponent = headerComponent;
+    console.log("DOM loaded, initializing header...");
+    window.headerComponent = new HeaderComponent();
   });
+} else {
+  console.log("DOM already loaded, initializing header...");
+  window.headerComponent = new HeaderComponent();
 }
-
-function setHeaderProps(props) {
-  if (window.headerComponent) {
-    window.headerComponent.updateHeaderProps(props);
-  } else {
-    window.pendingHeaderProps = props;
-    document.addEventListener("DOMContentLoaded", () => {
-      if (window.pendingHeaderProps && window.headerComponent) {
-        window.headerComponent.updateHeaderProps(window.pendingHeaderProps);
-        delete window.pendingHeaderProps;
-      }
-    });
-  }
-}
-
-initializeHeader();
-
-window.setHeaderProps = setHeaderProps;
-window.initializeHeader = initializeHeader;

@@ -1,6 +1,6 @@
 .sidebar {
   width: 280px;
-  height: calc(100vh - 60px); /* Adjusted for header above */
+  height: calc(100vh - 60px);
   background-color: var(--pri-900);
   color: var(--bg-100);
   display: flex;
@@ -8,7 +8,7 @@
   justify-content: space-between;
   position: fixed;
   left: 0;
-  top: 60px; /* Starts below header */
+  top: 60px;
   z-index: 1000;
 }
 

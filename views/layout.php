@@ -9,7 +9,14 @@
 <link rel="stylesheet" href="views/page-header.css?v=<?php echo time(); ?>">
 
 <script src="public/js/main-simple.js?v=<?php echo time(); ?>"></script>
-<script src="public/js/header.js"></script>
+<script>
+    
+document.addEventListener('DOMContentLoaded', function() {
+    const script = document.createElement('script');
+    script.src = 'public/js/header.js?v=<?php echo time(); ?>';
+    document.head.appendChild(script);
+});
+</script>
 
 <style>
 .layout-wrapper {
