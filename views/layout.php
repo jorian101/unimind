@@ -9,14 +9,31 @@
 <link rel="stylesheet" href="views/pageHeader.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="views/estudiante/inicio.css?v=<?php echo time(); ?>">
 
-<script src="public/js/main-simple.js?v=<?php echo time(); ?>"></script>
+<!-- Apply initial state IMMEDIATELY before any CSS loads -->
 <script>
+// CRITICAL: Apply state before DOM renders to prevent flash
+(function() {
+    'use strict';
     
-document.addEventListener('DOMContentLoaded', function() {
-    const script = document.createElement('script');
-    script.src = 'public/js/header.js?v=<?php echo time(); ?>';
-    document.head.appendChild(script);
-});
+    // Get saved state immediately
+    var savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+    var isMobile = window.innerWidth < 768;
+    
+    if (!isMobile && savedCollapsed) {
+        // Apply collapsed state immediately via CSS variables and classes
+        document.documentElement.style.setProperty('--initial-sidebar-width', '60px');
+        document.documentElement.style.setProperty('--initial-main-margin', '60px');
+        
+        // Add class to html element immediately
+        document.documentElement.classList.add('sidebar-initially-collapsed');
+    } else {
+        document.documentElement.style.setProperty('--initial-sidebar-width', '280px');
+        document.documentElement.style.setProperty('--initial-main-margin', '280px');
+    }
+    
+    // Prevent any transitions during initial load
+    document.documentElement.classList.add('no-initial-transitions');
+})();
 </script>
 
 <style>
@@ -25,33 +42,42 @@ document.addEventListener('DOMContentLoaded', function() {
     min-height: 100vh;
 }
 
-/* Remove animation conflicts and set initial state based on localStorage */
+/* Use CSS variables set by JavaScript for initial state */
 .main-content {
-    margin-left: 280px;
+    margin-left: var(--initial-main-margin, 280px);
     margin-top: 60px;
     padding: 2rem;
     transition: margin-left 0.3s ease;
     min-height: calc(100vh - 60px);
     font-family: var(--font);
-    /* Remove problematic fade animation */
     opacity: 1;
 }
 
-/* Ensure collapsed state is applied immediately */
+/* Override for initially collapsed state */
+.sidebar-initially-collapsed .main-content {
+    margin-left: 60px !important;
+}
+
+.sidebar-initially-collapsed .sidebar {
+    width: 60px !important;
+}
+
+/* Disable all transitions during initial load */
+.no-initial-transitions .sidebar,
+.no-initial-transitions .main-content,
+.no-initial-transitions * {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Normal state classes */
 body.sidebar-collapsed .main-content {
     margin-left: 60px !important;
 }
 
-/* Apply initial state based on localStorage before page renders */
-@media (min-width: 769px) {
-    .main-content {
-        margin-left: <?php echo (isset($_COOKIE['sidebarCollapsed']) && $_COOKIE['sidebarCollapsed'] === 'true') ? '60px' : '280px'; ?>;
-    }
-}
-
 @media (max-width: 390px) {
     .main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
         margin-top: 56px;
         padding: 1rem;
         min-height: calc(100vh - 56px);
@@ -60,7 +86,7 @@ body.sidebar-collapsed .main-content {
 
 @media (max-width: 768px) and (min-width: 391px) {
     .main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
         margin-top: 56px;
         padding: 1.5rem;
         min-height: calc(100vh - 56px);
@@ -69,23 +95,31 @@ body.sidebar-collapsed .main-content {
 
 @media (max-width: 1024px) and (min-width: 769px) {
     .main-content {
-        margin-left: 240px;
+        margin-left: var(--initial-main-margin, 240px);
     }
     
     body.sidebar-collapsed .main-content {
+        margin-left: 60px !important;
+    }
+    
+    .sidebar-initially-collapsed .main-content {
         margin-left: 60px !important;
     }
 }
 
 @media (min-width: 1441px) {
     .main-content {
-        margin-left: 320px;
+        margin-left: var(--initial-main-margin, 320px);
         margin-top: 64px;
         padding: 2.5rem;
         min-height: calc(100vh - 64px);
     }
     
     body.sidebar-collapsed .main-content {
+        margin-left: 60px !important;
+    }
+    
+    .sidebar-initially-collapsed .main-content {
         margin-left: 60px !important;
     }
 }
@@ -97,39 +131,18 @@ body.sidebar-collapsed .main-content {
     flex-direction: column;
     gap: 1rem;
 }
-
-/* Add CSS to prevent flash of unstyled content */
-.sidebar {
-    transition: width 0.3s ease;
-}
-
-.sidebar--collapsed {
-    width: 60px !important;
-}
-
-/* Disable transitions during page load */
-.no-transitions * {
-    transition: none !important;
-}
 </style>
 
+<script src="public/js/main-simple.js?v=<?php echo time(); ?>"></script>
 <script>
-// Apply initial state immediately to prevent flash
-(function() {
-    const savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-    const isMobile = window.innerWidth < 768;
+document.addEventListener('DOMContentLoaded', function() {
+    const script = document.createElement('script');
+    script.src = 'public/js/header.js?v=<?php echo time(); ?>';
+    document.head.appendChild(script);
     
-    if (!isMobile && savedCollapsed) {
-        document.documentElement.style.setProperty('--sidebar-width', '60px');
-        document.body.classList.add('sidebar-collapsed');
-    }
-    
-    // Add no-transitions class temporarily
-    document.body.classList.add('no-transitions');
-    
-    // Remove no-transitions after a brief delay
+    // Remove no-transitions class after everything is loaded
     setTimeout(() => {
-        document.body.classList.remove('no-transitions');
+        document.documentElement.classList.remove('no-initial-transitions');
     }, 100);
-})();
+});
 </script>

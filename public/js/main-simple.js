@@ -1,18 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
   console.log("JavaScript cargado correctamente");
 
-  // Aplicar estado inicial INMEDIATAMENTE antes de cualquier animación
-  const savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+  // Get elements and initial state
   const sidebar = document.getElementById("sidebar");
   const body = document.body;
   const isMobile = window.innerWidth < 768;
+  const savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
 
-  // Aplicar estado inicial sin transiciones
+  // Synchronize JavaScript state with CSS-applied initial state
   if (sidebar && !isMobile) {
-    // Deshabilitar transiciones temporalmente
-    sidebar.style.transition = "none";
-    body.style.transition = "none";
-
     if (savedCollapsed) {
       sidebar.classList.add("sidebar--collapsed");
       body.classList.add("sidebar-collapsed");
@@ -20,12 +16,6 @@ document.addEventListener("DOMContentLoaded", function () {
       sidebar.classList.remove("sidebar--collapsed");
       body.classList.remove("sidebar-collapsed");
     }
-
-    // Restaurar transiciones después de aplicar el estado
-    setTimeout(() => {
-      sidebar.style.transition = "";
-      body.style.transition = "";
-    }, 50);
   }
 
   // Función para obtener el estado actual del sidebar
@@ -81,7 +71,18 @@ document.addEventListener("DOMContentLoaded", function () {
         if (page && role) {
           // Guardar el estado actual del sidebar antes de navegar
           const currentCollapsed = getCurrentSidebarState();
-          localStorage.setItem("sidebarCollapsed", currentCollapsed);
+          localStorage.setItem("sidebarCollapsed", currentCollapsed.toString());
+
+          // Force immediate visual feedback
+          if (currentCollapsed) {
+            document.documentElement.classList.add(
+              "sidebar-initially-collapsed",
+            );
+          } else {
+            document.documentElement.classList.remove(
+              "sidebar-initially-collapsed",
+            );
+          }
 
           window.location.href = "?role=" + role + "&page=" + page;
         }
@@ -133,7 +134,16 @@ document.addEventListener("DOMContentLoaded", function () {
     roleSelector.onchange = function () {
       // Guardar estado actual antes de cambiar de rol
       const currentCollapsed = getCurrentSidebarState();
-      localStorage.setItem("sidebarCollapsed", currentCollapsed);
+      localStorage.setItem("sidebarCollapsed", currentCollapsed.toString());
+
+      // Apply visual state immediately
+      if (currentCollapsed) {
+        document.documentElement.classList.add("sidebar-initially-collapsed");
+      } else {
+        document.documentElement.classList.remove(
+          "sidebar-initially-collapsed",
+        );
+      }
 
       window.location.href = "?role=" + this.value;
     };
@@ -163,9 +173,18 @@ document.addEventListener("DOMContentLoaded", function () {
         sidebar.classList.toggle("sidebar--collapsed");
         body.classList.toggle("sidebar-collapsed");
 
-        // Guardar estado inmediatamente
+        // Update CSS state immediately
         const collapsed = sidebar.classList.contains("sidebar--collapsed");
-        localStorage.setItem("sidebarCollapsed", collapsed);
+        if (collapsed) {
+          document.documentElement.classList.add("sidebar-initially-collapsed");
+        } else {
+          document.documentElement.classList.remove(
+            "sidebar-initially-collapsed",
+          );
+        }
+
+        // Guardar estado inmediatamente
+        localStorage.setItem("sidebarCollapsed", collapsed.toString());
       }
     };
   }
@@ -180,11 +199,21 @@ document.addEventListener("DOMContentLoaded", function () {
       // En móvil, remover clases de desktop pero NO cambiar el estado guardado
       sidebar.classList.remove("sidebar--collapsed");
       body.classList.remove("sidebar-collapsed");
+      document.documentElement.classList.remove("sidebar-initially-collapsed");
     } else {
-      // En desktop, aplicar el estado guardado actual sin interferir
+      // En desktop, aplicar el estado guardado actual
       const savedCollapsed =
         localStorage.getItem("sidebarCollapsed") === "true";
       applySidebarState(savedCollapsed);
+
+      // Update CSS state
+      if (savedCollapsed) {
+        document.documentElement.classList.add("sidebar-initially-collapsed");
+      } else {
+        document.documentElement.classList.remove(
+          "sidebar-initially-collapsed",
+        );
+      }
     }
   });
 
