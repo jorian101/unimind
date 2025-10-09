@@ -1,23 +1,15 @@
 .tests-list {
-  margin-top: 2rem;
   display: grid;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .test-item {
   background: var(--bg-100);
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 1.25rem;
   border: 1px solid var(--bg-400);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
-}
-
-.test-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .test-header {
@@ -91,7 +83,6 @@
   font-weight: 600;
   font-size: 0.875rem;
   transition: all 0.2s ease;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
