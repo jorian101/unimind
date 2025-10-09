@@ -50,6 +50,14 @@
   display: inline;
 }
 
+.sidebar--collapsed .sidebar__item {
+  justify-content: center;
+}
+
+.sidebar--collapsed .sidebar__item i {
+  margin-right: 0;
+}
+
 @media (max-width: 768px) {
   .sidebar {
     width: 280px;
