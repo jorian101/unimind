@@ -43,7 +43,7 @@ function getSidebarConfig($role, $currentPage = null) {
                     ['icon' => 'fas fa-brain', 'label' => 'Filosofía', 'page' => 'filosofia'],
                     ['icon' => 'fas fa-shield-alt', 'label' => 'Seguridad Informática', 'page' => 'seguridad'],
                 ]],
-                ['icon' => 'fas fa-columns', 'label' => 'Test de estres y personalidad', 'page' => 'dashboard'],
+                ['icon' => 'fas fa-columns', 'label' => 'Test de estres y ansiedad', 'page' => 'dashboard'],
             ],
         ],
     ];

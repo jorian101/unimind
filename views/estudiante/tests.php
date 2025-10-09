@@ -11,7 +11,7 @@ renderPageHeader('Tests y Evaluaciones', ['Inicio', 'Tests y Evaluaciones']);
             <button class="btn-primary">Iniciar Test</button>
         </div>
         <div class="test-item">
-            <h3>📊 Test de Personalidad</h3>
+            <h3>📊 Test de ansiedad</h3>
             <p>Estado: <span class="status completed">Completado</span></p>
             <button class="btn-secondary">Ver Resultados</button>
         </div>
