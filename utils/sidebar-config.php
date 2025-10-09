@@ -1,7 +1,7 @@
 <?php
 function getSidebarConfig($role, $currentPage = null) {
     // Only these specific pages should show UniMind sidebar
-    $unimindPages = ['dashboard', 'tests', 'recomendaciones', 'calendario-citas'];
+    $unimindPages = ['dashboard', 'tests', 'historial', 'recomendaciones', 'calendario-citas'];
     $isUnimind = $currentPage && in_array($currentPage, $unimindPages);
     
     $configs = [
@@ -27,6 +27,7 @@ function getSidebarConfig($role, $currentPage = null) {
             'menu' => [
                 ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'page' => 'dashboard'],
                 ['icon' => 'fas fa-clipboard-list', 'label' => 'Tests y evaluaciones', 'page' => 'tests'],
+                ['icon' => 'fas fa-clipboard-list', 'label' => 'Historial de tests', 'page' => 'historial'],
                 ['icon' => 'fas fa-lightbulb', 'label' => 'Recomendaciones', 'page' => 'recomendaciones'],
                 ['icon' => 'fas fa-calendar-alt', 'label' => 'Calendario de citas', 'page' => 'calendario-citas'],
             ],
