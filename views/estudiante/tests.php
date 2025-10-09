@@ -1,6 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/./pageHeader.php';
-renderPageHeader('Tests y Evaluaciones', ['Inicio', 'Tests y Evaluaciones']);
+renderPageHeader('Evaluaciones', ['Inicio', 'Evaluaciones']);
 ?>
 <link rel="stylesheet" href="views/estudiante/tests.css?v=<?php echo time(); ?>">
 <div class="tests-list">

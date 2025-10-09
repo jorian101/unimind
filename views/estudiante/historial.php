@@ -1,6 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/./pageHeader.php';
-renderPageHeader('Historial de Evaluaciones', ['Dashboard', 'Historial de Evaluaciones']);
+renderPageHeader('Historial de evaluaciones', ['Dashboard', 'Historial de evaluaciones']);
 ?>
 <link rel="stylesheet" href="views/estudiante/historial.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

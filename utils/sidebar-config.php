@@ -26,8 +26,8 @@ function getSidebarConfig($role, $currentPage = null) {
             'title' => 'UniMind Estudiante',
             'menu' => [
                 ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'page' => 'dashboard'],
-                ['icon' => 'fas fa-clipboard-list', 'label' => 'Tests y evaluaciones', 'page' => 'tests'],
-                ['icon' => 'fas fa-clipboard-list', 'label' => 'Historial de tests', 'page' => 'historial'],
+                ['icon' => 'fas fa-clipboard-list', 'label' => 'Evaluaciones', 'page' => 'tests'],
+                ['icon' => 'fas fa-clipboard-list', 'label' => 'Historial de evaluaciones', 'page' => 'historial'],
                 ['icon' => 'fas fa-lightbulb', 'label' => 'Recomendaciones', 'page' => 'recomendaciones'],
                 ['icon' => 'fas fa-calendar-alt', 'label' => 'Calendario de citas', 'page' => 'calendario-citas'],
             ],
