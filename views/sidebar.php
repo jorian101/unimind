@@ -8,10 +8,6 @@ $sidebarProps = getSidebarConfig($currentRole, $currentPage);
 
 <aside class="sidebar" id="sidebar">
     <div>
-        <div class="sidebar__header">
-            <div class="sidebar__menu-toggle">☰</div>
-            <span><?php echo $sidebarProps['title']; ?></span>
-        </div>
         <ul class="sidebar__menu">
             <?php foreach ($sidebarProps['menu'] as $item): ?>
                 <?php if (isset($item['submenu'])): ?>
@@ -67,6 +63,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 submenu.classList.toggle('open');
                 toggle.classList.toggle('rotated');
             }
+        });
+    });
+});
+</script>
         });
     });
 });

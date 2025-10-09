@@ -2,24 +2,44 @@
 .main-header {
   position: fixed;
   top: 0;
-  left: 280px; /* Ancho del sidebar expandido */
+  left: 0; /* Full width, not pushed by sidebar */
   right: 0;
   height: 60px; /* Misma altura que sidebar-header */
   background: var(--bg-100);
   border-bottom: 1px solid var(--bg-500);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   z-index: 999;
-  transition: left 0.3s ease;
-  padding: 0 2rem;
+  transition: all 0.3s ease;
+  padding: 0;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   font-family: var(--font);
 }
 
-/* Cuando el sidebar está colapsado */
-.sidebar-collapsed .main-header {
-  left: 60px; /* Ancho del sidebar colapsado */
+/* Sidebar header within main header */
+.sidebar__header {
+  height: 60px;
+  background-color: var(--bg-100);
+  color: var(--pri-900);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 400;
+  font-size: 0.9375rem;
+  width: 280px; /* Fixed width */
+  flex-shrink: 0;
+}
+
+.sidebar__menu-toggle {
+  width: 60px;
+  height: 60px;
+  background-color: var(--pri-900);
+  color: var(--bg-100);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Acciones del header */
@@ -28,6 +48,7 @@
   align-items: center;
   gap: 1rem;
   height: 100%;
+  padding: 0 2rem;
 }
 
 .main-header__action-btn {
@@ -121,21 +142,25 @@
 
 /* Responsive Breakpoints */
 
-/* Mobile (≤768px) - Header ocupa todo el ancho */
+/* Mobile (≤768px) - Header ocupa todo el ancho, keep sidebar header visible with fixed width */
 @media (max-width: 768px) {
   .main-header {
-    left: 0;
-    padding: 0 1rem;
     height: 56px;
   }
 
-  /* En móvil el sidebar-collapsed no afecta al header */
-  .sidebar-collapsed .main-header {
-    left: 0;
+  .sidebar__header {
+    width: 280px; /* Fixed width, visible */
+    height: 56px;
+  }
+
+  .sidebar__menu-toggle {
+    width: 56px;
+    height: 56px;
   }
 
   .main-header__actions {
     gap: 0.5rem;
+    padding: 0;
   }
 
   .main-header__action-btn {
@@ -168,13 +193,11 @@
 /* Tablet (769px - 1024px) */
 @media (max-width: 1024px) and (min-width: 769px) {
   .main-header {
-    left: 240px; /* Coincide con sidebar en tablet */
-    padding: 0 1.5rem;
     height: 60px;
   }
 
-  .sidebar-collapsed .main-header {
-    left: 60px;
+  .sidebar__header {
+    width: 280px; /* Fixed width */
   }
 
   .main-header__actions {
@@ -212,14 +235,12 @@
 
 /* Desktop normal (1025px - 1440px) */
 @media (max-width: 1440px) and (min-width: 1025px) {
-  .main-header {
-    left: 280px; /* Sidebar normal */
-    padding: 0 2rem;
-    height: 60px;
+  .sidebar__header {
+    width: 280px; /* Fixed width */
   }
 
-  .sidebar-collapsed .main-header {
-    left: 60px;
+  .main-header {
+    height: 60px;
   }
 
   .page-content {
@@ -233,16 +254,19 @@
   }
 }
 
-/* Desktop large (≥1441px) */
 @media (min-width: 1441px) {
   .main-header {
-    left: 320px; /* Sidebar más ancho en pantallas grandes */
-    padding: 0 3rem;
     height: 64px;
   }
 
-  .sidebar-collapsed .main-header {
-    left: 60px;
+  .sidebar__header {
+    width: 280px; /* Fixed width */
+    height: 64px;
+  }
+
+  .sidebar__menu-toggle {
+    width: 64px;
+    height: 64px;
   }
 
   .main-header__actions {
@@ -288,11 +312,6 @@
   }
 }
 
-.main-header {
-  animation: slideInFromTop 0.3s ease-out;
-}
-
-/* Dropdown del usuario */
 .main-header__user-dropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -345,13 +364,22 @@
   }
 }
 
-/* Estados especiales */
 .main-header--loading {
   opacity: 0.7;
   pointer-events: none;
 }
 
-/* Responsive helpers */
+@media (hover: none) {
+  .main-header__action-btn:hover,
+  .main-header__user-info:hover {
+    transform: none;
+  }
+}
+.main-header--loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
 @media (hover: none) {
   .main-header__action-btn:hover,
   .main-header__user-info:hover {
