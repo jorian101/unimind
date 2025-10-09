@@ -10,10 +10,21 @@
   left: 0;
   top: 60px;
   z-index: 1000;
+  /* Remove conflicting transition */
+  transition: width 0.3s ease;
 }
 
 .sidebar--collapsed {
-  width: 60px;
+  width: 60px !important;
+}
+
+/* Prevent layout shift during initial load */
+.no-transitions .sidebar {
+  transition: none !important;
+}
+
+.no-transitions .main-content {
+  transition: none !important;
 }
 
 .sidebar--collapsed .sidebar__item span,

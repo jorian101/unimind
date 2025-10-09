@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     min-height: 100vh;
 }
 
+/* Remove animation conflicts and set initial state based on localStorage */
 .main-content {
     margin-left: 280px;
     margin-top: 60px;
@@ -32,10 +33,20 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: margin-left 0.3s ease;
     min-height: calc(100vh - 60px);
     font-family: var(--font);
+    /* Remove problematic fade animation */
+    opacity: 1;
 }
 
-.sidebar-collapsed .main-content {
-    margin-left: 60px;
+/* Ensure collapsed state is applied immediately */
+body.sidebar-collapsed .main-content {
+    margin-left: 60px !important;
+}
+
+/* Apply initial state based on localStorage before page renders */
+@media (min-width: 769px) {
+    .main-content {
+        margin-left: <?php echo (isset($_COOKIE['sidebarCollapsed']) && $_COOKIE['sidebarCollapsed'] === 'true') ? '60px' : '280px'; ?>;
+    }
 }
 
 @media (max-width: 390px) {
@@ -61,8 +72,8 @@ document.addEventListener('DOMContentLoaded', function() {
         margin-left: 240px;
     }
     
-    .sidebar-collapsed .main-content {
-        margin-left: 60px;
+    body.sidebar-collapsed .main-content {
+        margin-left: 60px !important;
     }
 }
 
@@ -74,8 +85,8 @@ document.addEventListener('DOMContentLoaded', function() {
         min-height: calc(100vh - 64px);
     }
     
-    .sidebar-collapsed .main-content {
-        margin-left: 60px;
+    body.sidebar-collapsed .main-content {
+        margin-left: 60px !important;
     }
 }
 
@@ -84,6 +95,41 @@ document.addEventListener('DOMContentLoaded', function() {
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1rem;
+}
+
+/* Add CSS to prevent flash of unstyled content */
+.sidebar {
+    transition: width 0.3s ease;
+}
+
+.sidebar--collapsed {
+    width: 60px !important;
+}
+
+/* Disable transitions during page load */
+.no-transitions * {
+    transition: none !important;
 }
 </style>
+
+<script>
+// Apply initial state immediately to prevent flash
+(function() {
+    const savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+    const isMobile = window.innerWidth < 768;
+    
+    if (!isMobile && savedCollapsed) {
+        document.documentElement.style.setProperty('--sidebar-width', '60px');
+        document.body.classList.add('sidebar-collapsed');
+    }
+    
+    // Add no-transitions class temporarily
+    document.body.classList.add('no-transitions');
+    
+    // Remove no-transitions after a brief delay
+    setTimeout(() => {
+        document.body.classList.remove('no-transitions');
+    }, 100);
+})();
+</script>

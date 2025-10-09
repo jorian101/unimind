@@ -1,6 +1,56 @@
 document.addEventListener("DOMContentLoaded", function () {
   console.log("JavaScript cargado correctamente");
 
+  // Aplicar estado inicial INMEDIATAMENTE antes de cualquier animación
+  const savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+  const sidebar = document.getElementById("sidebar");
+  const body = document.body;
+  const isMobile = window.innerWidth < 768;
+
+  // Aplicar estado inicial sin transiciones
+  if (sidebar && !isMobile) {
+    // Deshabilitar transiciones temporalmente
+    sidebar.style.transition = "none";
+    body.style.transition = "none";
+
+    if (savedCollapsed) {
+      sidebar.classList.add("sidebar--collapsed");
+      body.classList.add("sidebar-collapsed");
+    } else {
+      sidebar.classList.remove("sidebar--collapsed");
+      body.classList.remove("sidebar-collapsed");
+    }
+
+    // Restaurar transiciones después de aplicar el estado
+    setTimeout(() => {
+      sidebar.style.transition = "";
+      body.style.transition = "";
+    }, 50);
+  }
+
+  // Función para obtener el estado actual del sidebar
+  function getCurrentSidebarState() {
+    const sidebar = document.getElementById("sidebar");
+    return sidebar ? sidebar.classList.contains("sidebar--collapsed") : false;
+  }
+
+  // Función para aplicar el estado del sidebar (solo para cambios dinámicos)
+  function applySidebarState(collapsed) {
+    const sidebar = document.getElementById("sidebar");
+    const body = document.body;
+    const isMobile = window.innerWidth < 768;
+
+    if (!sidebar || isMobile) return;
+
+    if (collapsed) {
+      sidebar.classList.add("sidebar--collapsed");
+      body.classList.add("sidebar-collapsed");
+    } else {
+      sidebar.classList.remove("sidebar--collapsed");
+      body.classList.remove("sidebar-collapsed");
+    }
+  }
+
   // Función para actualizar los event listeners
   function updateMenuListeners() {
     const menuItems = document.querySelectorAll(".sidebar__item[data-page]");
@@ -29,6 +79,10 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("CLICK! Navegando a:", page, role);
 
         if (page && role) {
+          // Guardar el estado actual del sidebar antes de navegar
+          const currentCollapsed = getCurrentSidebarState();
+          localStorage.setItem("sidebarCollapsed", currentCollapsed);
+
           window.location.href = "?role=" + role + "&page=" + page;
         }
       });
@@ -73,20 +127,14 @@ document.addEventListener("DOMContentLoaded", function () {
   // Inicializar listeners
   updateMenuListeners();
 
-  // Restaurar estado del sidebar
-  const savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-  const isMobile = window.innerWidth < 768;
-  if (savedCollapsed && !isMobile) {
-    const sidebar = document.getElementById("sidebar");
-    const body = document.body;
-    sidebar.classList.add("sidebar--collapsed");
-    body.classList.add("sidebar-collapsed");
-  }
-
   // Role selector
   const roleSelector = document.getElementById("roleSelector");
   if (roleSelector) {
     roleSelector.onchange = function () {
+      // Guardar estado actual antes de cambiar de rol
+      const currentCollapsed = getCurrentSidebarState();
+      localStorage.setItem("sidebarCollapsed", currentCollapsed);
+
       window.location.href = "?role=" + this.value;
     };
   }
@@ -97,9 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
     toggle.onclick = function () {
       const sidebar = document.getElementById("sidebar");
       const body = document.body;
-
-      // Verificar si estamos en móvil
-      const isMobile = window.innerWidth < 768; // Changed from <= 768
+      const isMobile = window.innerWidth < 768;
 
       if (isMobile) {
         // En móvil, alternar visibilidad
@@ -116,7 +162,8 @@ document.addEventListener("DOMContentLoaded", function () {
         // En desktop, alternar colapso
         sidebar.classList.toggle("sidebar--collapsed");
         body.classList.toggle("sidebar-collapsed");
-        // Guardar estado
+
+        // Guardar estado inmediatamente
         const collapsed = sidebar.classList.contains("sidebar--collapsed");
         localStorage.setItem("sidebarCollapsed", collapsed);
       }
@@ -127,20 +174,17 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("resize", function () {
     const sidebar = document.getElementById("sidebar");
     const body = document.body;
-    const isMobile = window.innerWidth < 768; // Changed from <= 768
+    const isMobile = window.innerWidth < 768;
 
     if (isMobile) {
-      // En móvil, remover clases de desktop
+      // En móvil, remover clases de desktop pero NO cambiar el estado guardado
       sidebar.classList.remove("sidebar--collapsed");
       body.classList.remove("sidebar-collapsed");
     } else {
-      // En desktop, restaurar estado guardado
+      // En desktop, aplicar el estado guardado actual sin interferir
       const savedCollapsed =
         localStorage.getItem("sidebarCollapsed") === "true";
-      if (savedCollapsed) {
-        sidebar.classList.add("sidebar--collapsed");
-        body.classList.add("sidebar-collapsed");
-      }
+      applySidebarState(savedCollapsed);
     }
   });
 
@@ -149,7 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sidebar = document.getElementById("sidebar");
     const toggle = document.querySelector(".sidebar__menu-toggle");
     const overlay = document.getElementById("sidebar-overlay");
-    const isMobile = window.innerWidth < 768; // Changed from <= 768
+    const isMobile = window.innerWidth < 768;
 
     if (isMobile && sidebar.classList.contains("sidebar--show")) {
       // Si se hace clic fuera del sidebar y no es el botón toggle
