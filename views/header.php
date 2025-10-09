@@ -12,15 +12,26 @@ $userName = 'Usuario Actual'; // Esto vendría de la sesión/BD
         <div class="sidebar__menu-toggle">☰</div>
         <span><?php echo $sidebarProps['title']; ?></span>
     </div>
-    <div class="main-header__actions">
-        <button class="main-header__action-btn" title="Notificaciones">
-            <i>🔔</i>
-            <span class="main-header__notification-badge">3</span>
-        </button>
+    <div class="header-items-right">
+        <div class="header-icons">
+            <i class="icon fas fa-globe-americas"></i>
+            <i class="icon fas fa-bell"></i>
+            <i class="icon fas fa-comment"></i>
+        </div>
         
-        <div class="main-header__user-info" title="Mi Perfil">
-            <span class="main-header__user-name"><?php echo htmlspecialchars($userName); ?></span>
-            <div class="main-header__user-avatar">👤</div>
+        <div class="profile-menu-container" id="profileToggle"> 
+            <span class="profile-icon"><i class="fas fa-user"></i></span>
+            <span class="dropdown-arrow">▼</span>
+            
+            <div class="dropdown-menu" id="profileMenu">
+                <div class="menu-header"><?php echo htmlspecialchars($userName); ?></div>
+                <a href="#"><i class="fas fa-columns"></i> Tablero</a>
+                <a href="#"><i class="fas fa-user-circle"></i> Perfil</a>
+                <a href="#"><i class="fas fa-graduation-cap"></i> Calificaciones</a>
+                <a href="#"><i class="fas fa-envelope"></i> Mensajes</a>
+                <a href="#"><i class="fas fa-cog"></i> Preferencias</a>
+                <a href="#"><i class="fas fa-sign-out-alt"></i> Salir</a>
+            </div>
         </div>
     </div>
 </header>

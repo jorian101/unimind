@@ -11,6 +11,7 @@ class HeaderComponent {
   init() {
     this.setupActionButtons();
     this.setupUserMenu();
+    this.setupProfileMenu();
     this.syncWithSidebar();
     this.setupResponsiveHandler();
   }
@@ -44,6 +45,48 @@ class HeaderComponent {
       this.userInfo.addEventListener("click", () => {
         this.showUserMenu();
       });
+    }
+  }
+
+  setupProfileMenu() {
+    const profileToggle = document.getElementById("profileToggle");
+    const profileMenu = document.getElementById("profileMenu");
+
+    if (profileToggle && profileMenu) {
+      profileToggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isVisible = profileMenu.classList.contains("visible");
+        if (isVisible) {
+          this.closeProfileMenu();
+        } else {
+          this.openProfileMenu();
+        }
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!profileToggle.contains(e.target)) {
+          this.closeProfileMenu();
+        }
+      });
+    }
+  }
+
+  openProfileMenu() {
+    const profileToggle = document.getElementById("profileToggle");
+    const profileMenu = document.getElementById("profileMenu");
+    if (profileMenu) {
+      profileMenu.classList.add("visible");
+      profileToggle.classList.add("active");
+    }
+  }
+
+  closeProfileMenu() {
+    const profileToggle = document.getElementById("profileToggle");
+    const profileMenu = document.getElementById("profileMenu");
+    if (profileMenu) {
+      profileMenu.classList.remove("visible");
+      profileToggle.classList.remove("active");
     }
   }
 

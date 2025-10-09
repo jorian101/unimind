@@ -128,7 +128,6 @@
   flex-shrink: 0;
 }
 
-/* Espaciado para el contenido principal */
 .page-content {
   padding: 2rem;
   transition: margin-left 0.3s ease;
@@ -185,7 +184,6 @@
   }
 }
 
-/* Tablet (769px - 1024px) */
 @media (max-width: 1024px) and (min-width: 769px) {
   .main-header {
     height: 60px;
@@ -228,10 +226,9 @@
   }
 }
 
-/* Desktop normal (1025px - 1440px) */
 @media (max-width: 1440px) and (min-width: 1025px) {
   .sidebar__header {
-    width: 280px; /* Fixed width */
+    width: 280px;
   }
 
   .main-header {
@@ -255,7 +252,7 @@
   }
 
   .sidebar__header {
-    width: 280px; /* Fixed width */
+    width: 280px;
     height: 64px;
   }
 
@@ -295,7 +292,6 @@
   }
 }
 
-/* Animación de entrada */
 @keyframes slideInFromTop {
   from {
     transform: translateY(-20px);
@@ -370,14 +366,109 @@
     transform: none;
   }
 }
-.main-header--loading {
-  opacity: 0.7;
-  pointer-events: none;
+
+/* Estilos de Iconos y Contenedor de Perfil */
+.header-items-right {
+  display: flex;
+  align-items: center;
+  margin: 0.5rem 1rem;
 }
 
-@media (hover: none) {
-  .main-header__action-btn:hover,
-  .main-header__user-info:hover {
-    transform: none;
-  }
+.header-icons .icon {
+  margin-left: 25px;
+  color: var(--pri-500);
+  font-size: 1.4em;
+  cursor: pointer;
+}
+
+.profile-menu-container {
+  position: relative;
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.profile-menu-container .user-name-visible {
+  font-weight: bold;
+  color: var(--var-900);
+  margin-right: 10px;
+  font-size: 0.9em;
+  display: inline-block;
+}
+
+.profile-icon {
+  width: 35px;
+  height: 35px;
+  background-color: var(--bg-300);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  color: var(--var-500);
+  font-size: 1.2em;
+}
+
+.dropdown-arrow {
+  margin-left: 8px;
+  font-size: calc(0.8em + 1px);
+  color: var(--pri-500);
+  transition: transform 0.2s ease;
+}
+
+.profile-menu-container.active .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  width: 250px;
+  background-color: var(--bg-100);
+  border: 1px solid var(--bg-500);
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  display: none;
+}
+
+.dropdown-menu.visible {
+  display: block;
+}
+
+.dropdown-menu a {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  text-decoration: none;
+  color: var(--var-900);
+  font-size: 0.9em;
+  border-bottom: 1px solid var(--bg-500);
+}
+
+.dropdown-menu a:hover {
+  background-color: var(--bg-300);
+}
+
+.dropdown-menu a:last-child {
+  border-bottom: none;
+  font-weight: bold;
+  color: var(--pri-600);
+}
+
+.dropdown-menu a i {
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+.dropdown-menu .menu-header {
+  padding: 10px 15px;
+  font-size: 1em;
+  font-weight: bold;
+  color: var(--pri-900);
+  border-bottom: 1px solid var(--bg-500);
 }
