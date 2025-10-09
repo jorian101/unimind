@@ -2,70 +2,60 @@
 require_once dirname(__DIR__) . '/./pageHeader.php';
 renderPageHeader('Tests y Evaluaciones', ['Inicio', 'Tests y Evaluaciones']);
 ?>
+<link rel="stylesheet" href="views/estudiante/tests.css?v=<?php echo time(); ?>">
 
 <div class="tests-content">
     <div class="tests-list">
         <div class="test-item">
-            <h3>🧠 Evaluación Cognitiva Básica</h3>
-            <p>Estado: <span class="status pending">Pendiente</span></p>
-            <button class="btn-primary">Iniciar Test</button>
+            <div class="test-header">
+                <h3><i class="fas fa-chart-bar"></i> PSS-4 (Estrés)</h3>
+                <span class="status pending">Pendiente</span>
+            </div>
+            <div class="test-description">
+                <p>Evalúa el nivel de estrés percibido en situaciones diarias.</p>
+                <div class="test-details">
+                    <span class="detail"><i class="fas fa-list"></i> 4 ítems</span>
+                    <span class="detail"><i class="fas fa-clock"></i> 1 min</span>
+                    <span class="detail"><i class="fas fa-calendar-alt"></i> Diario/semanal</span>
+                </div>
+            </div>
+            <div class="test-actions">
+                <button class="btn-primary">Iniciar Test</button>
+            </div>
         </div>
         <div class="test-item">
-            <h3>📊 Test de ansiedad</h3>
-            <p>Estado: <span class="status completed">Completado</span></p>
-            <button class="btn-secondary">Ver Resultados</button>
+            <div class="test-header">
+                <h3><i class="fas fa-brain"></i> GAD-2 (Ansiedad)</h3>
+                <span class="status completed">Completado</span>
+            </div>
+            <div class="test-description">
+                <p>Mide síntomas de ansiedad generalizada.</p>
+                <div class="test-details">
+                    <span class="detail"><i class="fas fa-list"></i> 2 ítems</span>
+                    <span class="detail"><i class="fas fa-clock"></i> 30 seg</span>
+                    <span class="detail"><i class="fas fa-calendar-alt"></i> Diario/semanal</span>
+                </div>
+            </div>
+            <div class="test-actions">
+                <button class="btn-secondary">Ver Resultados</button>
+            </div>
         </div>
         <div class="test-item">
-            <h3>🎯 Test de Concentración</h3>
-            <p>Estado: <span class="status pending">Pendiente</span></p>
-            <button class="btn-primary">Iniciar Test</button>
+            <div class="test-header">
+                <h3><i class="fas fa-bullseye"></i> PSS-10 + GAD-7 (Seguimiento general)</h3>
+                <span class="status pending">Pendiente</span>
+            </div>
+            <div class="test-description">
+                <p>Combina evaluación de estrés y ansiedad para un seguimiento integral.</p>
+                <div class="test-details">
+                    <span class="detail"><i class="fas fa-list"></i> 17 ítems</span>
+                    <span class="detail"><i class="fas fa-clock"></i> 5 min</span>
+                    <span class="detail"><i class="fas fa-calendar-alt"></i> Mensual/quincenal</span>
+                </div>
+            </div>
+            <div class="test-actions">
+                <button class="btn-primary">Iniciar Test</button>
+            </div>
         </div>
     </div>
 </div>
-
-<style>
-.tests-list {
-    margin-top: 2rem;
-}
-
-.test-item {
-    background: white;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.test-item h3 {
-    margin: 0 0 1rem 0;
-    color: var(--pri-700);
-}
-
-.status.pending {
-    color: #e67e22;
-    font-weight: bold;
-}
-
-.status.completed {
-    color: #27ae60;
-    font-weight: bold;
-}
-
-.btn-primary, .btn-secondary {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 1rem;
-}
-
-.btn-primary {
-    background: var(--pri-500);
-    color: white;
-}
-
-.btn-secondary {
-    background: #95a5a6;
-    color: white;
-}
-</style>

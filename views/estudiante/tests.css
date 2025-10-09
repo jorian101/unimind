@@ -1,0 +1,131 @@
+.tests-list {
+  margin-top: 2rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.test-item {
+  background: var(--bg-100);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--bg-400);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.test-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.test-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.test-item h3 {
+  margin: 0;
+  color: var(--pri-700);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.test-description {
+  margin-bottom: 1.5rem;
+}
+
+.test-description p {
+  margin: 0 0 1rem 0;
+  color: var(--var-700);
+  line-height: 1.5;
+}
+
+.test-details {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.detail {
+  background: var(--bg-300);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  color: var(--var-700);
+  font-weight: 500;
+}
+
+.status {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status.pending {
+  background: var(--sec-100);
+  color: var(--sec-700);
+}
+
+.status.completed {
+  background: var(--acc-100);
+  color: var(--acc-700);
+}
+
+.test-actions {
+  margin-top: 1.5rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary {
+  background: var(--pri-500);
+  color: var(--bg-100);
+}
+
+.btn-primary:hover {
+  background: var(--pri-700);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--var-500);
+  color: var(--bg-100);
+}
+
+.btn-secondary:hover {
+  background: var(--var-700);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .test-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .test-details {
+    justify-content: center;
+  }
+
+  .detail {
+    font-size: 0.8rem;
+  }
+}
