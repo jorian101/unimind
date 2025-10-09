@@ -17,7 +17,6 @@
   font-family: var(--font);
 }
 
-/* Sidebar header within main header */
 .sidebar__header {
   height: 60px;
   background-color: var(--bg-100);
@@ -26,8 +25,8 @@
   align-items: center;
   gap: 1rem;
   font-weight: 400;
-  font-size: 0.9375rem;
-  width: 280px; /* Fixed width */
+  font-size: calc(0.9271875rem + 0.32625vw);
+  width: 280px;
   flex-shrink: 0;
 }
 
@@ -42,7 +41,6 @@
   justify-content: center;
 }
 
-/* Acciones del header */
 .main-header__actions {
   display: flex;
   align-items: center;
@@ -146,7 +144,7 @@
   }
 
   .sidebar__header {
-    width: 280px; /* Fixed width, visible */
+    width: 280px;
     height: 56px;
   }
 
@@ -172,7 +170,7 @@
   }
 
   .main-header__user-name {
-    display: none; /* Ocultar nombre en pantallas muy pequeñas */
+    display: none;
   }
 
   .main-header__user-avatar {
@@ -194,7 +192,7 @@
   }
 
   .sidebar__header {
-    width: 280px; /* Fixed width */
+    width: 280px;
   }
 
   .main-header__actions {

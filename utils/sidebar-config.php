@@ -31,7 +31,7 @@ function getSidebarConfig($role, $currentPage = null) {
                 ['icon' => '📅', 'label' => 'Calendario de citas', 'page' => 'calendario-citas'],
             ],
         ] : [
-            'title' => 'Estudiante',
+            'title' => 'AULA VIRTUAL UNJBG',
             'menu' => [
                 ['icon' => 'fas fa-home', 'label' => 'Inicio', 'page' => 'inicio'],
                 ['icon' => 'fas fa-columns', 'label' => 'Tablero', 'page' => 'tablero'],
