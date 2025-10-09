@@ -50,24 +50,3 @@ $sidebarProps = getSidebarConfig($currentRole, $currentPage);
     </div>
 </aside>
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-<script>
-// Basic submenu toggle (expand/collapse on click)
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.submenu-toggle').forEach(toggle => {
-        toggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const parentItem = toggle.closest('.sidebar__item');
-            const submenu = parentItem.querySelector('.submenu');
-            if (submenu) {
-                submenu.classList.toggle('open');
-                toggle.classList.toggle('rotated');
-            }
-        });
-    });
-});
-</script>
-        });
-    });
-});
-</script>

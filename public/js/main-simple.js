@@ -50,6 +50,24 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
     });
+
+    // Configurar clicks en items con submenu
+    const submenuParents = Array.from(
+      document.querySelectorAll(".sidebar__item"),
+    ).filter((item) => item.querySelector(".submenu"));
+    submenuParents.forEach((parent) => {
+      parent.addEventListener("click", function (e) {
+        // No toggle si se hace clic dentro del submenu
+        if (this.querySelector(".submenu").contains(e.target)) return;
+
+        const submenu = this.querySelector(".submenu");
+        const toggle = this.querySelector(".submenu-toggle");
+        if (submenu) {
+          submenu.classList.toggle("open");
+          toggle.classList.toggle("rotated");
+        }
+      });
+    });
   }
 
   // Inicializar listeners

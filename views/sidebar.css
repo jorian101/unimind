@@ -164,6 +164,7 @@
   transition: transform 0.3s ease;
   min-width: auto !important;
   margin-right: 0 !important;
+  vertical-align: middle;
 }
 
 .submenu-toggle.rotated {
