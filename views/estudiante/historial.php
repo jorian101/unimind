@@ -3,6 +3,7 @@ require_once dirname(__DIR__) . '/./pageHeader.php';
 renderPageHeader('Historial de Evaluaciones', ['Dashboard', 'Historial de Evaluaciones']);
 ?>
 <link rel="stylesheet" href="views/estudiante/historial.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <div class="historial">
     <section class="historial__card historial__card--history">
@@ -85,13 +86,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 : "Incrementando"
             : "-";
         const tendenciaClass = tendenciaText === "Mejorando" ? "historial__badge--trend-mejorando" : "historial__badge--trend-empeorando";
+        const arrow = tendenciaText === "Mejorando" ? '<i class="fas fa-arrow-up"></i>' : tendenciaText === "Incrementando" ? '<i class="fas fa-arrow-down"></i>' : "";
 
         tbody.innerHTML += `
             <tr class="historial__table-row">
                 <td class="historial__table-cell">${e.fecha}</td>
-                <td class="historial__table-cell">${e.estres}% <span class="historial__badge historial__badge--${nEstres.clase}">${nEstres.texto}</span></td>
-                <td class="historial__table-cell">${e.ansiedad}% <span class="historial__badge historial__badge--${nAnsiedad.clase}">${nAnsiedad.texto}</span></td>
-                <td class="historial__table-cell"><span class="historial__badge ${tendenciaClass}">${tendenciaText}</span></td>
+                <td class="historial__table-cell">
+                    <div class="historial__cell-content">
+                        <span class="historial__percentage">${e.estres}%</span>
+                        <span class="historial__badge historial__badge--${nEstres.clase}">${nEstres.texto}</span>
+                    </div>
+                </td>
+                <td class="historial__table-cell">
+                    <div class="historial__cell-content">
+                        <span class="historial__percentage">${e.ansiedad}%</span>
+                        <span class="historial__badge historial__badge--${nAnsiedad.clase}">${nAnsiedad.texto}</span>
+                    </div>
+                </td>
+                <td class="historial__table-cell"><span class="historial__badge ${tendenciaClass}">${arrow} ${tendenciaText}</span></td>
             </tr>
         `;
     });
@@ -104,7 +116,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mostrar estadísticas
     document.getElementById("avg-stress").textContent = avgStress.toFixed(1) + "%";
     document.getElementById("avg-anxiety").textContent = avgAnxiety.toFixed(0) + "%";
-    document.getElementById("trend").textContent = trend;
+    const trendArrow = trend === "Mejorando" ? '<i class="fas fa-arrow-up"></i> ' : trend === "Incrementando" ? '<i class="fas fa-arrow-down"></i> ' : "";
+    document.getElementById("trend").innerHTML = trendArrow + trend;
     document.getElementById("trend").style.color = trend === "Mejorando" ? "var(--acc-500)" : "var(--pri-500)";
 });
 </script>
