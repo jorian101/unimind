@@ -8,27 +8,27 @@ function getSidebarConfig($role, $currentPage = null) {
         'administrador' => [
             'title' => 'UniMind Admin',
             'menu' => [
-                ['icon' => '🏠', 'label' => 'Dashboard', 'page' => 'dashboard'],
-                ['icon' => '👥', 'label' => 'Usuarios', 'page' => 'usuarios'],
-                ['icon' => '📊', 'label' => 'Reportes', 'page' => 'reportes'],
-                ['icon' => '⚙️', 'label' => 'Configuración', 'page' => 'config'],
+                ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'page' => 'dashboard'],
+                ['icon' => 'fas fa-users', 'label' => 'Usuarios', 'page' => 'usuarios'],
+                ['icon' => 'fas fa-chart-bar', 'label' => 'Reportes', 'page' => 'reportes'],
+                ['icon' => 'fas fa-cog', 'label' => 'Configuración', 'page' => 'config'],
             ],
         ],
         'profesor' => [
             'title' => 'UniMind Profesor',
             'menu' => [
-                ['icon' => '🏠', 'label' => 'Dashboard', 'page' => 'dashboard'],
-                ['icon' => '📚', 'label' => 'Resumen de clases', 'page' => 'clases'],
-                ['icon' => '📊', 'label' => 'Reportes de clases', 'page' => 'reportes'],
+                ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'page' => 'dashboard'],
+                ['icon' => 'fas fa-book', 'label' => 'Resumen de clases', 'page' => 'clases'],
+                ['icon' => 'fas fa-chart-bar', 'label' => 'Reportes de clases', 'page' => 'reportes'],
             ],
         ],
         'estudiante' => $isUnimind ? [
             'title' => 'UniMind Estudiante',
             'menu' => [
-                ['icon' => '🏠', 'label' => 'Dashboard', 'page' => 'dashboard'],
-                ['icon' => '📝', 'label' => 'Tests y evaluaciones', 'page' => 'tests'],
-                ['icon' => '💡', 'label' => 'Recomendaciones', 'page' => 'recomendaciones'],
-                ['icon' => '📅', 'label' => 'Calendario de citas', 'page' => 'calendario-citas'],
+                ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'page' => 'dashboard'],
+                ['icon' => 'fas fa-clipboard-list', 'label' => 'Tests y evaluaciones', 'page' => 'tests'],
+                ['icon' => 'fas fa-lightbulb', 'label' => 'Recomendaciones', 'page' => 'recomendaciones'],
+                ['icon' => 'fas fa-calendar-alt', 'label' => 'Calendario de citas', 'page' => 'calendario-citas'],
             ],
         ] : [
             'title' => 'AULA VIRTUAL UNJBG',
