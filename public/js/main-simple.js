@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const body = document.body;
 
       // Verificar si estamos en móvil
-      const isMobile = window.innerWidth <= 768;
+      const isMobile = window.innerWidth < 768; // Changed from <= 768
 
       if (isMobile) {
         // En móvil, alternar visibilidad
@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("resize", function () {
     const sidebar = document.getElementById("sidebar");
     const body = document.body;
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = window.innerWidth < 768; // Changed from <= 768
 
     if (isMobile) {
       // En móvil, remover clases de desktop
@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sidebar = document.getElementById("sidebar");
     const toggle = document.querySelector(".sidebar__menu-toggle");
     const overlay = document.getElementById("sidebar-overlay");
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = window.innerWidth < 768; // Changed from <= 768
 
     if (isMobile && sidebar.classList.contains("sidebar--show")) {
       // Si se hace clic fuera del sidebar y no es el botón toggle

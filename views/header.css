@@ -140,9 +140,6 @@
   margin-left: 60px;
 }
 
-/* Responsive Breakpoints */
-
-/* Mobile (≤768px) - Header ocupa todo el ancho, keep sidebar header visible with fixed width */
 @media (max-width: 768px) {
   .main-header {
     height: 56px;
