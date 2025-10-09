@@ -31,11 +31,10 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-weight: 600;
+  font-weight: 400;
   border-bottom: 1px solid var(--pri-600);
 }
 
-/* Mobile (≤768px) - Sidebar como overlay */
 @media (max-width: 768px) {
   .sidebar {
     width: 280px;
@@ -51,7 +50,7 @@
   }
 
   .sidebar--collapsed {
-    width: 280px; /* En móvil no se colapsa, se oculta completamente */
+    width: 280px;
     transform: translateX(-100%);
   }
 
@@ -60,7 +59,6 @@
   }
 }
 
-/* Overlay para móvil */
 .sidebar-overlay {
   position: fixed;
   top: 0;
@@ -88,7 +86,6 @@
   }
 }
 
-/* Tablet (769px - 1024px) */
 @media (max-width: 1024px) and (min-width: 769px) {
   .sidebar {
     width: 240px;
@@ -99,7 +96,6 @@
   }
 }
 
-/* Desktop Large (≥1441px) */
 @media (min-width: 1441px) {
   .sidebar {
     width: 320px;
@@ -114,7 +110,6 @@
   }
 }
 
-/* Desktop (1025px - 1440px) mantiene valores por defecto */
 @media (max-width: 1440px) and (min-width: 1025px) {
   .sidebar {
     width: 280px;
@@ -127,38 +122,33 @@
 
 .sidebar__menu {
   list-style: none;
-  padding: 1rem;
+  padding: 0.42rem;
 }
 
 .sidebar__item {
   display: flex;
   align-items: center;
-  padding: 0.75rem 0;
+  padding: 0.75rem 0.75rem;
   cursor: pointer;
   transition: 0.2s;
   position: relative;
 }
 
 .sidebar__item:hover {
-  opacity: 0.8;
+  background-color: var(--pri-400);
 }
 
 .sidebar__item i {
   margin-right: 10px;
-  font-size: 1.2rem;
+  font-size: 0.9375rem;
   min-width: 20px;
 }
 
 .sidebar__item--active {
-  font-weight: 600;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  margin: 0 -0.5rem;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  font-weight: 700;
+  padding: 0.75rem 0.75rem;
 }
 
-/* Submenu styles */
 .submenu {
   list-style: none;
   padding-left: 2rem;
@@ -175,22 +165,18 @@
 
 .submenu .sidebar__item {
   padding: 0.5rem 0;
-  font-size: 0.9rem;
+  font-size: 0.9375rem;
   margin: 0;
 }
 
 .submenu .sidebar__item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-  margin: 0 -0.5rem;
+  background-color: var(--pri-400);
+  padding: 0.75rem 0.75rem;
 }
 
 .submenu-toggle {
   margin-left: auto !important;
   transition: transform 0.3s ease;
-  font-size: 0.8em !important;
   min-width: auto !important;
   margin-right: 0 !important;
 }
@@ -199,7 +185,6 @@
   transform: rotate(90deg);
 }
 
-/* Ensure parent item with submenu spans full width */
 .sidebar__item:has(.submenu) {
   flex-wrap: wrap;
 }
@@ -212,7 +197,7 @@
   background-color: var(--pri-700);
   text-align: center;
   padding: 0.75rem;
-  font-size: 0.9rem;
+  font-size: 0.9375rem;
 }
 
 .sidebar__footer i {
