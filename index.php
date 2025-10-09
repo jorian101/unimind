@@ -1,7 +1,7 @@
 <?php
-require_once 'utils/Router.php';
+require_once 'utils/SimpleRouter.php';
 
-$router = new Router();
+$router = new SimpleRouter();
 $currentRole = $router->getCurrentRole();
 $currentPage = $router->getCurrentPage();
 ?>
@@ -20,12 +20,9 @@ $currentPage = $router->getCurrentPage();
         <?php include 'views/layout.php'; ?>
         
         <main class="main-content" id="main-content">
-            <!-- Page Header dentro del contenido -->
-            <?php include 'views/page-header.php'; ?>
-            
-            <!-- Contenido de la página -->
+            <!-- Contenido de la página con header incluido -->
             <div class="page-content-wrapper">
-                <?php echo $router->renderPage(); ?>
+                <?php $router->loadPage(); ?>
             </div>
         </main>
     </div>

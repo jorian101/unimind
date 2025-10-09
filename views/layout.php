@@ -7,9 +7,8 @@
 <link rel="stylesheet" href="views/header.css">
 <link rel="stylesheet" href="views/page-header.css">
 
-<script src="public/js/main.js"></script>
+<script src="public/js/main-simple.js?v=<?php echo time(); ?>"></script>
 <script src="public/js/header.js"></script>
-<script src="public/js/page-header.js"></script>
 
 <style>
 .layout-wrapper {
