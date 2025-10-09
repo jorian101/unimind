@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__DIR__) . '/../utils/page-header-component.php';
+require_once dirname(__DIR__) . '/./page-header-component.php';
 renderPageHeader('Dashboard', ['Dashboard']);
 ?>
 

@@ -1,33 +1,69 @@
 document.addEventListener("DOMContentLoaded", function () {
   console.log("JavaScript cargado correctamente");
 
-  const menuItems = document.querySelectorAll(".sidebar__item");
-  console.log("Items del menú encontrados:", menuItems.length);
+  // Función para actualizar los event listeners
+  function updateMenuListeners() {
+    const menuItems = document.querySelectorAll(".sidebar__item[data-page]");
+    console.log("Items del menú encontrados:", menuItems.length);
 
-  menuItems.forEach(function (item, index) {
-    console.log("Procesando item", index, item.dataset);
+    menuItems.forEach(function (item, index) {
+      console.log("Procesando item", index, item.dataset);
 
-    item.style.cursor = "pointer";
+      // Remover listeners previos
+      item.replaceWith(item.cloneNode(true));
+      const newItem = document.querySelectorAll(".sidebar__item[data-page]")[
+        index
+      ];
 
-    item.onclick = function () {
-      const page = this.dataset.page;
-      const role = this.dataset.role;
+      newItem.style.cursor = "pointer";
 
-      console.log("CLICK! Navegando a:", page, role);
+      newItem.addEventListener("click", function (e) {
+        // Evitar que el click en submenu-toggle active la navegación
+        if (e.target.classList.contains("submenu-toggle")) {
+          return;
+        }
 
-      if (page && role) {
-        window.location.href = "?role=" + role + "&page=" + page;
-      }
-    };
-  });
+        const page = this.dataset.page;
+        const role = this.dataset.role;
 
+        console.log("CLICK! Navegando a:", page, role);
+
+        if (page && role) {
+          window.location.href = "?role=" + role + "&page=" + page;
+        }
+      });
+    });
+
+    // Configurar toggles de submenu
+    const submenuToggles = document.querySelectorAll(".submenu-toggle");
+    submenuToggles.forEach((toggle) => {
+      toggle.addEventListener("click", function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+
+        const parentItem = this.closest(".sidebar__item");
+        const submenu = parentItem.querySelector(".submenu");
+
+        if (submenu) {
+          submenu.classList.toggle("open");
+          this.classList.toggle("rotated");
+        }
+      });
+    });
+  }
+
+  // Inicializar listeners
+  updateMenuListeners();
+
+  // Role selector
   const roleSelector = document.getElementById("roleSelector");
   if (roleSelector) {
     roleSelector.onchange = function () {
-      window.location.href = "?role=" + this.value + "&page=dashboard";
+      window.location.href = "?role=" + this.value;
     };
   }
 
+  // Sidebar toggle
   const toggle = document.querySelector(".sidebar__menu-toggle");
   if (toggle) {
     toggle.onclick = function () {

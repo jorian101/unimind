@@ -2,6 +2,7 @@
 
 <?php include 'header.php'; ?>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="public/css/theme.css">
 <link rel="stylesheet" href="views/sidebar.css">
 <link rel="stylesheet" href="views/header.css">
