@@ -15,85 +15,73 @@ class Router {
         return $_GET['page'] ?? 'dashboard';
     }
     
-    /**
-     * Obtener configuración del sidebar para sincronizar títulos
-     */
     private function getSidebarConfig($role) {
         require_once 'views/sidebar.php';
         return getSidebarConfig($role);
     }
-    
-    /**
-     * Obtener título dinámico desde el sidebar
-     */
+
     public function getPageTitle($role, $page) {
         $sidebarConfig = $this->getSidebarConfig($role);
         
-        // Buscar el título en el menú del sidebar
         foreach ($sidebarConfig['menu'] as $item) {
             if ($item['page'] === $page) {
                 return $item['label'];
             }
         }
         
-        // Fallback si no se encuentra
         return 'UniMind';
     }
-    
-    /**
-     * Configuración centralizada de páginas por rol
-     * Aquí los colegas pueden agregar nuevas páginas fácilmente
-     */
+
     private function getPageConfigs() {
         return [
             'administrador' => [
                 'dashboard' => [
                     'breadcrumb' => ['Inicio'],
-                    'file' => 'pages/admin/dashboard.php'
+                    'file' => 'views/administrador/dashboard.php'
                 ],
                 'usuarios' => [
                     'breadcrumb' => ['Inicio', 'Usuarios'],
-                    'file' => 'pages/admin/usuarios.php'
+                    'file' => 'views/administrador/usuarios.php'
                 ],
                 'reportes' => [
                     'breadcrumb' => ['Inicio', 'Reportes'],
-                    'file' => 'pages/admin/reportes.php'
+                    'file' => 'views/administrador/reportes.php'
                 ],
                 'config' => [
                     'breadcrumb' => ['Inicio', 'Configuración'],
-                    'file' => 'pages/admin/config.php'
+                    'file' => 'views/administrador/config.php'
                 ]
             ],
             'profesor' => [
                 'dashboard' => [
                     'breadcrumb' => ['Inicio'],
-                    'file' => 'pages/profesor/dashboard.php'
+                    'file' => 'views/profesor/dashboard.php'
                 ],
                 'clases' => [
                     'breadcrumb' => ['Inicio', 'Clases'],
-                    'file' => 'pages/profesor/clases.php'
+                    'file' => 'views/profesor/clases.php'
                 ],
                 'reportes' => [
                     'breadcrumb' => ['Inicio', 'Reportes'],
-                    'file' => 'pages/profesor/reportes.php'
+                    'file' => 'views/profesor/reportes.php'
                 ]
             ],
             'estudiante' => [
                 'dashboard' => [
                     'breadcrumb' => ['Inicio'],
-                    'file' => 'pages/estudiante/dashboard.php'
+                    'file' => 'views/estudiante/dashboard.php'
                 ],
                 'tests' => [
                     'breadcrumb' => ['Inicio', 'Tests'],
-                    'file' => 'pages/estudiante/tests.php'
+                    'file' => 'views/estudiante/tests.php'
                 ],
                 'recomendaciones' => [
                     'breadcrumb' => ['Inicio', 'Recomendaciones'],
-                    'file' => 'pages/estudiante/recomendaciones.php'
+                    'file' => 'views/estudiante/recomendaciones.php'
                 ],
                 'calendario' => [
                     'breadcrumb' => ['Inicio', 'Calendario'],
-                    'file' => 'pages/estudiante/calendario.php'
+                    'file' => 'views/estudiante/calendario.php'
                 ]
             ]
         ];
@@ -103,7 +91,6 @@ class Router {
         $configs = $this->getPageConfigs();
         $breadcrumb = $configs[$role][$page]['breadcrumb'] ?? ['Inicio'];
         
-        // Si es página padre (dashboard), solo mostrar el último elemento
         if ($page === 'dashboard') {
             return [end($breadcrumb)];
         }
@@ -120,7 +107,6 @@ class Router {
         $role = $this->getCurrentRole();
         $page = $this->getCurrentPage();
         
-        // Intentar cargar archivo específico de la página
         $pageFile = $this->getPageFile($role, $page);
         
         if ($pageFile && file_exists($pageFile)) {
@@ -129,7 +115,6 @@ class Router {
             return ob_get_clean();
         }
         
-        // Fallback al contenido por defecto si no existe el archivo
         return $this->getDefaultContent($role, $page);
     }
     
@@ -184,13 +169,6 @@ class Router {
         </style>
         ";
     }
-    
-    /**
-     * Método para que los colegas registren nuevas páginas fácilmente
-     */
-    public function addPage($role, $page, $config) {
-        // Esta función permitirá agregar páginas dinámicamente en el futuro
-        // Por ahora, las páginas se configuran en getPageConfigs()
-    }
+
 }
 ?>
