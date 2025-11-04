@@ -4,8 +4,8 @@ class SimpleRouter {
     private $currentPage;
     
     public function __construct() {
-        $this->currentRole = $_GET['role'] ?? 'estudiante';
-        $this->currentPage = $_GET['page'] ?? ($this->currentRole === 'estudiante' ? 'inicio' : 'dashboard');
+        $this->currentRole = $_GET['role'] ?? 'autenticacion';
+        $this->currentPage = $_GET['page'] ?? 'login';
     }
     
     public function getCurrentRole() {

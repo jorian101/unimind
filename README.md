@@ -116,7 +116,7 @@ unimind/
 
 1. **Acceso Principal**:
    - Ve a: `http://localhost/unimind`
-   - Verás una página de prueba con el texto "Prueba" y el sidebar a la izquierda
+   - Verás una página replicada de AulaVirtual
 
 2. **Funcionalidades de la Página de Prueba**:
    - Sidebar responsive completamente funcional

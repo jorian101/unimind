@@ -4,6 +4,12 @@ require_once 'utils/SimpleRouter.php';
 $router = new SimpleRouter();
 $currentRole = $router->getCurrentRole();
 $currentPage = $router->getCurrentPage();
+
+// Si es la página de login, cargar directamente sin layout
+if ($currentRole === 'autenticacion' && $currentPage === 'login') {
+    include 'views/autenticacion/login.php';
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
