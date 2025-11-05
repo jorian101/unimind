@@ -1,9 +1,13 @@
 <?php
-require_once '../utils/Router.php';
+require_once 'SimpleRouter.php';
 
-// Este archivo maneja las peticiones AJAX para cargar contenido sin recargar página
 header('Content-Type: text/html; charset=utf-8');
 
-$router = new Router();
-echo $router->renderPage();
+$router = new SimpleRouter();
+
+ob_start();
+$router->loadPage();
+$pageContent = ob_get_clean();
+
+echo '<div class="page-content-wrapper">' . $pageContent . '</div>';
 ?>

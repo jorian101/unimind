@@ -11,13 +11,12 @@
 }
 
 html {
-  font-size: 16px;
   line-height: 1.5;
 }
 
 body {
   font-family: var(--font);
-  background-color: var(--bg-100);
+  background-color: var(--var-100);
   color: var(--var-900);
   min-height: 100vh;
 }
@@ -31,20 +30,12 @@ body {
 }
 
 @media (min-width: 390px) {
-  html {
-    font-size: 14px;
-  }
-
   .container {
     padding: 0 1rem;
   }
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-
   .container {
     padding: 0 2rem;
   }
@@ -65,10 +56,6 @@ body {
 
 /* Mobile responsiveness */
 @media (max-width: 767px) {
-  html {
-    font-size: 14px;
-  }
-
   .container {
     padding: 0 0.5rem;
   }

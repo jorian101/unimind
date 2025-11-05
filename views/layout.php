@@ -1,63 +1,98 @@
-<?php
-/**
- * Layout principal que incluye sidebar + header fijo
- * Componentes modulares y reutilizables
- */
-?>
-
-<!-- Sidebar independiente -->
 <?php include 'sidebar.php'; ?>
 
-<!-- Header fijo alineado con sidebar -->
 <?php include 'header.php'; ?>
 
-<!-- CSS necesarios para el layout -->
-<link rel="stylesheet" href="public/css/theme.css">
-<link rel="stylesheet" href="views/sidebar.css">
-<link rel="stylesheet" href="views/header.css">
-<link rel="stylesheet" href="views/page-header.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="public/css/theme.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="views/sidebar.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="views/header.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="views/pageHeader.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="views/estudiante/inicio.css?v=<?php echo time(); ?>">
 
-<!-- JavaScript necesario para el layout -->
-<script src="public/js/main.js"></script>
-<script src="public/js/header.js"></script>
-<script src="public/js/page-header.js"></script>
+<?php if(($_GET['page'] ?? '') === 'dashboard'): ?>
+<link rel="stylesheet" href="views/estudiante/dashboard.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="views/estudiante/tests.css?v=<?php echo time(); ?>">
+<?php endif; ?>
+
+<!-- Apply initial state IMMEDIATELY before any CSS loads -->
+<script>
+// CRITICAL: Apply state before DOM renders to prevent flash
+(function() {
+    'use strict';
+    
+    // Get saved state immediately
+    var savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+    var isMobile = window.innerWidth < 769; // Changed to match CSS breakpoint
+    
+    if (!isMobile && savedCollapsed) {
+        // Add class to html element immediately
+        document.documentElement.classList.add('sidebar-initially-collapsed');
+    }
+    
+    // Prevent any transitions during initial load
+    document.documentElement.classList.add('no-initial-transitions');
+})();
+</script>
 
 <style>
-/* Layout con sidebar y header fijo */
 .layout-wrapper {
     position: relative;
     min-height: 100vh;
 }
 
-/* Contenido principal responsive automático - considerando header fijo */
+/* Restore normal main-content behavior */
 .main-content {
     margin-left: 280px;
-    margin-top: 60px; /* Altura del header fijo */
+    margin-top: 60px;
     padding: 2rem;
     transition: margin-left 0.3s ease;
     min-height: calc(100vh - 60px);
     font-family: var(--font);
+    opacity: 1;
 }
 
-.sidebar-collapsed .main-content {
-    margin-left: 60px;
+/* Handle initial collapsed state */
+.sidebar-initially-collapsed .main-content {
+    margin-left: 60px !important;
+}
+
+/* Disable all transitions during initial load */
+.no-initial-transitions .sidebar,
+.no-initial-transitions .main-content,
+.no-initial-transitions * {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Normal state classes */
+body.sidebar-collapsed .main-content {
+    margin-left: 60px !important;
 }
 
 @media (max-width: 390px) {
     .main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
         margin-top: 56px;
         padding: 1rem;
         min-height: calc(100vh - 56px);
     }
+    
+    .sidebar-initially-collapsed .main-content {
+        margin-left: 0 !important;
+    }
 }
 
+/* Fix 768px breakpoint to behave like mobile */
 @media (max-width: 768px) and (min-width: 391px) {
     .main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
         margin-top: 56px;
         padding: 1.5rem;
         min-height: calc(100vh - 56px);
+    }
+    
+    .sidebar-initially-collapsed .main-content {
+        margin-left: 0 !important;
     }
 }
 
@@ -66,8 +101,12 @@
         margin-left: 240px;
     }
     
-    .sidebar-collapsed .main-content {
-        margin-left: 60px;
+    body.sidebar-collapsed .main-content {
+        margin-left: 60px !important;
+    }
+    
+    .sidebar-initially-collapsed .main-content {
+        margin-left: 60px !important;
     }
 }
 
@@ -79,14 +118,34 @@
         min-height: calc(100vh - 64px);
     }
     
-    .sidebar-collapsed .main-content {
-        margin-left: 60px;
+    body.sidebar-collapsed .main-content {
+        margin-left: 60px !important;
+    }
+    
+    .sidebar-initially-collapsed .main-content {
+        margin-left: 60px !important;
     }
 }
 
-/* El page-header ahora va dentro del contenido */
 .page-content-wrapper {
     max-width: 1200px;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 </style>
+
+<script src="public/js/main-simple.js?v=<?php echo time(); ?>"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const script = document.createElement('script');
+    script.src = 'public/js/header.js?v=<?php echo time(); ?>';
+    document.head.appendChild(script);
+    
+    // Remove no-transitions class after everything is loaded
+    setTimeout(() => {
+        document.documentElement.classList.remove('no-initial-transitions');
+    }, 100);
+});
+</script>
