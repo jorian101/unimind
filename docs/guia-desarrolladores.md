@@ -7,10 +7,13 @@ Para enseñar a los desarrolladores que trabajen en otros roles (como profesor, 
    - Para un profesor: `views/profesor/nueva-pagina.php`
    - Para un administrador: `views/administrador/nueva-pagina.php`
 
-2. Incluye el layout al inicio del archivo de la nueva página. El layout ya incluye el sidebar, header y estilos comunes:
+2. Incluye el header de página al inicio del archivo de la nueva página. El layout general (sidebar, header global y estilos comunes) ya está incluido en `index.php`, por lo que las páginas solo necesitan su contenido específico. Usa la función `renderPageHeader` para el título y breadcrumb:
 
    ```php
-   <?php include '../layout.php'; ?>
+   <?php
+   require_once '../pageHeader.php';
+   renderPageHeader('Título de la Nueva Página', ['Breadcrumb', 'Item']);
+   ?>
    <!-- Aquí va el contenido específico de tu página -->
    <div class="main-content">
        <h1>Contenido de la nueva página</h1>
@@ -93,34 +96,9 @@ Ejemplos:
 
 15. Si hay conflictos, resuélvelos manualmente y prueba el proyecto. Normalmente ahay conflictos cuando tocas el mismo archivo que otros están modificando, quizás solo ocurra si tocas el componente de alguien.
 
-16. No hagas push directo a `main` ni a `develop` sin revisión. Considera crear una rama feature (por ejemplo: `git checkout -b feature/nueva-pagina`) para trabajar y luego mergea a `develop` vía PR.
+16. Cuando realices un merge (por ejemplo, al hacer `git pull`), si hay cambios para fusionar, se abrirá el editor en la terminal para aceptar el commit de merge. Escribe opcionalmente un mensaje como "merge: sincronizar con repositorio remoto", luego presiona Ctrl+C y escribe `:qa!` para salir y guardar el commit de merge.
 
-Para crear una PR (pull request) si no sabes qué es:
-
-1.  Después de hacer tus commits en la rama feature, haz push: `git push origin feature/nueva-pagina` para subir tu rama al repositorio.
-2.  Ve al repositorio en GitHub.
-3.  Haz clic en "Compare & pull request" o "New pull request".
-4.  Selecciona la rama base `develop` y la rama de comparación `feature/nueva-pagina`.
-5.  Agrega un título y descripción clara (por ejemplo: "Agrega nueva página de reportes para estudiantes").
-6.  Asigna reviewers si es necesario (a jorian101) y crea la PR.
-7.  Espera aprobación y mergea.
-8.  De ahora en adelante cada que hagas push a esta rama, se actualiza tu PR automáticamente. El administrador revisará si hay errores y comentará en tu PR para que soluciones.
-
-9.  Ejecuta el proyecto en XAMPP y verifica que las páginas carguen sin errores.
-
-10. No expongas datos sensibles en commits. Usa `.gitignore` para archivos locales. Depende de lo que hagas, probablemente no agreguen nada ahí aparte de lo que ya existe.
-
-11. Coordina con el equipo para evitar sobrescribir cambios. Cualquier duda consultado con el equipo para evitar errores o conflictos y solucionar rápido
-
-12. Mantén commits pequeños y enfocados en una tarea. Evita commits masivos.
-
-13. Ejecuta `npm run lint` y `npm run format` antes de commitear para corregir errores automáticamente.
-
-14. Trabaja en la rama `develop`. Es importante que primero hagas pull de `develop` para evitar conflictos: `git pull origin develop`.
-
-15. Si hay conflictos, resuélvelos manualmente y prueba el proyecto. Normalmente ahay conflictos cuando tocas el mismo archivo que otros están modificando, quizás solo ocurra si tocas el componente de alguien.
-
-16. No hagas push directo a `main` ni a `develop` sin revisión. Considera crear una rama feature (por ejemplo: `git checkout -b feature/nueva-pagina`) para trabajar y luego mergea a `develop` vía PR.
+17. No hagas push directo a `main` ni a `develop` sin revisión. Considera crear una rama feature (por ejemplo: `git checkout -b feature/nueva-pagina`) para trabajar y luego mergea a `develop` vía PR.
 
 Para crear una PR (pull request) si no sabes qué es:
 
