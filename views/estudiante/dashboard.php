@@ -1,6 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/pageHeader.php';
-renderPageHeader('Dashboard Emocional', ['UniMind', 'Dashboard']);
+renderPageHeader();
 ?>
 
 <link rel="stylesheet" href="views/estudiante/dashboard.css?v=<?php echo time(); ?>">

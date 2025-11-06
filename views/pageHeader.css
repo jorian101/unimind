@@ -30,6 +30,8 @@
   border-radius: 6px;
   transition: all 0.2s ease;
   border: 1px solid transparent;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .page-header__breadcrumb-item--navigable {

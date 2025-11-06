@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/pageHeader.php';
-renderPageHeader('AULA VIRTUAL UNJBG', ['Inicio']);
+// El título y breadcrumb se detectan automáticamente desde routes-config.php
+renderPageHeader();
 ?>
 
 <div class="inicio-container">

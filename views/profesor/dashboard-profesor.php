@@ -17,7 +17,7 @@ $chart_labels_faculty = ['IngenierÃ­a', 'Medicina', 'Derecho', 'Artes', 'EconomÃ
 $color_stress = '#3b82f6'; 
 $color_anxiety = '#f472b6'; 
 
-renderPageHeader('Panel del Docente', ['UniMind Profesor', 'Dashboard']);
+renderPageHeader();
 ?>
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>

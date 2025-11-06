@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__DIR__) . '/./pageHeader.php';
+require_once dirname(__DIR__) . '/pageHeader.php';
 
 // Get test data from URL parameters
 $testId = $_GET['test_id'] ?? 'estres-ansiedad';
@@ -39,7 +39,9 @@ $options = [
     4 => "Muy a menudo"
 ];
 
-renderPageHeader($testName, ['Inicio', 'Evaluaciones', $testName]);
+// El breadcrumb se construye automáticamente desde la configuración
+// Si quieres personalizar el título, puedes pasarlo: renderPageHeader($testName);
+renderPageHeader();
 ?>
 <link rel="stylesheet" href="views/estudiante/formulario.css?v=<?php echo time(); ?>">
 

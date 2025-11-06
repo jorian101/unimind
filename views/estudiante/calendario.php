@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/pageHeader.php';
-renderPageHeader('Calendario Académico', ['Inicio', 'Calendario']);
+// El título y breadcrumb se detectan automáticamente desde routes-config.php
+renderPageHeader();
 ?>
 
 <div class="calendar-content">

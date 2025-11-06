@@ -1,6 +1,10 @@
 <?php
+// INICIAR SESIÓN ANTES DE CUALQUIER OUTPUT
+session_start();
+
 require_once 'utils/SimpleRouter.php';
 
+// Crear router global
 $router = new SimpleRouter();
 $currentRole = $router->getCurrentRole();
 $currentPage = $router->getCurrentPage();

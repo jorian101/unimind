@@ -84,7 +84,9 @@ document.addEventListener("DOMContentLoaded", function () {
             );
           }
 
-          window.location.href = "?role=" + role + "&page=" + page;
+          // Agregar parámetro 'from_sidebar=1' para indicar navegación desde sidebar
+          window.location.href =
+            "?role=" + role + "&page=" + page + "&from_sidebar=1";
         }
       });
     });

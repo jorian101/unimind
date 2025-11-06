@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/pageHeader.php';
-renderPageHeader('Evaluaciones', ['Inicio', 'Evaluaciones']);
+// El breadcrumb se detecta automáticamente desde routes-config.php
+renderPageHeader();
 ?>
 <link rel="stylesheet" href="views/estudiante/tests.css?v=<?php echo time(); ?>">
 
