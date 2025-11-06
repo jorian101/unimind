@@ -1,9 +1,7 @@
 .page-header {
   background: linear-gradient(135deg, var(--bg-100) 0%, var(--bg-300) 100%);
   border: 1px solid var(--bg-500);
-  border-radius: 12px;
-  padding: 1.5rem 2rem;
-  margin-bottom: 2rem;
+  padding: 1.25rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   display: flex;
   justify-content: flex-start;
@@ -17,7 +15,6 @@
   gap: 1rem;
 }
 
-/* Navegación breadcrumb específica de página */
 .page-header__breadcrumb-nav {
   display: flex;
   align-items: center;
@@ -33,6 +30,8 @@
   border-radius: 6px;
   transition: all 0.2s ease;
   border: 1px solid transparent;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .page-header__breadcrumb-item--navigable {
@@ -64,7 +63,6 @@
   margin: 0 0.25rem;
 }
 
-/* Sección del título */
 .page-header__title-section {
   display: flex;
   flex-direction: column;
@@ -72,9 +70,9 @@
 }
 
 .page-header__title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--pri-900);
+  font-size: calc(1.044375rem + 1.7325vw);
+  font-weight: 400;
+  color: var(--var-700);
   margin: 0;
   line-height: 1.2;
   letter-spacing: -0.025em;
@@ -102,7 +100,6 @@
   font-family: var(--font);
 }
 
-/* Metadatos de la página */
 .page-header__metadata {
   display: flex;
   flex-wrap: wrap;
@@ -125,7 +122,6 @@
   color: var(--pri-800);
 }
 
-/* Responsivo */
 @media (max-width: 768px) {
   .page-header {
     padding: 1rem 1.5rem;
@@ -145,7 +141,6 @@
   }
 }
 
-/* Estados especiales */
 .page-header--loading {
   opacity: 0.7;
   pointer-events: none;
@@ -156,7 +151,6 @@
   background: linear-gradient(135deg, var(--pri-50) 0%, var(--bg-100) 100%);
 }
 
-/* Animaciones */
 @keyframes pageHeaderSlideIn {
   from {
     opacity: 0;
@@ -168,11 +162,6 @@
   }
 }
 
-.page-header {
-  animation: pageHeaderSlideIn 0.3s ease-out;
-}
-
-/* Efectos hover para breadcrumb navegable */
 .page-header__breadcrumb-item--navigable {
   position: relative;
 }

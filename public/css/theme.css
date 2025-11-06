@@ -9,6 +9,7 @@
   /* Color background */
   --bg-100: #fff; /* Color blanco*/
   --bg-300: #f2f3f4;
+  --bg-400: #d7dfe3;
   --bg-500: #ecedee;
   --bg-700: #d0d1d3;
   --bg-900: #a6a8ab;
@@ -18,7 +19,7 @@
   --pri-100: #fee2e2;
   --pri-200: #fecaca;
   --pri-300: #c72344;
-  --pri-400: #f87171;
+  --pri-400: #931400;
   --pri-500: #70001e;
   --pri-600: #dc2626;
   --pri-700: #520016;
@@ -40,5 +41,5 @@
   --var-900: #212529;
 
   /* Font family */
-  --font: "Inter", sans-serif;
+  --font: "Poppins", sans-serif;
 }

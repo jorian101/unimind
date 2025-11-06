@@ -1,56 +1,41 @@
 <?php
-function getSidebarConfig($role) {
-    $configs = [
-        'administrador' => [
-            'title' => 'UniMind Admin',
-            'menu' => [
-                ['icon' => '🏠', 'label' => 'Dashboard', 'page' => 'dashboard'],
-                ['icon' => '👥', 'label' => 'Usuarios', 'page' => 'usuarios'],
-                ['icon' => '📊', 'label' => 'Reportes', 'page' => 'reportes'],
-                ['icon' => '⚙️', 'label' => 'Configuración', 'page' => 'config'],
-            ],
-        ],
-        'profesor' => [
-            'title' => 'UniMind Profesor',
-            'menu' => [
-                ['icon' => '🏠', 'label' => 'Dashboard', 'page' => 'dashboard'],
-                ['icon' => '📚', 'label' => 'Resumen de clases', 'page' => 'clases'],
-                ['icon' => '📊', 'label' => 'Reportes de clases', 'page' => 'reportes'],
-            ],
-        ],
-        'estudiante' => [
-            'title' => 'UniMind Estudiante',
-            'menu' => [
-                ['icon' => '🏠', 'label' => 'Dashboard', 'page' => 'dashboard'],
-                ['icon' => '📝', 'label' => 'Tests y evaluaciones', 'page' => 'tests'],
-                ['icon' => '💡', 'label' => 'Recomendaciones', 'page' => 'recomendaciones'],
-                ['icon' => '📅', 'label' => 'Calendario de citas', 'page' => 'calendario'],
-            ],
-        ],
-    ];
-    
-    return $configs[$role] ?? $configs['estudiante'];
-}
+require_once dirname(__DIR__) . '/utils/sidebar-config.php';
 
 $currentRole = $_GET['role'] ?? 'estudiante';
-$currentPage = $_GET['page'] ?? 'dashboard';
-$sidebarProps = getSidebarConfig($currentRole);
+$currentPage = $_GET['page'] ?? ($currentRole === 'estudiante' ? 'inicio' : 'dashboard');
+$sidebarProps = getSidebarConfig($currentRole, $currentPage);
 ?>
 
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
     <div>
-        <div class="sidebar__header">
-            <div class="sidebar__menu-toggle">☰</div>
-            <span><?php echo $sidebarProps['title']; ?></span>
-        </div>
         <ul class="sidebar__menu">
             <?php foreach ($sidebarProps['menu'] as $item): ?>
-                <li class="sidebar__item <?php echo ($item['page'] === $currentPage) ? 'sidebar__item--active' : ''; ?>" 
-                    data-page="<?php echo $item['page']; ?>" 
-                    data-role="<?php echo $currentRole; ?>">
-                    <i><?php echo $item['icon']; ?></i>
-                    <span><?php echo $item['label']; ?></span>
-                </li>
+                <?php if (isset($item['submenu'])): ?>
+                    <!-- Item with submenu -->
+                    <li class="sidebar__item">
+                        <i class="<?php echo $item['icon'] ?? ''; ?>"></i>
+                        <span><?php echo $item['label']; ?></span>
+                        <i class="fas fa-chevron-right submenu-toggle"></i>
+                        <ul class="submenu">
+                            <?php foreach ($item['submenu'] as $subItem): ?>
+                                <li class="sidebar__item <?php echo (isset($subItem['page']) && $subItem['page'] === $currentPage) ? 'sidebar__item--active' : ''; ?>" 
+                                    data-page="<?php echo $subItem['page']; ?>" 
+                                    data-role="<?php echo $currentRole; ?>">
+                                    <i class="<?php echo $subItem['icon'] ?? ''; ?>"></i>
+                                    <span><?php echo $subItem['label']; ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </li>
+                <?php else: ?>
+                    <!-- Regular item -->
+                    <li class="sidebar__item <?php echo (isset($item['page']) && $item['page'] === $currentPage) ? 'sidebar__item--active' : ''; ?>" 
+                        data-page="<?php echo $item['page'] ?? ''; ?>" 
+                        data-role="<?php echo $currentRole; ?>">
+                        <i class="<?php echo $item['icon'] ?? ''; ?>"></i>
+                        <span><?php echo $item['label']; ?></span>
+                    </li>
+                <?php endif; ?>
             <?php endforeach; ?>
         </ul>
     </div>
@@ -64,4 +49,4 @@ $sidebarProps = getSidebarConfig($currentRole);
         </select>
     </div>
 </aside>
-</aside>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
