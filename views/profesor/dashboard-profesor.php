@@ -1,4 +1,6 @@
 <?php
+require_once dirname(__DIR__) . '/pageHeader.php';
+
 // Datos de ejemplo para los gráficos (en un entorno real, estos provendrían de una base de datos)
 $chart_data_temporal_stress = [30, 35, 45, 50, 40, 60];
 $chart_data_temporal_anxiety = [20, 28, 38, 42, 35, 50];
@@ -14,92 +16,42 @@ $chart_labels_faculty = ['Ingeniería', 'Medicina', 'Derecho', 'Artes', 'Econom�
 // Colores de la imagen para Ansiedad (#f472b6) y Estrés (#3b82f6)
 $color_stress = '#3b82f6'; 
 $color_anxiety = '#f472b6'; 
+
+renderPageHeader('Panel del Docente', ['UniMind Profesor', 'Dashboard']);
 ?>
-<!DOCTYPE html>
-<html class="light" lang="es">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Panel del Docente</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#dc2626", /* Rojo más oscuro para coincidir con la barra lateral */
-                        "background-light": "#f6f6f8",
-                        "background-dark": "#101622",
-                        "sidebar-active": "#fecaca", /* Rojo claro de la selección lateral */
-                    },
-                    fontFamily: {
-                        "display": ["Inter"]
-                    },
-                    borderRadius: {
-                        "DEFAULT": "0.5rem",
-                        "lg": "1rem",
-                        "xl": "1.5rem",
-                        "full": "9999px"
-                    },
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="views/profesor/dashboard-profesor.css?v=<?php echo time(); ?>">
+
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#dc2626",
+                    "background-light": "#f6f6f8",
+                    "background-dark": "#101622",
+                    "sidebar-active": "#fecaca",
+                },
+                fontFamily: {
+                    "display": ["Inter"]
+                },
+                borderRadius: {
+                    "DEFAULT": "0.5rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
                 },
             },
-        }
-    </script>
-    
-    <link rel="stylesheet" href="styles.css"> 
-</head>
-<body class="font-display bg-background-light dark:bg-background-dark">
-<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
-    <div class="flex min-h-screen">
-        
-        <div class="flex flex-col gap-8 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1f2937] p-2 w-20 fixed h-full items-center">
-            <div class="flex items-center gap-3 px-3 py-2 mt-4">
-                <span class="material-symbols-outlined text-primary text-3xl">psychology</span>
-            </div>
-            <div class="flex flex-col justify-between flex-1 w-full">
-                <div class="flex flex-col gap-2 w-full">
-                    <div class="group relative flex justify-center items-center h-12 w-full px-3 py-2 rounded-lg bg-primary text-white shadow-lg transition-all">
-                        <span class="material-symbols-outlined text-2xl">dashboard</span>
-                        <span class="absolute left-full ml-4 py-1 px-2 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 pointer-events-none">Panel</span>
-                    </div>
-                    <div class="group relative flex justify-center items-center h-12 w-full px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
-                        <span class="material-symbols-outlined text-2xl">groups</span>
-                        <span class="absolute left-full ml-4 py-1 px-2 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 pointer-events-none">Mis Clases</span>
-                    </div>
-                    <div class="group relative flex justify-center items-center h-12 w-full px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
-                        <span class="material-symbols-outlined text-2xl">calendar_month</span>
-                        <span class="absolute left-full ml-4 py-1 px-2 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 pointer-events-none">Calendario</span>
-                    </div>
-                    <div class="group relative flex justify-center items-center h-12 w-full px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
-                        <span class="material-symbols-outlined text-2xl">school</span>
-                        <span class="absolute left-full ml-4 py-1 px-2 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 pointer-events-none">Cursos</span>
-                    </div>
-                </div>
-                <div class="flex flex-col gap-4 mb-4">
-                    <div class="group relative flex justify-center items-center h-12 w-full px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
-                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8" data-alt="Perfil" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBY_Bfdku0boJ4vqyJWlyuLD_VXKiVtKl3LWFTqhpQbDRVD2OQ2G-OiQjlhNo039YSPCcZ-SKUAkdzYqqIqi0N3mwLR0FGcHAiRe6AspO-691ZxOU2WC3PEP_aK9nrwxRr-_HhMfG7vZjrMRqdjkpEKGtL1mk31Yz5U28v7Yuk3zK9xImWyaWT-bCR-rPfqqnVEmFCuVvpXUWqfhyys2nyl_dOtcRKw6mw0aVDQDGq94MPd5y1KpR_tTFcBcnY9kKnD2EcKtYpXYUo");'></div>
-                        <span class="absolute left-full ml-4 py-1 px-2 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 pointer-events-none">Perfil</span>
-                    </div>
-                    <div class="group relative flex justify-center items-center h-12 w-full px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
-                        <span class="material-symbols-outlined text-2xl">logout</span>
-                        <span class="absolute left-full ml-4 py-1 px-2 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 pointer-events-none">Salir</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <main class="flex-1 p-8 ml-20"> <div class="flex items-center gap-4 mb-6">
-                <span class="material-symbols-outlined text-gray-500 dark:text-gray-400">arrow_back</span>
-                <div class="flex flex-col">
-                    <p class="text-xl font-bold text-gray-900 dark:text-white">Panel del Docente</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Monitorea el bienestar de tu aula</p>
-                </div>
-            </div>
+        },
+    }
+</script>
+
+<main class="dashboard-container font-display bg-background-light dark:bg-background-dark" id="dashboard-profesor">
 
             <div class="flex flex-col gap-6 mb-8">
                 <div class="flex flex-col">
@@ -173,9 +125,7 @@ $color_anxiety = '#f472b6';
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Niveles por Facultad</h3>
                 <div class="h-80"><canvas id="facultyLevelsChart"></canvas></div>
             </div>
-        </main>
-    </div>
-</div>
+</main>
 
 <script>
     // Variables y colores dinámicos de PHP
@@ -333,13 +283,11 @@ $color_anxiety = '#f472b6';
                 
                 riskDistributionChart.data.datasets[0].borderColor = isDarkMode() ? '#111827' : '#fff';
                 
-                temporalEvolutionChart.update();
-                riskDistributionChart.update();
-                facultyLevelsChart.update();
-            }
-        }
-    });
-    observer.observe(document.documentElement, { attributes: true });
+        temporalEvolutionChart.update();
+        riskDistributionChart.update();
+        facultyLevelsChart.update();
+    }
+}
+});
+observer.observe(document.documentElement, { attributes: true });
 </script>
-</body>
-</html>

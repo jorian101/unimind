@@ -7,7 +7,7 @@ Para enseñar a los desarrolladores que trabajen en otros roles (como profesor, 
    - Para un profesor: `views/profesor/nueva-pagina.php`
    - Para un administrador: `views/administrador/nueva-pagina.php`
 
-2. Incluye el header de página al inicio del archivo de la nueva página. El layout general (sidebar, header global y estilos comunes) ya está incluido en `index.php`, por lo que las páginas solo necesitan su contenido específico. Usa la función `renderPageHeader` para el título y breadcrumb:
+2. Incluye el header de página al inicio del archivo de la nueva página. El layout general (sidebar, header global y estilos comunes) ya está incluido en `index.php`, por lo que las páginas solo necesitan su contenido específico. Usa la función `renderPageHeader` para el título y breadcrumb. Es obligatorio incluir `require_once '../pageHeader.php';` para cargar las funciones necesarias, y luego llamar a `renderPageHeader` con el título y el array de breadcrumb. Además, asegúrate de que el contenido esté dentro de un contenedor apropiado, como `<main>` o `<div class="main-content">`.
 
    ```php
    <?php
@@ -15,16 +15,18 @@ Para enseñar a los desarrolladores que trabajen en otros roles (como profesor, 
    renderPageHeader('Título de la Nueva Página', ['Breadcrumb', 'Item']);
    ?>
    <!-- Aquí va el contenido específico de tu página -->
-   <div class="main-content">
+   <main class="main-content">
        <h1>Contenido de la nueva página</h1>
        <!-- Tu HTML/PHP aquí -->
-   </div>
+   </main>
    ```
+
+   **Nota sobre el breadcrumb:** El array pasado a `renderPageHeader` representa la ruta de navegación (breadcrumb). Por ejemplo, `['UniMind', 'Dashboard']` mostraría "UniMind > Dashboard". El primer elemento es el nivel superior (como el nombre del sistema o sección), y los siguientes son los subniveles hasta la página actual. Ajusta según la jerarquía de tu página.
 
 3. Abre [sidebar-config.php](../utils/sidebar-config.php) y localiza el array del rol que quieres modificar (por ejemplo: `'profesor'`, `'estudiante'`, `'administrador'`).
 
 4. Edita el array `'menu'` para agregar, quitar o cambiar elementos. Cada elemento es un array con:
-   - `'icon'`: Clase de FontAwesome (por ejemplo: `'fas fa-home'`).
+   - `'icon'`: Clase de FontAwesome (por ejemplo: `'fas fa-home'`). Los iconos se obtienen de FontAwesome (https://fontawesome.com/icons). Busca el icono deseado en su sitio web, copia la clase (como 'fas fa-home' para un ícono sólido de casa), y úsala aquí.
    - `'label'`: Texto del menú.
    - `'page'`: Nombre de la página (debe coincidir con el archivo en `views/{rol}/`).
    - Opcional: `'submenu'` para submenús anidados.
@@ -36,7 +38,7 @@ Para enseñar a los desarrolladores que trabajen en otros roles (como profesor, 
        'title' => 'UniMind Profesor',
        'menu' => [
            // ... ítems existentes ...
-           ['icon' => 'fas fa-plus', 'label' => 'Nueva Opción', 'page' => 'nueva-opcion'],
+           ['icon' => 'fas fa-plus', 'label' => 'Nueva Pagina', 'page' => 'nueva-pagina'],
        ],
    ],
    ```
@@ -54,6 +56,8 @@ Para enseñar a los desarrolladores que trabajen en otros roles (como profesor, 
    ```php
    ['icon' => 'fas fa-new', 'label' => 'Nueva Página', 'page' => 'nueva-pagina'],
    ```
+
+   **Explicación del sidebar diferente para estudiantes:** El rol de estudiante tiene dos contextos distintos para reflejar las funcionalidades del sistema. "UniMind Estudiante" se usa para páginas relacionadas con la evaluación y gestión de salud mental (estrés, ansiedad, etc.), mientras que "AULA VIRTUAL UNJBG" se usa para el entorno educativo general simulado (cursos, calendario académico, etc.).
 
 6. Prueba los cambios accediendo a la página con el rol modificado. El sidebar se actualiza automáticamente al recargar.
 

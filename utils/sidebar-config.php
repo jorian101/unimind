@@ -1,6 +1,6 @@
 <?php
 function getSidebarConfig($role, $currentPage = null) {
-    // Only these specific pages should show UniMind sidebar
+    // UnimindPages es solo para el estudiante:
     $unimindPages = ['dashboard', 'tests', 'historial', 'formulario', 'recomendaciones', 'calendario-citas'];
     $isUnimind = $currentPage && in_array($currentPage, $unimindPages);
     
@@ -17,9 +17,7 @@ function getSidebarConfig($role, $currentPage = null) {
         'profesor' => [
             'title' => 'UniMind Profesor',
             'menu' => [
-                ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'page' => 'dashboard'],
-                ['icon' => 'fas fa-book', 'label' => 'Resumen de clases', 'page' => 'clases'],
-                ['icon' => 'fas fa-chart-bar', 'label' => 'Reportes de clases', 'page' => 'reportes'],
+                ['icon' => 'fas fa-chart-line', 'label' => 'Dashboard', 'page' => 'dashboard-profesor'],
             ],
         ],
         'estudiante' => $isUnimind ? [
