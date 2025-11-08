@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Get elements and initial state
   const sidebar = document.getElementById("sidebar");
   const body = document.body;
-  const isMobile = window.innerWidth <= 768; // Changed to match CSS
+  const isMobile = window.innerWidth < 768; // Changed to < 768 (mobile only)
   const savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
 
   // Synchronize JavaScript state with CSS-applied initial state
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function applySidebarState(collapsed) {
     const sidebar = document.getElementById("sidebar");
     const body = document.body;
-    const isMobile = window.innerWidth <= 768; // Changed to match CSS
+    const isMobile = window.innerWidth < 768; // Changed to < 768
 
     if (!sidebar || isMobile) return;
 
@@ -157,10 +157,10 @@ document.addEventListener("DOMContentLoaded", function () {
     toggle.onclick = function () {
       const sidebar = document.getElementById("sidebar");
       const body = document.body;
-      const isMobile = window.innerWidth <= 768; // Changed to match CSS
+      const isMobile = window.innerWidth < 768; // Changed to < 768
 
       if (isMobile) {
-        // En móvil (incluye 768px), alternar visibilidad
+        // En móvil (< 768px), alternar visibilidad
         sidebar.classList.toggle("sidebar--show");
         const overlay = document.getElementById("sidebar-overlay");
         if (sidebar.classList.contains("sidebar--show")) {
@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function () {
           setTimeout(() => (overlay.style.display = "none"), 300);
         }
       } else {
-        // En desktop, alternar colapso
+        // En desktop/tablet (>= 768px), alternar colapso
         sidebar.classList.toggle("sidebar--collapsed");
         body.classList.toggle("sidebar-collapsed");
 
@@ -195,26 +195,40 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("resize", function () {
     const sidebar = document.getElementById("sidebar");
     const body = document.body;
-    const isMobile = window.innerWidth <= 768; // Changed to match CSS
+    const isMobile = window.innerWidth < 768;
 
     if (isMobile) {
-      // En móvil, remover clases de desktop pero NO cambiar el estado guardado
-      sidebar.classList.remove("sidebar--collapsed");
+      // En móvil (< 768px), remover clases de desktop y ocultar sidebar
+      sidebar.classList.remove("sidebar--collapsed", "sidebar--show");
       body.classList.remove("sidebar-collapsed");
       document.documentElement.classList.remove("sidebar-initially-collapsed");
+
+      // Hide overlay if visible
+      const overlay = document.getElementById("sidebar-overlay");
+      overlay.classList.remove("show");
+      overlay.style.display = "none";
     } else {
-      // En desktop, aplicar el estado guardado actual
-      const savedCollapsed =
-        localStorage.getItem("sidebarCollapsed") === "true";
-      applySidebarState(savedCollapsed);
+      // En desktop/tablet (>= 768px), SIEMPRE aplicar estado colapsado por defecto
+      // Solo usar savedCollapsed si el usuario ya lo había abierto manualmente
+      const savedCollapsed = localStorage.getItem("sidebarCollapsed");
+
+      // Default to collapsed (true) - solo expandir si explícitamente está guardado como false
+      const shouldBeCollapsed = savedCollapsed === "false" ? false : true;
+
+      applySidebarState(shouldBeCollapsed);
 
       // Update CSS state
-      if (savedCollapsed) {
+      if (shouldBeCollapsed) {
         document.documentElement.classList.add("sidebar-initially-collapsed");
       } else {
         document.documentElement.classList.remove(
           "sidebar-initially-collapsed",
         );
+      }
+
+      // Actualizar localStorage para que refleje el estado colapsado por defecto
+      if (savedCollapsed === null) {
+        localStorage.setItem("sidebarCollapsed", "true");
       }
     }
   });
@@ -224,7 +238,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sidebar = document.getElementById("sidebar");
     const toggle = document.querySelector(".sidebar__menu-toggle");
     const overlay = document.getElementById("sidebar-overlay");
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = window.innerWidth < 768;
 
     if (isMobile && sidebar.classList.contains("sidebar--show")) {
       // Si se hace clic fuera del sidebar y no es el botón toggle

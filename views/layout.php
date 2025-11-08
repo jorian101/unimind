@@ -19,11 +19,20 @@
 (function() {
     'use strict';
     
-    var savedCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-    var isMobile = window.innerWidth < 769;
+    var savedCollapsed = localStorage.getItem("sidebarCollapsed");
+    var isMobile = window.innerWidth < 768; 
     
-    if (!isMobile && savedCollapsed) {
-        document.documentElement.classList.add('sidebar-initially-collapsed');
+    if (!isMobile) {
+        var shouldBeCollapsed = savedCollapsed === "false" ? false : true;
+        
+        if (shouldBeCollapsed) {
+            document.documentElement.classList.add('sidebar-initially-collapsed');
+            document.body.classList.add('sidebar-collapsed');
+        }
+        
+        if (savedCollapsed === null) {
+            localStorage.setItem("sidebarCollapsed", "true");
+        }
     }
     
     document.documentElement.classList.add('no-initial-transitions');

@@ -14,9 +14,7 @@ $userName = 'Usuario Actual'; // Esto vendría de la sesión/BD
     </div>
     <div class="header-items-right">
         <div class="header-icons">
-            <i class="icon fas fa-globe-americas"></i>
             <i class="icon fas fa-bell"></i>
-            <i class="icon fas fa-comment"></i>
         </div>
         
         <div class="profile-menu-container" id="profileToggle"> 
