@@ -1,11 +1,11 @@
 CREATE DATABASE IF NOT EXISTS `db_tests_estres_ansiedad`;
-
 USE `db_tests_estres_ansiedad`;
+
+-- 1. Tablas Principales (Sin dependencias)
 
 CREATE TABLE `Escuelas` (
     `id_escuela` INT NOT NULL AUTO_INCREMENT,
     `nombre_escuela` VARCHAR(150) UNIQUE NOT NULL,
-    `direccion` VARCHAR(255),
     `telefono` VARCHAR(20),
     PRIMARY KEY (`id_escuela`)
 );
@@ -14,25 +14,13 @@ CREATE TABLE `Usuarios` (
     `id_usuario` INT NOT NULL AUTO_INCREMENT,
     `nombre` VARCHAR(100) NOT NULL,
     `apellido` VARCHAR(100) NOT NULL,
-    `email` VARCHAR(150) UNIQUE NOT NULL,
-    `cargo` VARCHAR(30) NOT NULL,
+    `codigo_usuario` CHAR(7) NOT NULL UNIQUE,
+    `password_hash` VARCHAR(255) NOT NULL,
+    `cargo` VARCHAR(30) NOT NULL, -- 'Estudiante', 'Profesor', 'Admin'
     `fecha_nacimiento` DATE,
     `genero` VARCHAR(10),
     `fecha_registro` DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id_usuario`)
-);
-
-CREATE TABLE `Usuario_Escuela` (
-    `id_usuario_escuela` INT NOT NULL AUTO_INCREMENT,
-    `id_usuario` INT NOT NULL,
-    `id_escuela` INT NOT NULL,
-    `fecha_afiliacion` DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id_usuario_escuela`),
-    UNIQUE KEY `uk_usuario_escuela` (`id_usuario`, `id_escuela`),
-    FOREIGN KEY (`id_usuario`) REFERENCES `Usuarios`(`id_usuario`)
-        ON DELETE CASCADE,
-    FOREIGN KEY (`id_escuela`) REFERENCES `Escuelas`(`id_escuela`)
-        ON DELETE RESTRICT
 );
 
 CREATE TABLE `Tests` (
@@ -48,6 +36,33 @@ CREATE TABLE `Opciones_Respuesta` (
     `texto_opcion` VARCHAR(100) NOT NULL,
     `valor_puntuacion` INT NOT NULL,
     PRIMARY KEY (`id_opcion`)
+);
+
+-- 2. Tablas Dependientes (Con Foreign Keys)
+
+CREATE TABLE `Cursos` (
+    `id_curso` INT NOT NULL AUTO_INCREMENT,
+    `nombre_curso` VARCHAR(150) NOT NULL,
+    `id_escuela` INT NOT NULL,
+    `id_profesor` INT NOT NULL, -- FK a Usuarios
+    PRIMARY KEY (`id_curso`),
+    FOREIGN KEY (`id_escuela`) REFERENCES `Escuelas`(`id_escuela`)
+        ON DELETE CASCADE,
+    FOREIGN KEY (`id_profesor`) REFERENCES `Usuarios`(`id_usuario`)
+        ON DELETE RESTRICT
+);
+
+CREATE TABLE `Usuario_Curso` (
+    `id_usuario_curso` INT NOT NULL AUTO_INCREMENT,
+    `id_usuario` INT NOT NULL, -- FK al estudiante
+    `id_curso` INT NOT NULL,   -- FK al curso
+    `fecha_inscripcion` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id_usuario_curso`),
+    UNIQUE KEY `uk_usuario_curso` (`id_usuario`, `id_curso`),
+    FOREIGN KEY (`id_usuario`) REFERENCES `Usuarios`(`id_usuario`)
+        ON DELETE CASCADE,
+    FOREIGN KEY (`id_curso`) REFERENCES `Cursos`(`id_curso`)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE `Items` (

@@ -1,22 +1,22 @@
 <?php
-$host = 'localhost';
-$dbname = 'db_tests_estres_ansiedad';
-$username = 'root';
-$password = '';
-$charset = 'utf8mb4';
+class Database {
+    private $host = 'localhost'; // o 'localhost'
+    private $db_name = 'db_tests_estres_ansiedad';
+    private $username = 'root';
+    private $password = ''; // Cambia esto
+    private $conn;
 
-$dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-];
-
-try {
-    $pdo = new PDO($dsn, $username, $password, $options);
-    echo("Conecto");
-} catch (\PDOException $e) {
-    http_response_code(500);
-    die("Error de conexión: " . $e->getMessage());
+    public function connect() {
+        $this->conn = null;
+        try {
+            $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->db_name . ';charset=utf8';
+            $this->conn = new PDO($dsn, $this->username, $this->password);
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        } catch(PDOException $e) {
+            echo 'Error de Conexión: ' . $e->getMessage();
+        }
+        return $this->conn;
+    }
 }
 ?>
