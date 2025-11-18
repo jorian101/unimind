@@ -1,10 +1,15 @@
-// Variable global para almacenar el ID del curso cargado
+// --- Variables Globales ---
 let currentCursoId = null;
+let globalData = {
+  cursos: [],
+  tests: [],
+};
+let currentTestIdToSuggest = null; // Almacena el ID (1 o 2) del test a sugerir
 
-// Instancias de los gráficos (para poder destruirlos)
+// Instancias de los gráficos
 let temporalChart, riskChart, facultyChart;
 
-// --- Colores y Helpers (Valores estáticos para modo claro) ---
+// --- Colores y Helpers (Modo Claro) ---
 const stressColor = "#3b82f6";
 const anxietyColor = "#f472b6";
 const chartGridColor = "rgba(0, 0, 0, 0.1)";
@@ -15,60 +20,51 @@ const chartTooltipBodyColor = "#4b5563";
 
 // --- Funciones Principales ---
 
-/**
- * Función principal que se ejecuta al cargar la página
- */
 document.addEventListener("DOMContentLoaded", () => {
   // 1. Cargar los datos iniciales
   fetchDashboardData();
 
-  // 2. Asignar Event Listeners
+  // 2. Asignar Event Listeners a los botones de las TARJETAS
   document
     .getElementById("form-sugerir-estres")
-    .addEventListener("submit", handleSugerirTest);
+    .addEventListener("submit", (e) => {
+      e.preventDefault();
+      openSugerirModal(1); // Abrir modal para Test ID 1
+    });
   document
     .getElementById("form-sugerir-ansiedad")
-    .addEventListener("submit", handleSugerirTest);
+    .addEventListener("submit", (e) => {
+      e.preventDefault();
+      openSugerirModal(2); // Abrir modal para Test ID 2
+    });
+  // Interceptar click en "Niveles Altos" para mostrar modal informativo en lugar de navegar
+  const linkAltos = document.getElementById("link-niveles-altos");
+  if (linkAltos) {
+    linkAltos.addEventListener("click", (e) => {
+      e.preventDefault();
+      openInfoModal(
+        "Niveles altos",
+        "Estos niveles requieren atención y deben ser revisados por el docente. Revisa el reporte detallado o comunica con el equipo de soporte para seguimiento.",
+      );
+    });
+  }
+
+  // 3. Asignar Event Listeners a los botones del MODAL
+  document
+    .getElementById("modal-btn-cerrar")
+    .addEventListener("click", closeSugerirModal);
+  document
+    .getElementById("modal-btn-cancelar")
+    .addEventListener("click", closeSugerirModal);
+  document
+    .getElementById("modal-btn-sugerir")
+    .addEventListener("click", handleModalSubmit);
 });
 
 /**
- * Maneja el submit de los formularios "Sugerir Test"
- */
-async function handleSugerirTest(e) {
-  e.preventDefault();
-  const form = e.target;
-  const idTest = form.id === "form-sugerir-estres" ? 1 : 2;
-
-  // El ID del curso se toma de la variable global 'currentCursoId'
-  const data = {
-    id_test: idTest,
-    id_curso: currentCursoId,
-  };
-
-  try {
-    const response = await fetch("api.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    const result = await response.json();
-
-    if (result.success) {
-      alert("Test sugerido correctamente a los alumnos.");
-    } else {
-      alert("Error al sugerir el test.");
-    }
-  } catch (error) {
-    console.error("Error en la solicitud POST:", error);
-    alert("Error de conexión al sugerir el test.");
-  }
-}
-
-/**
- * Llama a la API para obtener todos los datos del dashboard
+ * Llama a la API para obtener TODOS los datos iniciales
  */
 async function fetchDashboardData() {
-  // Ya no se necesita un ID de curso, la API lo determina
   const url = "api.php";
 
   try {
@@ -77,10 +73,12 @@ async function fetchDashboardData() {
 
     const data = await response.json();
 
-    // 1. Almacenar estado global
+    // 1. Almacenar datos globales
     currentCursoId = data.id_curso_seleccionado;
+    globalData.cursos = data.lista_cursos;
+    globalData.tests = data.tests_disponibles;
 
-    // 2. Actualizar el UI
+    // 2. Actualizar el UI (tarjetas, título)
     updateCards(data);
 
     // 3. Actualizar Gráficos
@@ -94,19 +92,127 @@ async function fetchDashboardData() {
   }
 }
 
-// --- Funciones de Actualización de UI ---
+/**
+ * Maneja el envío del formulario del modal
+ */
+async function handleModalSubmit() {
+  const id_test = currentTestIdToSuggest;
+  const id_curso = document.getElementById("modal-form-curso-select").value;
+
+  if (!id_test || !id_curso) {
+    alert("Error: No se ha seleccionado un test o un curso.");
+    return;
+  }
+
+  const data = { id_test: id_test, id_curso: id_curso };
+
+  try {
+    const response = await fetch("api.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      alert("Test sugerido correctamente al curso seleccionado.");
+      closeSugerirModal();
+    } else {
+      alert("Error al sugerir el test.");
+    }
+  } catch (error) {
+    console.error("Error en la solicitud POST:", error);
+    alert("Error de conexión al sugerir el test.");
+  }
+}
+
+// --- Funciones del Modal ---
+
+function openSugerirModal(testId) {
+  currentTestIdToSuggest = testId;
+
+  // 1. Encontrar el test en los datos globales
+  const test = globalData.tests
+    ? globalData.tests.find((t) => t.id_test == testId)
+    : null;
+  if (!test) {
+    // Si no hay datos disponibles, mostrar un modal informativo en lugar de fallar silenciosamente
+    console.warn("No se encontraron datos para el test ID:", testId);
+    openInfoModal(
+      "Sugerir Test",
+      "Información del test no disponible en este momento. Intenta recargar la página o verifica la conexión con el servidor.",
+    );
+    return;
+  }
+
+  // 2. Llenar los campos del formulario (solo lectura)
+  document.getElementById("modal-title").textContent =
+    `Sugerir: ${test.nombre}`;
+  document.getElementById("modal-form-nombre").value = test.nombre;
+  document.getElementById("modal-form-descripcion").value = test.descripcion;
+  document.getElementById("modal-form-preguntas").value = test.num_items;
+
+  // 3. Llenar el selector de cursos
+  const selectCurso = document.getElementById("modal-form-curso-select");
+  selectCurso.innerHTML = ""; // Limpiar opciones
+
+  globalData.cursos.forEach((curso) => {
+    const option = document.createElement("option");
+    option.value = curso.id_curso;
+    option.textContent = curso.nombre_curso;
+    // Seleccionar por defecto el curso que ya está cargado en el dashboard
+    if (curso.id_curso == currentCursoId) {
+      option.selected = true;
+    }
+    selectCurso.appendChild(option);
+  });
+
+  // 4. Mostrar el modal
+  document.getElementById("sugerir-test-modal").classList.add("visible");
+}
+
+function closeSugerirModal() {
+  document.getElementById("sugerir-test-modal").classList.remove("visible");
+  currentTestIdToSuggest = null; // Limpiar el ID
+}
 
 /**
- * Actualiza las tarjetas (conteo, links, botones)
+ * Abre un modal informativo reutilizando la estructura del modal de sugerir
  */
+function openInfoModal(title, description) {
+  document.getElementById("modal-title").textContent = title;
+  document.getElementById("modal-form-nombre").value = "";
+  document.getElementById("modal-form-descripcion").value = description;
+  document.getElementById("modal-form-preguntas").value = "";
+
+  // Rellenar selector con el curso actual si existe
+  const selectCurso = document.getElementById("modal-form-curso-select");
+  selectCurso.innerHTML = "";
+  if (currentCursoId && globalData.cursos && globalData.cursos.length) {
+    const curso =
+      globalData.cursos.find((c) => c.id_curso == currentCursoId) ||
+      globalData.cursos[0];
+    const option = document.createElement("option");
+    option.value = curso.id_curso;
+    option.textContent = curso.nombre_curso || "Curso";
+    option.selected = true;
+    selectCurso.appendChild(option);
+  } else {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "No disponible";
+    selectCurso.appendChild(option);
+  }
+
+  document.getElementById("sugerir-test-modal").classList.add("visible");
+}
+
+// --- Funciones de Actualización de UI (Tarjetas) ---
+
 function updateCards(data) {
   // Subtítulo
   document.getElementById("subtitulo-curso").innerHTML =
     `Mostrando reportes para: <span class="subtitle-highlight">${data.nombre_curso_seleccionado}</span>`;
-
-  // Conteo Niveles Altos
-  document.getElementById("conteo-niveles-altos").textContent =
-    data.conteo_niveles_altos;
 
   // Link Niveles Altos
   const linkAltos = document.getElementById("link-niveles-altos");
@@ -119,7 +225,6 @@ function updateCards(data) {
     linkAltos,
   ];
 
-  // Si no hay curso (ID es 0 o null), deshabilitar
   if (currentCursoId > 0) {
     controls.forEach((ctrl) => ctrl.classList.remove("disabled-control"));
   } else {
@@ -127,26 +232,20 @@ function updateCards(data) {
   }
 }
 
-// --- Funciones de Gráficos ---
+// --- Funciones de Gráficos (Sin cambios) ---
 
-/**
- * Crea o actualiza el gráfico de Evolución Temporal
- */
 function updateTemporalChart(data) {
   const ctx = document
     .getElementById("temporalEvolutionChart")
     .getContext("2d");
+  if (temporalChart) temporalChart.destroy();
 
-  if (temporalChart) temporalChart.destroy(); // Destruir el gráfico anterior
-
-  // Actualizar stats
   const statsEl = document.getElementById("stats-temporal");
   statsEl.innerHTML = `
         <p>Estrés Reciente: <span style="color:${stressColor}; font-weight: 600;">${data.stress?.slice(-1)[0] ?? 0}</span></p>
         <p>Ansiedad Reciente: <span style="color:${anxietyColor}; font-weight: 600;">${data.anxiety?.slice(-1)[0] ?? 0}</span></p>
     `;
 
-  // Gradientes
   const gradientStress = ctx.createLinearGradient(0, 0, 0, 400);
   gradientStress.addColorStop(0, "rgba(59, 130, 246, 0.5)");
   gradientStress.addColorStop(1, "rgba(59, 130, 246, 0)");
@@ -157,7 +256,7 @@ function updateTemporalChart(data) {
   temporalChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: data.labels,
+      /* ... (datos sin cambios) ... */ labels: data.labels,
       datasets: [
         {
           label: "Estrés",
@@ -186,7 +285,7 @@ function updateTemporalChart(data) {
       ],
     },
     options: {
-      responsive: true,
+      /* ... (opciones sin cambios) ... */ responsive: true,
       maintainAspectRatio: false,
       plugins: {
         legend: {
@@ -218,14 +317,10 @@ function updateTemporalChart(data) {
   });
 }
 
-/**
- * Crea o actualiza el gráfico de Distribución de Riesgo
- */
 function updateRiskChart(data) {
   const ctx = document.getElementById("riskDistributionChart").getContext("2d");
   if (riskChart) riskChart.destroy();
 
-  // Actualizar leyenda HTML
   const leyendaEl = document.getElementById("leyenda-riesgo");
   leyendaEl.innerHTML = data.labels_html
     .map(
@@ -241,7 +336,7 @@ function updateRiskChart(data) {
   riskChart = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: data.labels_js,
+      /* ... (datos sin cambios) ... */ labels: data.labels_js,
       datasets: [
         {
           label: "Nivel de Riesgo",
@@ -254,7 +349,7 @@ function updateRiskChart(data) {
       ],
     },
     options: {
-      responsive: true,
+      /* ... (opciones sin cambios) ... */ responsive: true,
       maintainAspectRatio: true,
       cutout: "70%",
       plugins: {
@@ -278,9 +373,6 @@ function updateRiskChart(data) {
   });
 }
 
-/**
- * Crea o actualiza el gráfico de Comparativa de Facultades
- */
 function updateFacultyChart(data) {
   const ctx = document.getElementById("facultyLevelsChart").getContext("2d");
   if (facultyChart) facultyChart.destroy();
@@ -288,7 +380,7 @@ function updateFacultyChart(data) {
   facultyChart = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: data.labels,
+      /* ... (datos sin cambios) ... */ labels: data.labels,
       datasets: [
         {
           label: "Ansiedad",
@@ -305,7 +397,7 @@ function updateFacultyChart(data) {
       ],
     },
     options: {
-      responsive: true,
+      /* ... (opciones sin cambios) ... */ responsive: true,
       maintainAspectRatio: false,
       plugins: {
         legend: {
@@ -323,10 +415,7 @@ function updateFacultyChart(data) {
         },
       },
       scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: chartTicksColor },
-        },
+        x: { grid: { display: false }, ticks: { color: chartTicksColor } },
         y: {
           beginAtZero: true,
           grid: { color: chartGridColor },

@@ -66,5 +66,18 @@ class DashboardModel {
         $stmt->closeCursor();
         return $resultados;
     }
+
+    public function getTestsDisponibles() {
+        // Asumimos que quieres sugerir los tests principales, 1 y 2
+        $stmt = $this->conn->prepare(
+            "SELECT id_test, nombre, descripcion, num_items 
+             FROM Tests 
+             WHERE id_test IN (1, 2)"
+        );
+        $stmt->execute();
+        $resultados = $stmt->fetchAll();
+        $stmt->closeCursor();
+        return $resultados;
+    }
 }
 ?>
