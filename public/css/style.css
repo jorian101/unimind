@@ -12,6 +12,8 @@
 
 html {
   line-height: 1.5;
+  /* Prevent pinch-zoom on touch devices */
+  touch-action: manipulation;
 }
 
 body {
@@ -19,9 +21,9 @@ body {
   background-color: var(--var-100);
   color: var(--var-900);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* Responsive utilities */
 .container {
   width: 100%;
   max-width: 1200px;
@@ -29,7 +31,7 @@ body {
   padding: 0 0.5rem;
 }
 
-@media (min-width: 390px) {
+@media (min-width: 400px) {
   .container {
     padding: 0 1rem;
   }

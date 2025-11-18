@@ -22,7 +22,7 @@ class SimpleRouter {
         
         // Obtener parámetros de la URL
         $this->currentRole = $_GET['role'] ?? 'autenticacion';
-        $this->currentPage = $_GET['page'] ?? 'login';
+        $this->currentPage = $_GET['page'] ?? $this->getDefaultPage($this->currentRole);
         
         // Cargar datos de la ruta actual
         $this->loadRouteData();
@@ -172,6 +172,20 @@ class SimpleRouter {
         $role = $role ?? $this->currentRole;
         $query = http_build_query(array_merge(['role' => $role, 'page' => $page], $params));
         return '?' . $query;
+    }
+    
+    /**
+     * Obtiene la página por defecto para un rol
+     */
+    private function getDefaultPage($role) {
+        $defaults = [
+            'autenticacion' => 'login',
+            'administrador' => 'dashboard',
+            'profesor' => 'dashboard-profesor',
+            'estudiante' => 'inicio',
+        ];
+        
+        return $defaults[$role] ?? 'login';
     }
 }
 ?>
