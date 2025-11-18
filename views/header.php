@@ -4,7 +4,8 @@ require_once dirname(__DIR__) . '/utils/sidebar-config.php';
 $currentRole = $_GET['role'] ?? 'estudiante';
 $currentPage = $_GET['page'] ?? ($currentRole === 'estudiante' ? 'inicio' : 'dashboard');
 $sidebarProps = getSidebarConfig($currentRole, $currentPage);
-$userName = 'Usuario Actual'; // Esto vendría de la sesión/BD
+
+$userName = session_status() === PHP_SESSION_ACTIVE ? ($_SESSION['user_name'] ?? 'Usuario Actual') : 'Usuario Actual';
 ?>
 
 <header id="main-header" class="main-header">
@@ -28,7 +29,7 @@ $userName = 'Usuario Actual'; // Esto vendría de la sesión/BD
                 <a href="#"><i class="fas fa-graduation-cap"></i> Calificaciones</a>
                 <a href="#"><i class="fas fa-envelope"></i> Mensajes</a>
                 <a href="#"><i class="fas fa-cog"></i> Preferencias</a>
-                <a href="#"><i class="fas fa-sign-out-alt"></i> Salir</a>
+                <a href="controllers/Logout.php"><i class="fas fa-sign-out-alt"></i> Salir</a>
             </div>
         </div>
     </div>

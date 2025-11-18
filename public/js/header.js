@@ -120,6 +120,14 @@ class HeaderComponent {
     this.userInfo.style.position = "relative";
     this.userInfo.appendChild(dropdown);
 
+    const logoutBtn = dropdown.querySelector(".logout");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.location.href = "controllers/Logout.php";
+      });
+    }
+
     setTimeout(() => {
       document.addEventListener(
         "click",
