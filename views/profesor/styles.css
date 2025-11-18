@@ -1,0 +1,321 @@
+/* --- Variables de Color y Tipografía --- */
+:root {
+  --font-family:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --primary-red: #991b1b; /* Rojo oscuro para texto (como en la imagen) */
+  --primary-red-light: #f87171; /* Rojo más claro */
+  --bg-light: #f6f6f8;
+  --bg-card: #ffffff;
+  --border-color: #e5e7eb;
+  --text-color: #374151;
+  --text-color-light: #6b7280;
+  --shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+
+  --color-sky-bg: #f0f9ff;
+  --color-sky-icon: #0284c7;
+  --color-pink-bg: #fdf2f8;
+  --color-pink-icon: #db2777;
+  --color-red-bg: #fef2f2;
+  --color-red-icon: #dc2626;
+}
+
+/* --- Reseteo Básico --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-light);
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+}
+
+a,
+button {
+  font-family: var(--font-family);
+  cursor: pointer;
+}
+
+/* --- Estructura Principal --- */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.dashboard-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.header-title {
+  font-size: 1.5rem; /* 24px */
+  color: #111827;
+}
+
+.header-subtitle {
+  font-size: 0.875rem; /* 14px */
+  color: var(--text-color-light);
+}
+
+.subtitle-highlight {
+  color: var(--primary-red);
+  font-weight: 500;
+}
+
+/* --- Estructura de Secciones --- */
+.recommendations {
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.25rem; /* 20px */
+  color: #111827;
+}
+
+.section-subtitle {
+  font-size: 0.875rem; /* 14px */
+  color: var(--text-color-light);
+  margin-bottom: 1.5rem;
+}
+
+/* --- Grid de 3 Columnas (Cards) --- */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* --- Estilo de las Cards (Basado en la imagen) --- */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem; /* 12px */
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.07),
+    0 4px 6px -4px rgba(0, 0, 0, 0.07);
+}
+
+.card-content {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-grow: 1;
+}
+
+.card-icon {
+  width: 3rem; /* 48px */
+  height: 3rem; /* 48px */
+  border-radius: 0.5rem; /* 8px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.card-icon .material-symbols-outlined {
+  font-size: 1.75rem;
+  font-variation-settings: "wght" 300;
+}
+
+/* Colores de iconos */
+.card-icon.bg-sky {
+  background-color: var(--color-sky-bg);
+  color: var(--color-sky-icon);
+}
+.card-icon.bg-pink {
+  background-color: var(--color-pink-bg);
+  color: var(--color-pink-icon);
+}
+.card-icon.bg-red {
+  background-color: var(--color-red-bg);
+  color: var(--color-red-icon);
+}
+
+.card-text h3 {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 600;
+  color: var(--primary-red);
+}
+
+.card-text p {
+  font-size: 0.875rem; /* 14px */
+  color: var(--text-color-light);
+}
+
+/* Contenido dinámico (Card 3) */
+.card-dynamic-content {
+  text-align: center;
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  flex-grow: 1;
+}
+.card-dynamic-content p {
+  font-size: 3rem; /* 48px */
+  font-weight: 700;
+  color: var(--color-red-icon);
+  line-height: 1.1;
+}
+.card-dynamic-content span {
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+/* Botón de la Card */
+.card-button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background-color: #f9fafb;
+  border: none;
+  border-top: 1px solid var(--border-color);
+  border-radius: 0 0 0.75rem 0.75rem; /* Esquina inferior redondeada */
+
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  color: var(--text-color-light);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.card-button:hover {
+  color: var(--text-color);
+}
+.card-button .material-symbols-outlined {
+  font-size: 1rem; /* 16px */
+}
+
+/* Estilo para controles deshabilitados */
+.disabled-control {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* --- Estructura de Gráficos --- */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.chart-container {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+}
+
+.chart-title {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Clases de span para el grid */
+.chart-span-2 {
+  grid-column: span 2 / span 2;
+}
+.chart-span-3 {
+  grid-column: span 3 / span 3;
+}
+
+/* Stats flotantes (Gráfico 1) */
+.chart-stats {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Wrapper para Dona (Gráfico 2) */
+.chart-doughnut-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.chart-doughnut-inner {
+  width: 50%;
+  position: relative;
+}
+.chart-doughnut-legend {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.legend-color-box {
+  width: 12px;
+  height: 12px;
+  border-radius: 99px; /* Círculo */
+}
+
+/* --- Responsividad --- */
+@media (max-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  .chart-span-2,
+  .chart-span-3 {
+    grid-column: span 1 / span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chart-doughnut-wrapper {
+    flex-direction: column;
+  }
+  .chart-doughnut-inner,
+  .chart-doughnut-legend {
+    width: 100%;
+  }
+}
