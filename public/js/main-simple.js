@@ -130,26 +130,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Inicializar listeners
   updateMenuListeners();
 
-  // Role selector
-  const roleSelector = document.getElementById("roleSelector");
-  if (roleSelector) {
-    roleSelector.onchange = function () {
-      // Guardar estado actual antes de cambiar de rol
-      const currentCollapsed = getCurrentSidebarState();
-      localStorage.setItem("sidebarCollapsed", currentCollapsed.toString());
-
-      // Apply visual state immediately
-      if (currentCollapsed) {
-        document.documentElement.classList.add("sidebar-initially-collapsed");
-      } else {
-        document.documentElement.classList.remove(
-          "sidebar-initially-collapsed",
-        );
-      }
-
-      window.location.href = "?role=" + this.value;
-    };
-  }
+  // Role selector removed — role switching is handled via routing/auth (no client selector)
 
   // Sidebar toggle
   const toggle = document.querySelector(".sidebar__menu-toggle");
