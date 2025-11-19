@@ -65,6 +65,19 @@ CREATE TABLE `Usuario_Curso` (
         ON DELETE CASCADE
 );
 
+CREATE TABLE `Usuario_Escuela` (
+    `id_usuario_escuela` INT NOT NULL AUTO_INCREMENT,
+    `id_usuario` INT NOT NULL,
+    `id_escuela` INT NOT NULL,
+    `fecha_vinculo` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id_usuario_escuela`),
+    UNIQUE KEY `uk_usuario_escuela` (`id_usuario`, `id_escuela`),
+    FOREIGN KEY (`id_usuario`) REFERENCES `Usuarios`(`id_usuario`)
+        ON DELETE CASCADE,
+    FOREIGN KEY (`id_escuela`) REFERENCES `Escuelas`(`id_escuela`)
+        ON DELETE CASCADE
+);
+
 CREATE TABLE `Items` (
     `id_item` INT NOT NULL AUTO_INCREMENT,
     `id_test` INT NOT NULL,

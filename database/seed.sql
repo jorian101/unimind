@@ -168,25 +168,31 @@ INSERT INTO `Aplicaciones` (`id_usuario`, `id_test`, `fecha_aplicacion`, `puntua
 (29, 2, '2025-11-07 12:00:00', 20, 'Estrés Medio'),
 (30, 3, '2025-11-07 13:00:00', 48, 'Depresión Severa');
 
+-- Respuestas por aplicación (separadas para evitar problemas de parsing)
 INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
--- Aplicación 1 (Test 1, Ansiedad) - Ítems 1-10
-(1, 1, 4, 4), (1, 2, 3, 3), (1, 3, 4, 4), (1, 4, 3, 3),
--- Aplicación 2 (Test 2, Estrés) - Ítems 11-18 (Usamos 11-18 de la tabla 6, pero solo hay hasta 12 en el ejemplo, así que asumimos que los items 1-12 son los existentes)
-(2, 11, 2, 2), (2, 12, 1, 1),
--- Aplicación 3 (Test 3, Depresión) - Ítems 19-30
-(3, 13, 3, 3), (3, 14, 2, 2), (3, 15, 3, 3), (3, 16, 2, 2),
+(1, 1, 4, 4), (1, 2, 3, 3), (1, 3, 4, 4), (1, 4, 3, 3);
 
--- Aplicación 4 (Test 1, Ansiedad)
-(4, 1, 4, 4), (4, 2, 4, 4), (4, 3, 4, 4), (4, 4, 4, 4),
--- Aplicación 5 (Test 2, Estrés)
-(5, 11, 1, 1), (5, 12, 1, 1),
--- Aplicación 6 (Test 3, Depresión)
-(6, 13, 4, 4), (6, 14, 3, 3), (6, 15, 4, 4), (6, 16, 3, 3),
+INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
+(2, 11, 2, 2), (2, 12, 1, 1);
 
--- Aplicación 7 (Test 1, Ansiedad)
-(7, 5, 3, 3), (7, 6, 3, 3), (7, 7, 3, 3), (7, 8, 3, 3),
--- Aplicación 8 (Test 2, Estrés)
-(8, 11, 3, 3), (8, 12, 3, 3),
--- Aplicación 9 (Test 3, Depresión)
+INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
+(3, 13, 3, 3), (3, 14, 2, 2), (3, 15, 3, 3), (3, 16, 2, 2);
+
+INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
+(4, 1, 4, 4), (4, 2, 4, 4), (4, 3, 4, 4), (4, 4, 4, 4);
+
+INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
+(5, 11, 1, 1), (5, 12, 1, 1);
+
+INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
+(6, 13, 4, 4), (6, 14, 3, 3), (6, 15, 4, 4), (6, 16, 3, 3);
+
+INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
+(7, 5, 3, 3), (7, 6, 3, 3), (7, 7, 3, 3), (7, 8, 3, 3);
+
+INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
+(8, 11, 3, 3), (8, 12, 3, 3);
+
+INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
 (9, 13, 4, 4), (9, 14, 4, 4), (9, 15, 4, 4), (9, 16, 4, 4);
 
