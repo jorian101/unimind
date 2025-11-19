@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor(); 
 
-        if ($usuario && password_verify($password, $usuario['password_hash'])) {
+        if ($usuario && $password === $usuario['password']) {
             $_SESSION['user_id'] = $usuario['id_usuario'];
             $_SESSION['user_name'] = $usuario['nombre'] . ' ' . $usuario['apellido'];
             $_SESSION['user_role'] = strtolower($usuario['cargo']);

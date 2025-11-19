@@ -14,8 +14,8 @@ CREATE TABLE `Usuarios` (
     `id_usuario` INT NOT NULL AUTO_INCREMENT,
     `nombre` VARCHAR(100) NOT NULL,
     `apellido` VARCHAR(100) NOT NULL,
-    `codigo_usuario` CHAR(7) NOT NULL UNIQUE,
-    `password_hash` VARCHAR(255) NOT NULL,
+    `codigo_usuario` VARCHAR(10) NOT NULL UNIQUE,
+    `password` VARCHAR(255) NOT NULL,
     `cargo` VARCHAR(30) NOT NULL, -- 'Estudiante', 'Profesor', 'Admin'
     `fecha_nacimiento` DATE,
     `genero` VARCHAR(10),

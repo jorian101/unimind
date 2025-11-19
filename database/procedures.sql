@@ -6,13 +6,13 @@ DELIMITER //
 
 -- Procedimiento para validar el login de un usuario
 CREATE PROCEDURE `sp_autenticar_usuario_por_codigo`(
-    IN p_codigo_usuario CHAR(7)
+    IN p_codigo_usuario VARCHAR(10)
 )
 BEGIN
     -- Devuelve los datos necesarios para que el BACKEND verifique la contraseña
     SELECT 
         `id_usuario`,
-        `password_hash`,
+        `password`,
         `nombre`,
         `apellido`,
         `cargo`
@@ -26,8 +26,8 @@ END //
 CREATE PROCEDURE `sp_registrar_estudiante_curso`(
     IN p_nombre VARCHAR(100),
     IN p_apellido VARCHAR(100),
-    IN p_codigo_usuario CHAR(7),
-    IN p_password_hash VARCHAR(255), -- El hash (ej. bcrypt)
+    IN p_codigo_usuario VARCHAR(10),
+    IN p_password VARCHAR(255),
     IN p_fecha_nacimiento DATE,
     IN p_genero VARCHAR(10),
     IN p_id_curso INT
@@ -37,9 +37,9 @@ BEGIN
 
     -- 1. Crear el usuario
     INSERT INTO `Usuarios` 
-        (`nombre`, `apellido`, `codigo_usuario`, `password_hash`, `cargo`, `fecha_nacimiento`, `genero`)
+        (`nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`, `fecha_nacimiento`, `genero`)
     VALUES 
-        (p_nombre, p_apellido, p_codigo_usuario, p_password_hash, 'Estudiante', p_fecha_nacimiento, p_genero);
+        (p_nombre, p_apellido, p_codigo_usuario, p_password, 'Estudiante', p_fecha_nacimiento, p_genero);
 
     SET v_id_usuario = LAST_INSERT_ID();
 
