@@ -16,14 +16,14 @@ CREATE TABLE `Usuarios` (
     `apellido` VARCHAR(100) NOT NULL,
     `codigo_usuario` VARCHAR(10) NOT NULL UNIQUE,
     `password` VARCHAR(255) NOT NULL,
-    `cargo` VARCHAR(30) NOT NULL, -- 'Estudiante', 'Profesor', 'Admin'
+    `cargo` VARCHAR(30) NOT NULL CHECK (`cargo` IN ('Estudiante', 'Docente', 'Administrador')),
     `fecha_nacimiento` DATE,
     `genero` VARCHAR(10),
     `fecha_registro` DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id_usuario`)
 );
 
-CREATE TABLE `Tests` (
+CREATE TABLE `Tests` (                             
     `id_test` INT NOT NULL AUTO_INCREMENT,
     `nombre` VARCHAR(100) UNIQUE NOT NULL,
     `descripcion` TEXT,

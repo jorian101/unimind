@@ -31,9 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $role = strtolower($usuario['cargo']);
             if ($role === 'estudiante') {
                 header('Location: ../index.php?role=estudiante&page=inicio');
-            } elseif ($role === 'profesor') {
+            } elseif ($role === 'docente') {
                 header('Location: ../index.php?role=profesor&page=dashboard');
-            } elseif ($role === 'admin') {
+            } elseif ($role === 'administrador') {
                 header('Location: ../index.php?role=administrador&page=dashboard');
             } else {
                 header('Location: ../index.php?error=rol_invalido');

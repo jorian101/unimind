@@ -33,6 +33,11 @@ return [
             'title' => 'Dashboard Administrativo',
             'breadcrumb' => ['Inicio', 'Dashboard'],
         ],
+        'tests' => [
+            'path' => 'administrador/tests.php',
+            'title' => 'Gestión de Tests',
+            'breadcrumb' => ['Inicio', 'Tests'],
+        ],
         'usuarios' => [
             'path' => 'administrador/usuarios.php',
             'title' => 'Gestión de Usuarios',

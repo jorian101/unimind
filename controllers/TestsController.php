@@ -1,0 +1,273 @@
+<?php
+require_once __DIR__ . '/../models/administrador/TestsModel.php';
+
+class TestsController {
+    private $model;
+
+    public function __construct() {
+        $this->model = new TestsModel();
+    }
+
+    /**
+     * Manejar las peticiones según la acción
+     */
+    public function handleRequest() {
+        header('Content-Type: application/json');
+        
+        $action = $_POST['action'] ?? $_GET['action'] ?? '';
+
+        try {
+            switch ($action) {
+                case 'getAll':
+                    $this->getAllTests();
+                    break;
+                
+                case 'getById':
+                    $this->getTestById();
+                    break;
+                
+                case 'getOpciones':
+                    $this->getAllOpciones();
+                    break;
+                
+                case 'create':
+                    $this->createTest();
+                    break;
+                
+                case 'update':
+                    $this->updateTest();
+                    break;
+                
+                case 'delete':
+                    $this->deleteTest();
+                    break;
+                
+                case 'search':
+                    $this->searchTests();
+                    break;
+                
+                default:
+                    $this->sendResponse(false, 'Acción no válida');
+            }
+        } catch (Exception $e) {
+            $this->sendResponse(false, 'Error del servidor: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Obtener todos los tests
+     */
+    private function getAllTests() {
+        $tests = $this->model->getAllTests();
+        $this->sendResponse(true, 'Tests obtenidos correctamente', $tests);
+    }
+
+    /**
+     * Obtener un test por ID
+     */
+    private function getTestById() {
+        $id_test = $_GET['id_test'] ?? null;
+        
+        if (!$id_test) {
+            $this->sendResponse(false, 'ID de test no proporcionado');
+            return;
+        }
+
+        $test = $this->model->getTestById($id_test);
+        
+        if ($test) {
+            $this->sendResponse(true, 'Test obtenido correctamente', $test);
+        } else {
+            $this->sendResponse(false, 'Test no encontrado');
+        }
+    }
+
+    /**
+     * Obtener todas las opciones de respuesta
+     */
+    private function getAllOpciones() {
+        $opciones = $this->model->getAllOpciones();
+        $this->sendResponse(true, 'Opciones obtenidas correctamente', $opciones);
+    }
+
+    /**
+     * Crear un nuevo test con sus items
+     */
+    private function createTest() {
+        // Validar datos requeridos
+        $nombre = $_POST['nombre'] ?? null;
+        $descripcion = $_POST['descripcion'] ?? null;
+        $num_items = $_POST['num_items'] ?? 0;
+        $items = json_decode($_POST['items'] ?? '[]', true);
+
+        if (!$nombre || !$descripcion || $num_items <= 0) {
+            $this->sendResponse(false, 'Datos incompletos o inválidos');
+            return;
+        }
+
+        // Validar que el número de items coincida
+        if (count($items) != $num_items) {
+            $this->sendResponse(false, 'El número de ítems no coincide con el valor especificado');
+            return;
+        }
+
+        // Crear el test
+        $id_test = $this->model->createTest($nombre, $descripcion, $num_items);
+        
+        if (!$id_test) {
+            $this->sendResponse(false, 'Error al crear el test');
+            return;
+        }
+
+        // Crear los items
+        $errores = [];
+        foreach ($items as $item) {
+            $texto_item = $item['texto_item'] ?? '';
+            $subescala = $item['subescala'] ?? '';
+            $orden = $item['orden'] ?? 0;
+
+            if (!$texto_item || $orden <= 0) {
+                $errores[] = "Item {$orden}: datos incompletos";
+                continue;
+            }
+
+            $result = $this->model->createItem($id_test, $texto_item, $subescala, $orden);
+            if (!$result) {
+                $errores[] = "Error al crear item {$orden}";
+            }
+        }
+
+        if (!empty($errores)) {
+            $this->sendResponse(false, 'Test creado pero con errores en algunos items', [
+                'id_test' => $id_test,
+                'errores' => $errores
+            ]);
+        } else {
+            $this->sendResponse(true, 'Test creado exitosamente', ['id_test' => $id_test]);
+        }
+    }
+
+    /**
+     * Actualizar un test existente con sus items
+     */
+    private function updateTest() {
+        $id_test = $_POST['id_test'] ?? null;
+        $nombre = $_POST['nombre'] ?? null;
+        $descripcion = $_POST['descripcion'] ?? null;
+        $num_items = $_POST['num_items'] ?? 0;
+        $items = json_decode($_POST['items'] ?? '[]', true);
+
+        if (!$id_test || !$nombre || !$descripcion || $num_items <= 0) {
+            $this->sendResponse(false, 'Datos incompletos o inválidos');
+            return;
+        }
+
+        // Validar que el número de items coincida
+        if (count($items) != $num_items) {
+            $this->sendResponse(false, 'El número de ítems no coincide con el valor especificado');
+            return;
+        }
+
+        // Actualizar el test
+        $result = $this->model->updateTest($id_test, $nombre, $descripcion, $num_items);
+        
+        if (!$result) {
+            $this->sendResponse(false, 'Error al actualizar el test');
+            return;
+        }
+
+        // Eliminar items anteriores y crear los nuevos
+        $this->model->deleteItemsByTestId($id_test);
+
+        $errores = [];
+        foreach ($items as $item) {
+            $texto_item = $item['texto_item'] ?? '';
+            $subescala = $item['subescala'] ?? '';
+            $orden = $item['orden'] ?? 0;
+
+            if (!$texto_item || $orden <= 0) {
+                $errores[] = "Item {$orden}: datos incompletos";
+                continue;
+            }
+
+            $result = $this->model->createItem($id_test, $texto_item, $subescala, $orden);
+            if (!$result) {
+                $errores[] = "Error al crear item {$orden}";
+            }
+        }
+
+        if (!empty($errores)) {
+            $this->sendResponse(false, 'Test actualizado pero con errores en algunos items', [
+                'id_test' => $id_test,
+                'errores' => $errores
+            ]);
+        } else {
+            $this->sendResponse(true, 'Test actualizado exitosamente', ['id_test' => $id_test]);
+        }
+    }
+
+    /**
+     * Eliminar un test
+     */
+    private function deleteTest() {
+        $id_test = $_POST['id_test'] ?? null;
+
+        if (!$id_test) {
+            $this->sendResponse(false, 'ID de test no proporcionado');
+            return;
+        }
+
+        // Verificar si tiene aplicaciones
+        if ($this->model->testHasApplications($id_test)) {
+            $this->sendResponse(false, 'No se puede eliminar el test porque tiene aplicaciones registradas');
+            return;
+        }
+
+        $result = $this->model->deleteTest($id_test);
+        
+        if ($result) {
+            $this->sendResponse(true, 'Test eliminado exitosamente');
+        } else {
+            $this->sendResponse(false, 'Error al eliminar el test');
+        }
+    }
+
+    /**
+     * Buscar tests
+     */
+    private function searchTests() {
+        $searchTerm = $_GET['search'] ?? '';
+        
+        if (empty($searchTerm)) {
+            $this->getAllTests();
+            return;
+        }
+
+        $tests = $this->model->searchTests($searchTerm);
+        $this->sendResponse(true, 'Búsqueda completada', $tests);
+    }
+
+    /**
+     * Enviar respuesta JSON
+     */
+    private function sendResponse($success, $message, $data = null) {
+        $response = [
+            'success' => $success,
+            'message' => $message
+        ];
+
+        if ($data !== null) {
+            $response['data'] = $data;
+        }
+
+        echo json_encode($response);
+        exit;
+    }
+}
+
+// Procesar la petición si se accede directamente
+if (basename($_SERVER['PHP_SELF']) === 'TestsController.php') {
+    $controller = new TestsController();
+    $controller->handleRequest();
+}
+?>

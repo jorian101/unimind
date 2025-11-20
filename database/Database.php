@@ -1,9 +1,9 @@
 <?php
 class Database {
-    private $host = 'localhost'; // o 'localhost'
+    private $host = 'localhost'; 
     private $db_name = 'db_tests_estres_ansiedad';
     private $username = 'root';
-    private $password = ''; // Cambia esto
+    private $password = '';
     private $conn;
 
     public function connect() {
