@@ -106,6 +106,24 @@
   transform: translateY(-1px);
 }
 
+.no-tests {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--var-500);
+}
+
+.no-tests i {
+  font-size: 3rem;
+  color: var(--bg-400);
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.no-tests p {
+  font-size: 1rem;
+  margin: 0;
+}
+
 @media (max-width: 768px) {
   .test-header {
     flex-direction: column;

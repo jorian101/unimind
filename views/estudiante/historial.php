@@ -1,26 +1,89 @@
 <?php
+session_start();
 require_once dirname(__DIR__) . '/./pageHeader.php';
+require_once __DIR__ . '/../../models/estudiante/TestsEstudianteModel.php';
+
+// Verificar que el usuario esté autenticado
+if (!isset($_SESSION['id_usuario'])) {
+    header('Location: ?role=estudiante&page=login');
+    exit;
+}
+
+// Cargar historial del usuario
+$model = new TestsEstudianteModel();
+$id_usuario = $_SESSION['id_usuario'];
+$historial = $model->getHistorialUsuario($id_usuario);
+
+// Mensaje de éxito si viene de completar un test
+$showSuccess = isset($_GET['success']) && $_GET['success'] == 1;
+$resultado = $_SESSION['test_resultado'] ?? null;
+if ($showSuccess && $resultado) {
+    unset($_SESSION['test_resultado']); // Limpiar después de mostrar
+}
+
 renderPageHeader('Historial de evaluaciones', ['Dashboard', 'Historial de evaluaciones']);
 ?>
 <link rel="stylesheet" href="views/estudiante/historial.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+<?php if ($showSuccess && $resultado): ?>
+<div class="success-message" style="background: #d4edda; color: #155724; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid #c3e6cb;">
+    <i class="fas fa-check-circle"></i>
+    <strong>¡Test completado con éxito!</strong>
+    <p>Resultado: <strong><?php echo htmlspecialchars($resultado['resultado_nivel']); ?></strong> - Puntuación: <?php echo $resultado['puntuacion_total']; ?></p>
+</div>
+<?php endif; ?>
+
 <div class="historial">
     <section class="historial__card historial__card--history">
         <h2 class="historial__title">Evaluaciones</h2>
-        <p class="historial__subtitle">Registro completo de tus mediciones de estrés y ansiedad</p>
+        <p class="historial__subtitle">Registro completo de tus evaluaciones psicológicas</p>
 
         <div class="historial__table-container">
             <table class="historial__table" id="history-table">
                 <thead class="historial__table-head">
                     <tr class="historial__table-row">
                         <th class="historial__table-header">Fecha</th>
-                        <th class="historial__table-header">Nivel de Estrés</th>
-                        <th class="historial__table-header">Nivel de Ansiedad</th>
-                        <th class="historial__table-header">Tendencia</th>
+                        <th class="historial__table-header">Test</th>
+                        <th class="historial__table-header">Puntuación</th>
+                        <th class="historial__table-header">Nivel</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                    <?php if (empty($historial)): ?>
+                        <tr class="historial__table-row">
+                            <td colspan="4" class="historial__table-cell" style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-inbox" style="font-size: 2rem; color: #ccc; display: block; margin-bottom: 0.5rem;"></i>
+                                No has completado ninguna evaluación todavía
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($historial as $item): 
+                            // Determinar clase según el nivel
+                            $nivelClass = 'moderado';
+                            if (stripos($item['resultado_nivel'], 'bajo') !== false || stripos($item['resultado_nivel'], 'mínimo') !== false) {
+                                $nivelClass = 'bajo';
+                            } elseif (stripos($item['resultado_nivel'], 'alto') !== false || stripos($item['resultado_nivel'], 'severo') !== false) {
+                                $nivelClass = 'alto';
+                            }
+                            
+                            $fecha_formateada = date('d/m/Y H:i', strtotime($item['fecha_aplicacion']));
+                        ?>
+                            <tr class="historial__table-row">
+                                <td class="historial__table-cell"><?php echo $fecha_formateada; ?></td>
+                                <td class="historial__table-cell"><?php echo htmlspecialchars($item['Nombre_Test']); ?></td>
+                                <td class="historial__table-cell">
+                                    <span class="historial__percentage"><?php echo $item['puntuacion_total']; ?></span>
+                                </td>
+                                <td class="historial__table-cell">
+                                    <span class="historial__badge historial__badge--<?php echo $nivelClass; ?>">
+                                        <?php echo htmlspecialchars($item['resultado_nivel']); ?>
+                                    </span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
             </table>
         </div>
     </section>
@@ -44,80 +107,45 @@ renderPageHeader('Historial de evaluaciones', ['Dashboard', 'Historial de evalua
             </div>
         </div>
     </section>
+
+    <?php if (!empty($historial)): 
+        // Calcular estadísticas básicas
+        $total_evaluaciones = count($historial);
+        $suma_puntuaciones = array_sum(array_column($historial, 'puntuacion_total'));
+        $promedio = $total_evaluaciones > 0 ? round($suma_puntuaciones / $total_evaluaciones, 1) : 0;
+    ?>
+    <section class="historial__card historial__card--stats">
+        <h2 class="historial__title">Estadísticas</h2>
+        <p class="historial__subtitle">Resumen de tus evaluaciones</p>
+
+        <div class="historial__stats-grid">
+            <div class="historial__stat-item">
+                <p class="historial__stat-label">Total de Evaluaciones</p>
+                <p class="historial__stat-value"><?php echo $total_evaluaciones; ?></p>
+            </div>
+            <div class="historial__stat-item">
+                <p class="historial__stat-label">Puntuación Promedio</p>
+                <p class="historial__stat-value"><?php echo $promedio; ?></p>
+            </div>
+            <div class="historial__stat-item">
+                <p class="historial__stat-label">Última Evaluación</p>
+                <p class="historial__stat-value"><?php echo date('d/m/Y', strtotime($historial[0]['fecha_aplicacion'])); ?></p>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
 </div>
 
 <script>
-// Simulando datos desde una "base de datos"
-const evaluations = [
-    { fecha: "14 de enero de 2025", estres: 65, ansiedad: 48 },
-    { fecha: "7 de enero de 2025", estres: 72, ansiedad: 55 },
-    { fecha: "31 de diciembre de 2024", estres: 58, ansiedad: 42 },
-    { fecha: "24 de diciembre de 2024", estres: 45, ansiedad: 38 },
-    { fecha: "17 de diciembre de 2024", estres: 68, ansiedad: 52 },
-];
-
-// Función para clasificar niveles
-function nivel(valor) {
-    if (valor < 40) return { texto: "Bajo", clase: "bajo" };
-    if (valor < 70) return { texto: "Moderado", clase: "moderado" };
-    return { texto: "Alto", clase: "alto" };
-}
-
-// Cálculo de tendencia general (simplificada)
-function tendencia(evals) {
-    let mejoras = 0;
-    for (let i = 1; i < evals.length; i++) {
-        const prev = (evals[i - 1].estres + evals[i - 1].ansiedad) / 2;
-        const curr = (evals[i].estres + evals[i].ansiedad) / 2;
-        if (curr < prev) mejoras++;
-    }
-    return mejoras > evals.length / 2 ? "Mejorando" : "Incrementando";
-}
-
-// Render tabla
 document.addEventListener('DOMContentLoaded', function() {
-    const tbody = document.querySelector("#history-table tbody");
-    evaluations.forEach((e, i) => {
-        const nEstres = nivel(e.estres);
-        const nAnsiedad = nivel(e.ansiedad);
-        const tendenciaText = i > 0 
-            ? (e.estres + e.ansiedad) < (evaluations[i - 1].estres + evaluations[i - 1].ansiedad)
-                ? "Mejorando" 
-                : "Incrementando"
-            : "-";
-        const tendenciaClass = tendenciaText === "Mejorando" ? "historial__badge--trend-mejorando" : "historial__badge--trend-empeorando";
-        const arrow = tendenciaText === "Mejorando" ? '<i class="fas fa-arrow-up"></i>' : tendenciaText === "Incrementando" ? '<i class="fas fa-arrow-down"></i>' : "";
-
-        tbody.innerHTML += `
-            <tr class="historial__table-row">
-                <td class="historial__table-cell">${e.fecha}</td>
-                <td class="historial__table-cell">
-                    <div class="historial__cell-content">
-                        <span class="historial__percentage">${e.estres}%</span>
-                        <span class="historial__badge historial__badge--${nEstres.clase}">${nEstres.texto}</span>
-                    </div>
-                </td>
-                <td class="historial__table-cell">
-                    <div class="historial__cell-content">
-                        <span class="historial__percentage">${e.ansiedad}%</span>
-                        <span class="historial__badge historial__badge--${nAnsiedad.clase}">${nAnsiedad.texto}</span>
-                    </div>
-                </td>
-                <td class="historial__table-cell"><span class="historial__badge ${tendenciaClass}">${arrow} ${tendenciaText}</span></td>
-            </tr>
-        `;
-    });
-
-    // Calcular promedios
-    const avgStress = evaluations.reduce((acc, e) => acc + e.estres, 0) / evaluations.length;
-    const avgAnxiety = evaluations.reduce((acc, e) => acc + e.ansiedad, 0) / evaluations.length;
-    const trend = tendencia(evaluations);
-
-    // Mostrar estadísticas
-    document.getElementById("avg-stress").textContent = avgStress.toFixed(1) + "%";
-    document.getElementById("avg-anxiety").textContent = avgAnxiety.toFixed(0) + "%";
-    const trendArrow = trend === "Mejorando" ? '<i class="fas fa-arrow-up"></i> ' : trend === "Incrementando" ? '<i class="fas fa-arrow-down"></i> ' : "";
-    document.getElementById("trend").innerHTML = trendArrow + trend;
-    document.getElementById("trend").style.color = trend === "Mejorando" ? "var(--acc-500)" : "var(--pri-500)";
+    // Auto-ocultar mensaje de éxito después de 5 segundos
+    const successMessage = document.querySelector('.success-message');
+    if (successMessage) {
+        setTimeout(() => {
+            successMessage.style.transition = 'opacity 0.5s';
+            successMessage.style.opacity = '0';
+            setTimeout(() => successMessage.remove(), 500);
+        }, 5000);
+    }
 });
 </script>

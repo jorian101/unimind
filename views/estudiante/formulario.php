@@ -1,46 +1,31 @@
 <?php
 require_once dirname(__DIR__) . '/pageHeader.php';
+require_once __DIR__ . '/../../models/estudiante/TestsEstudianteModel.php';
 
 // Get test data from URL parameters
-$testId = $_GET['test_id'] ?? 'estres-ansiedad';
-$testName = $_GET['test_name'] ?? 'Test de Estrés y Ansiedad';
-$totalQuestions = (int)($_GET['questions'] ?? 21);
+$testId = $_GET['test_id'] ?? null;
 
-// Sample questions - in a real app, these would come from database
-$questions = [
-    1 => "¿Con qué frecuencia has estado afectado por algo que ha ocurrido inesperadamente?",
-    2 => "¿Con qué frecuencia te has sentido incapaz de controlar las cosas importantes en tu vida?",
-    3 => "¿Con qué frecuencia te has sentido nervioso o estresado?",
-    4 => "¿Con qué frecuencia has manejado con éxito los pequeños problemas irritantes de la vida?",
-    5 => "¿Con qué frecuencia has sentido que has afrontado efectivamente los cambios importantes que han estado ocurriendo en tu vida?",
-    6 => "¿Con qué frecuencia has estado seguro sobre tu capacidad para manejar tus problemas personales?",
-    7 => "¿Con qué frecuencia has sentido que las cosas te van bien?",
-    8 => "¿Con qué frecuencia has sentido que no podías afrontar todas las cosas que tenías que hacer?",
-    9 => "¿Con qué frecuencia has podido controlar las dificultades de tu vida?",
-    10 => "¿Con qué frecuencia te has sentido al control de todo?",
-    11 => "¿Con qué frecuencia te has sentido molesto porque las cosas que te han pasado estaban fuera de tu control?",
-    12 => "¿Con qué frecuencia has encontrado que no podías lidiar con todas las cosas que tenías que hacer?",
-    13 => "¿Con qué frecuencia has sido capaz de controlar la forma en que pasas el tiempo?",
-    14 => "¿Con qué frecuencia has sentido que las dificultades se acumulan tanto que no puedes superarlas?",
-    15 => "¿Te sientes frecuentemente abrumado por las responsabilidades?",
-    16 => "¿Con qué frecuencia experimentas síntomas físicos del estrés?",
-    17 => "¿Te resulta difícil relajarte después del trabajo o estudio?",
-    18 => "¿Con qué frecuencia tienes problemas para dormir debido al estrés?",
-    19 => "¿Te sientes ansioso ante situaciones sociales?",
-    20 => "¿Con qué frecuencia te sientes preocupado por el futuro?",
-    21 => "¿Sientes que tu nivel de estrés afecta tu rendimiento académico o laboral?"
-];
+if (!$testId) {
+    header('Location: ?role=estudiante&page=tests');
+    exit;
+}
 
-$options = [
-    0 => "Nunca",
-    1 => "Casi nunca", 
-    2 => "De vez en cuando",
-    3 => "A menudo",
-    4 => "Muy a menudo"
-];
+// Cargar datos del test desde la base de datos
+$model = new TestsEstudianteModel();
+$testInfo = $model->getTestById($testId);
+
+if (!$testInfo) {
+    echo "<script>alert('Test no encontrado'); window.location.href='?role=estudiante&page=tests';</script>";
+    exit;
+}
+
+$items = $model->getItemsByTest($testId);
+$opciones = $model->getOpcionesRespuesta();
+
+$testName = $testInfo['nombre'];
+$totalQuestions = count($items);
 
 // El breadcrumb se construye automáticamente desde la configuración
-// Si quieres personalizar el título, puedes pasarlo: renderPageHeader($testName);
 renderPageHeader();
 ?>
 <link rel="stylesheet" href="views/estudiante/formulario.css?v=<?php echo time(); ?>">
@@ -83,25 +68,28 @@ renderPageHeader();
 
             <!-- Bloque de preguntas con navegación móvil/tablet -->
             <div class="formulario__questions" id="questionsNavigator">
-                <?php foreach ($questions as $index => $question): ?>
-                    <div class="formulario__question-block" data-question="<?php echo $index; ?>" style="<?php echo $index === 1 ? '' : 'display:none;'; ?>">
+                <?php foreach ($items as $index => $item): 
+                    $questionNumber = $index + 1;
+                ?>
+                    <div class="formulario__question-block" data-question="<?php echo $questionNumber; ?>" style="<?php echo $index === 0 ? '' : 'display:none;'; ?>">
                         <div class="formulario__question">
                             <h3 class="formulario__question-title">
-                                <span class="formulario__question-number"><?php echo $index; ?>.</span>
-                                <?php echo htmlspecialchars($question); ?>
+                                <span class="formulario__question-number"><?php echo $questionNumber; ?>.</span>
+                                <?php echo htmlspecialchars($item['texto_item']); ?>
                             </h3>
                             <div class="formulario__options">
-                                <?php foreach ($options as $value => $label): ?>
+                                <?php foreach ($opciones as $opcion): ?>
                                     <label class="formulario__option">
                                         <input 
                                             type="radio" 
-                                            name="question_<?php echo $index; ?>" 
-                                            value="<?php echo $value; ?>"
+                                            name="item_<?php echo $item['id_item']; ?>" 
+                                            value="<?php echo $opcion['id_opcion']; ?>"
                                             class="formulario__option-input"
+                                            data-item-id="<?php echo $item['id_item']; ?>"
                                             required
                                         >
                                         <span class="formulario__option-custom"></span>
-                                        <span class="formulario__option-label"><?php echo htmlspecialchars($label); ?></span>
+                                        <span class="formulario__option-label"><?php echo htmlspecialchars($opcion['texto_opcion']); ?></span>
                                     </label>
                                 <?php endforeach; ?>
                             </div>
