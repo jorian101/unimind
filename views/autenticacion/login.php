@@ -3,7 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="Sistema de evaluación y monitoreo de salud mental para estudiantes universitarios - UniMind">
+  <meta name="theme-color" content="#4a90e2">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="UniMind">
+  
   <title>Aula Virtual UNJBG 2025</title>
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/public/manifest.webmanifest">
+  
+  <!-- Favicon & Icons -->
+  <link rel="icon" type="image/svg+xml" href="/public/icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="/public/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" href="/public/icons/icon-192x192.png">
+  
+  <!-- Stylesheets -->
   <link rel="stylesheet" href="public/css/theme.css">
   <link rel="stylesheet" href="views/autenticacion/login.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -83,5 +102,20 @@
       </section>
     </div>
   </main>
+  
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('✅ Service Worker registrado:', registration.scope);
+          })
+          .catch(error => {
+            console.error('❌ Error al registrar Service Worker:', error);
+          });
+      });
+    }
+  </script>
 </body>
 </html>
