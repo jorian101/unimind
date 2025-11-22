@@ -56,9 +56,9 @@ return [
     ],
 
     // ========================================
-    // RUTAS DE PROFESOR
+    // RUTAS DE DOCENTE
     // ========================================
-    'profesor' => [
+    'docente' => [
         'dashboard-profesor' => [
             'path' => 'profesor/dashboard-profesor.php',
             'title' => 'Dashboard',

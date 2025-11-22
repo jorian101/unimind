@@ -34,10 +34,10 @@ function getSidebarConfig($role, $currentPage = null) {
         ],
 
         // ========================================
-        // SIDEBAR PARA PROFESOR
+        // SIDEBAR PARA DOCENTE
         // ========================================
-        'profesor' => [
-            'title' => 'UniMind Profesor',
+        'docente' => [
+            'title' => 'UniMind Docente',
             'menu' => [
                 ['icon' => 'fas fa-chart-line', 'label' => 'Dashboard', 'page' => 'dashboard-profesor'],
             ],

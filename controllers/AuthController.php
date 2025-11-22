@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($role === 'estudiante') {
                 header('Location: ../index.php?role=estudiante&page=inicio');
             } elseif ($role === 'docente') {
-                header('Location: ../index.php?role=profesor&page=dashboard');
+                header('Location: ../index.php?role=docente&page=dashboard-profesor');
             } elseif ($role === 'administrador') {
                 header('Location: ../index.php?role=administrador&page=dashboard');
             } else {
