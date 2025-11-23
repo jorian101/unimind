@@ -49,19 +49,13 @@ class HeaderComponent {
   }
 
   setupProfileMenu() {
-    console.log("Setting up profile menu...");
     const profileToggle = document.getElementById("profileToggle");
     const profileMenu = document.getElementById("profileMenu");
 
-    console.log("Profile toggle:", profileToggle);
-    console.log("Profile menu:", profileMenu);
-
     if (profileToggle && profileMenu) {
       profileToggle.addEventListener("click", (e) => {
-        console.log("Profile toggle clicked!");
         e.stopPropagation();
         const isVisible = profileMenu.classList.contains("visible");
-        console.log("Is visible:", isVisible);
 
         if (isVisible) {
           this.closeProfileMenu();
@@ -76,23 +70,20 @@ class HeaderComponent {
         }
       });
     } else {
-      console.error("Profile toggle or menu not found!");
+      // Profile elements not found in DOM
     }
   }
 
   openProfileMenu() {
-    console.log("Opening profile menu...");
     const profileToggle = document.getElementById("profileToggle");
     const profileMenu = document.getElementById("profileMenu");
     if (profileMenu) {
       profileMenu.classList.add("visible");
       profileToggle.classList.add("active");
-      console.log("Menu should be visible now");
     }
   }
 
   closeProfileMenu() {
-    console.log("Closing profile menu...");
     const profileToggle = document.getElementById("profileToggle");
     const profileMenu = document.getElementById("profileMenu");
     if (profileMenu) {
@@ -189,10 +180,8 @@ class HeaderComponent {
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
-    console.log("DOM loaded, initializing header...");
     window.headerComponent = new HeaderComponent();
   });
 } else {
-  console.log("DOM already loaded, initializing header...");
   window.headerComponent = new HeaderComponent();
 }

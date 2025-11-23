@@ -1,6 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("JavaScript cargado correctamente");
-
   // Get elements and initial state
   const sidebar = document.getElementById("sidebar");
   const body = document.body;
@@ -44,11 +42,8 @@ document.addEventListener("DOMContentLoaded", function () {
   // Función para actualizar los event listeners
   function updateMenuListeners() {
     const menuItems = document.querySelectorAll(".sidebar__item[data-page]");
-    console.log("Items del menú encontrados:", menuItems.length);
 
     menuItems.forEach(function (item, index) {
-      console.log("Procesando item", index, item.dataset);
-
       // Remover listeners previos
       item.replaceWith(item.cloneNode(true));
       const newItem = document.querySelectorAll(".sidebar__item[data-page]")[
@@ -65,8 +60,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const page = this.dataset.page;
         const role = this.dataset.role;
-
-        console.log("CLICK! Navegando a:", page, role);
 
         if (page && role) {
           // Guardar el estado actual del sidebar antes de navegar

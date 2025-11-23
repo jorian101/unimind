@@ -130,11 +130,11 @@ $base = unimind_detect_base();
       window.addEventListener('load', () => {
         // Registrar SW usando la base dinámica para funcionar en diferentes entornos
         navigator.serviceWorker.register('<?= $base ?>/sw.js')
-          .then(registration => {
-            console.log('✅ Service Worker registrado:', registration.scope);
+          .then(() => {
+            // Service Worker registrado
           })
-          .catch(error => {
-            console.error('❌ Error al registrar Service Worker:', error);
+          .catch(() => {
+            // Error al registrar Service Worker (silenciado)
           });
       });
     }

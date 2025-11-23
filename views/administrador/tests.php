@@ -158,4 +158,18 @@ renderPageHeader();
     </div>
 </div>
 
+<script>
+// Base path para construcción de URLs
+if (!window.UNIMIND_BASE) {
+    var pathname = window.location.pathname;
+    if (pathname.includes('/unimind/') || pathname.startsWith('/unimind')) {
+        window.UNIMIND_BASE = '/unimind';
+    } else {
+        window.UNIMIND_BASE = '';
+    }
+}
+<?php if (isset($base) && $base): ?>
+window.UNIMIND_BASE = '<?php echo $base; ?>';
+<?php endif; ?>
+</script>
 <script src="public/js/admin-tests.js?v=<?php echo time(); ?>"></script>

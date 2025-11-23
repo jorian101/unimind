@@ -72,6 +72,27 @@ if ($currentRole === 'autenticacion' && $currentPage === 'login') {
     <!-- Stylesheets -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Base path global para construcción de URLs -->
+    <script>
+    // Detectar base path desde ubicación actual (funciona offline y online)
+    (function() {
+        var pathname = window.location.pathname;
+        if (pathname.includes('/unimind/')) {
+            window.UNIMIND_BASE = '/unimind';
+        } else if (pathname.startsWith('/unimind')) {
+            window.UNIMIND_BASE = '/unimind';
+        } else {
+            window.UNIMIND_BASE = '';
+        }
+        // Permitir override desde PHP si está disponible
+        var phpBase = '<?php echo $base; ?>';
+        if (phpBase && phpBase !== '<?php echo $base; ?>') {
+            window.UNIMIND_BASE = phpBase;
+        }
+    })();
+    </script>
+    
     <?php require_once __DIR__ . '/utils/asset-version.php'; ?>
     <link rel="stylesheet" href="public/css/style.css?v=<?php echo asset_version('public/css/style.css'); ?>">
     <link rel="stylesheet" href="public/css/theme.css?v=<?php echo asset_version('public/css/theme.css'); ?>">
@@ -95,14 +116,12 @@ if ($currentRole === 'autenticacion' && $currentPage === 'login') {
                 // Registrar SW usando la base dinámica para funcionar en distintos despliegues
                 navigator.serviceWorker.register('<?= $base ?>/sw.js')
                     .then(registration => {
-                        console.log('✅ Service Worker registrado correctamente:', registration.scope);
-                        
+                        // Service Worker registrado
                         // Verificar actualizaciones del SW
                         registration.addEventListener('updatefound', () => {
                             const newWorker = registration.installing;
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('🔄 Nueva versión disponible. Recarga la página para actualizar.');
                                     // Opcional: mostrar notificación al usuario
                                     if (confirm('Nueva versión de UniMind disponible. ¿Deseas actualizar?')) {
                                         newWorker.postMessage({ type: 'SKIP_WAITING' });
@@ -112,8 +131,8 @@ if ($currentRole === 'autenticacion' && $currentPage === 'login') {
                             });
                         });
                     })
-                    .catch(error => {
-                        console.error('❌ Error al registrar Service Worker:', error);
+                    .catch(() => {
+                        // Error al registrar service worker (silenciado)
                     });
             });
             
@@ -126,7 +145,7 @@ if ($currentRole === 'autenticacion' && $currentPage === 'login') {
                 }
             });
         } else {
-            console.warn('⚠️ Service Worker no soportado en este navegador');
+            // Service Worker no soportado en este navegador
         }
     </script>
 </body>

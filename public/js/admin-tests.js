@@ -81,20 +81,21 @@ class AdminTestsManager {
    */
   async loadOpciones() {
     try {
+      const base = window.UNIMIND_BASE || "";
       const response = await fetch(
-        "controllers/TestsController.php?action=getOpciones",
+        `${base}/controllers/TestsController.php?action=getOpciones`,
+        { credentials: "include" },
       );
       const data = await response.json();
 
       if (data.success) {
         this.opcionesDisponibles = data.data;
         this.renderOpciones();
+      } else if (data.offline) {
+        // Modo offline detectado - no operable actualmente
       }
     } catch {
-      this.showNotification(
-        "Error al cargar las opciones de respuesta",
-        "error",
-      );
+      // Silenciar error en entorno offline
     }
   }
 
@@ -121,18 +122,24 @@ class AdminTestsManager {
    */
   async loadTests() {
     try {
+      const base = window.UNIMIND_BASE || "";
       const response = await fetch(
-        "controllers/TestsController.php?action=getAll",
+        `${base}/controllers/TestsController.php?action=getAll`,
+        { credentials: "include" },
       );
       const data = await response.json();
 
       if (data.success) {
         this.renderTests(data.data);
+      } else if (data.offline) {
+        // Modo offline - mostrar mensaje informativo en lugar de error
+        this.showEmptyState();
       } else {
         this.showEmptyState();
       }
     } catch {
-      this.showNotification("Error al cargar los tests", "error");
+      // Silenciar error en entorno offline
+      this.showEmptyState();
     }
   }
 
@@ -240,8 +247,10 @@ class AdminTestsManager {
    */
   async viewTest(id_test) {
     try {
+      const base = window.UNIMIND_BASE || "";
       const response = await fetch(
-        `controllers/TestsController.php?action=getById&id_test=${id_test}`,
+        `${base}/controllers/TestsController.php?action=getById&id_test=${id_test}`,
+        { credentials: "include" },
       );
       const data = await response.json();
 
@@ -331,8 +340,10 @@ class AdminTestsManager {
    */
   async editTest(id_test) {
     try {
+      const base = window.UNIMIND_BASE || "";
       const response = await fetch(
-        `controllers/TestsController.php?action=getById&id_test=${id_test}`,
+        `${base}/controllers/TestsController.php?action=getById&id_test=${id_test}`,
+        { credentials: "include" },
       );
       const data = await response.json();
 
@@ -419,13 +430,15 @@ class AdminTestsManager {
    */
   async confirmDelete() {
     try {
+      const base = window.UNIMIND_BASE || "";
       const formData = new FormData();
       formData.append("action", "delete");
       formData.append("id_test", this.currentTestId);
 
-      const response = await fetch("controllers/TestsController.php", {
+      const response = await fetch(`${base}/controllers/TestsController.php`, {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -564,9 +577,11 @@ class AdminTestsManager {
     formData.append("items", JSON.stringify(items));
 
     try {
-      const response = await fetch("controllers/TestsController.php", {
+      const base = window.UNIMIND_BASE || "";
+      const response = await fetch(`${base}/controllers/TestsController.php`, {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
 
       const data = await response.json();

@@ -1,6 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("Dashboard JavaScript cargado");
-
   // Simulación de datos "desde base de datos"
   const datosUsuario = {
     estres: 65,
@@ -24,7 +22,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("dashboard");
 
     if (!container) {
-      console.error("Container dashboard no encontrado");
       return;
     }
 

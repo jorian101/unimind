@@ -19,6 +19,22 @@ include 'sidebar.php';
 <?php endif; ?>
 
 <script>
+// Base path global para construcción de URLs (detectar desde pathname si no está definido)
+if (!window.UNIMIND_BASE) {
+    var pathname = window.location.pathname;
+    if (pathname.includes('/unimind/') || pathname.startsWith('/unimind')) {
+        window.UNIMIND_BASE = '/unimind';
+    } else {
+        window.UNIMIND_BASE = '';
+    }
+}
+<?php if (isset($base) && $base): ?>
+// Override desde PHP si está disponible
+window.UNIMIND_BASE = '<?php echo $base; ?>';
+<?php endif; ?>
+</script>
+
+<script>
 (function() {
     'use strict';
     
@@ -43,6 +59,7 @@ include 'sidebar.php';
 </script>
 
 <script src="public/js/main-simple.js?v=<?php echo asset_version('public/js/main-simple.js'); ?>"></script>
+<script src="public/js/pwa-sync.js?v=<?php echo asset_version('public/js/pwa-sync.js'); ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const script = document.createElement('script');

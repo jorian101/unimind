@@ -65,10 +65,11 @@ document.addEventListener("DOMContentLoaded", () => {
  * Llama a la API para obtener TODOS los datos iniciales
  */
 async function fetchDashboardData() {
-  const url = "api.php";
+  const base = window.UNIMIND_BASE || "";
+  const url = `${base}/views/profesor/api.php`;
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { credentials: "include" });
     if (!response.ok) throw new Error("Error en la respuesta de la API");
 
     const data = await response.json();
@@ -85,8 +86,8 @@ async function fetchDashboardData() {
     updateTemporalChart(data.data_temporal);
     updateRiskChart(data.data_riesgo);
     updateFacultyChart(data.data_escuelas);
-  } catch (error) {
-    console.error("Error al cargar datos del dashboard:", error);
+  } catch {
+    // Error al cargar datos del dashboard (silenciado en producción)
     document.getElementById("subtitulo-curso").innerText =
       "Error al cargar los datos.";
   }
@@ -107,8 +108,10 @@ async function handleModalSubmit() {
   const data = { id_test: id_test, id_curso: id_curso };
 
   try {
-    const response = await fetch("api.php", {
+    const base = window.UNIMIND_BASE || "";
+    const response = await fetch(`${base}/views/profesor/api.php`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
@@ -120,8 +123,8 @@ async function handleModalSubmit() {
     } else {
       alert("Error al sugerir el test.");
     }
-  } catch (error) {
-    console.error("Error en la solicitud POST:", error);
+  } catch {
+    // Silenciar error de conexión al sugerir test
     alert("Error de conexión al sugerir el test.");
   }
 }
@@ -137,7 +140,6 @@ function openSugerirModal(testId) {
     : null;
   if (!test) {
     // Si no hay datos disponibles, mostrar un modal informativo en lugar de fallar silenciosamente
-    console.warn("No se encontraron datos para el test ID:", testId);
     openInfoModal(
       "Sugerir Test",
       "Información del test no disponible en este momento. Intenta recargar la página o verifica la conexión con el servidor.",

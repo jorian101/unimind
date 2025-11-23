@@ -1,7 +1,7 @@
 // Service Worker colocado en /unimind/sw.js para que su scope cubra /unimind/
-// Versión 1.0.1 - Optimizado para rendimiento y caché offline
-const CACHE_NAME = "unimind-v1.0.1";
-const RUNTIME_CACHE = "unimind-runtime-v1";
+// Versión 1.0.4 - Fixed URL rewriting to include query params and use networkFirst for NO_CACHE_ROUTES
+const CACHE_NAME = "unimind-v1.0.4";
+const RUNTIME_CACHE = "unimind-runtime-v1.0.4";
 
 // Assets críticos con rutas relativas (resuelven bajo /unimind/)
 const STATIC_ASSETS = [
@@ -83,22 +83,91 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
-  if (!url.protocol.startsWith("http") || request.method !== "GET") return;
-  if (NO_CACHE_ROUTES.some((route) => url.pathname.includes(route))) {
-    event.respondWith(fetch(request));
-    return;
-  }
-  if (isStaticAsset(url.pathname)) {
-    event.respondWith(cacheFirst(request));
-    return;
-  }
-  if (isDynamicRoute(url.pathname)) {
+  let { request } = event;
+  try {
+    const url = new URL(request.url);
+    // Only handle http(s) GET requests
+    if (!url.protocol.startsWith("http") || request.method !== "GET") return;
+
+    // If a request appears to be missing the application base (e.g. "/controllers/...")
+    // attempt to rewrite it by prepending the service worker scope path (e.g. "/unimind").
+    // This helps when the HTML was served from cache/offline and didn't run PHP to inject the base.
+    const scopePath = new URL(self.registration.scope).pathname.replace(
+      /\/$/,
+      "",
+    );
+    if (scopePath && url.pathname.startsWith("/controllers/")) {
+      const corrected = `${scopePath}${url.pathname}${url.search}`;
+      const newUrl = new URL(corrected, url.origin).toString();
+      request = new Request(newUrl, {
+        method: "GET",
+        headers: request.headers,
+        mode: request.mode,
+        credentials: request.credentials,
+        redirect: request.redirect,
+        cache: request.cache,
+        referrer: request.referrer,
+      });
+    }
+
+    const requestUrl = new URL(request.url);
+
+    // No-cache routes (API endpoints) should use networkFirst with fallback instead of direct fetch
+    // This prevents "Failed to fetch" errors when offline
+    if (NO_CACHE_ROUTES.some((route) => requestUrl.pathname.includes(route))) {
+      event.respondWith(networkFirst(request));
+      return;
+    }
+
+    // Static assets (cache-first)
+    if (isStaticAsset(requestUrl.pathname)) {
+      event.respondWith(cacheFirst(request));
+      return;
+    }
+
+    // Dynamic routes - prefer network then cache
+    if (isDynamicRoute(requestUrl.pathname)) {
+      event.respondWith(networkFirst(request));
+      return;
+    }
+
     event.respondWith(networkFirst(request));
-    return;
+  } catch {
+    // In case of any error parsing URL or building request, fallback to network-first
+    event.respondWith(networkFirst(request));
   }
-  event.respondWith(networkFirst(request));
+});
+
+// Listen messages from clients to trigger sync via SW (optional)
+self.addEventListener("message", (event) => {
+  if (!event.data) return;
+  if (event.data.type === "SYNC_BATCH") {
+    const payload = event.data.payload;
+    (async () => {
+      try {
+        const resp = await fetch("./controllers/SyncController.php", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items: payload }),
+        });
+        const json = await resp.json();
+        const allClients = await self.clients.matchAll({
+          includeUncontrolled: true,
+        });
+        allClients.forEach((c) =>
+          c.postMessage({ type: "SYNC_RESULT", result: json }),
+        );
+      } catch (err) {
+        const allClients = await self.clients.matchAll({
+          includeUncontrolled: true,
+        });
+        allClients.forEach((c) =>
+          c.postMessage({ type: "SYNC_ERROR", error: String(err) }),
+        );
+      }
+    })();
+  }
 });
 
 async function cacheFirst(request) {
@@ -165,8 +234,49 @@ async function networkFirst(request) {
   } catch {
     const cached = await caches.match(request);
     if (cached) return cached;
-    // Si es una petición de documento, intentar devolver offline.html cacheada
+
+    // Intentar devolver un fallback adecuado según el tipo de recurso
     try {
+      const url = new URL(request.url);
+      const accept =
+        request.headers && request.headers.get
+          ? request.headers.get("accept") || ""
+          : "";
+
+      // API / controllers => devolver JSON de fallback
+      if (
+        url.pathname.includes("/controllers/") ||
+        accept.includes("application/json")
+      ) {
+        const payload = JSON.stringify({
+          success: false,
+          offline: true,
+          message: "Sin conexión",
+        });
+        return new Response(payload, {
+          status: 503,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // Imágenes => devolver SVG placeholder (válido para <img>)
+      if (
+        request.destination === "image" ||
+        url.pathname.match(/\.(png|jpg|jpeg|gif|svg)$/i)
+      ) {
+        const svg =
+          `<?xml version="1.0" encoding="utf-8"?>\n` +
+          `<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192">` +
+          `<rect width="100%" height="100%" fill="#f2f2f2"/>` +
+          `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="20" fill="#999">Offline</text>` +
+          `</svg>`;
+        return new Response(svg, {
+          headers: { "Content-Type": "image/svg+xml" },
+          status: 503,
+        });
+      }
+
+      // Documentos => devolver página offline cacheada si existe
       if (request.destination === "document") {
         const offlineURL = new URL(
           "offline.html",
@@ -175,9 +285,14 @@ async function networkFirst(request) {
         const offlineCached = await caches.match(offlineURL);
         if (offlineCached) return offlineCached;
       }
-    } catch {}
-    return new Response("<h1>Sin conexión</h1>", {
-      headers: { "Content-Type": "text/html" },
+    } catch {
+      // ignore and fallthrough
+    }
+
+    // Fallback genérico de texto
+    return new Response("Sin conexión", {
+      status: 503,
+      headers: { "Content-Type": "text/plain" },
     });
   }
 }

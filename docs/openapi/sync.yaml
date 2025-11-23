@@ -1,0 +1,84 @@
+openapi: 3.0.3
+info:
+  title: UniMind Sync API
+  version: 1.0.0
+  description: Endpoint para sincronización offline -> server
+
+paths:
+  /controllers/SyncController.php:
+    post:
+      summary: Sincronizar batch de aplicaciones/respuestas desde cliente offline
+      tags:
+        - sync
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      client_uuid:
+                        type: string
+                        description: UUID generado por el cliente para idempotencia
+                      id_test:
+                        type: integer
+                      respuestas:
+                        type: object
+                        description: mapa id_item -> id_opcion
+            examples:
+              batch:
+                summary: Ejemplo de batch
+                value:
+                  items:
+                    - client_uuid: "a1b2c3d4-1234-5678-9abc-000000000001"
+                      id_test: 1
+                      respuestas:
+                        1: 3
+                        2: 1
+                    - client_uuid: "a1b2c3d4-1234-5678-9abc-000000000002"
+                      id_test: 2
+                      respuestas:
+                        1: 2
+                        3: 4
+      responses:
+        '200':
+          description: Resultado por elemento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  mappings:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        client_uuid:
+                          type: string
+                        server_id:
+                          type: integer
+                        status:
+                          type: string
+                        error:
+                          type: string
+        '401':
+          description: Usuario no autenticado
+        '413':
+          description: Payload demasiado grande
+
+components: {}
+
+examples-curl: |
+  # Ejemplo: enviar batch
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    --cookie "PHPSESSID=<sessionid>" \
+    -d '{"items":[{"client_uuid":"uuid-1","id_test":1,"respuestas":{"1":3}}]}' \
+    http://localhost/unimind/controllers/SyncController.php
