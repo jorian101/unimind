@@ -1,3 +1,24 @@
+<?php
+if (!function_exists('unimind_detect_base')) {
+  function unimind_detect_base() {
+    $derived = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+    $docroot = rtrim($_SERVER['DOCUMENT_ROOT'], '/');
+
+    $candidates = [$derived, '/unimind', ''];
+    foreach ($candidates as $c) {
+      $swPath = $docroot . ($c === '' ? '' : $c) . '/sw.js';
+      $manifestPath = $docroot . ($c === '' ? '' : $c) . '/public/manifest.webmanifest';
+      if (file_exists($swPath) || file_exists($manifestPath)) {
+        return $c;
+      }
+    }
+
+    return $derived;
+  }
+}
+
+$base = unimind_detect_base();
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -15,12 +36,12 @@
   <title>Aula Virtual UNJBG 2025</title>
   
   <!-- PWA Manifest -->
-  <link rel="manifest" href="/public/manifest.webmanifest">
+  <link rel="manifest" href="<?= $base ?>/public/manifest.webmanifest">
   
   <!-- Favicon & Icons -->
-  <link rel="icon" type="image/svg+xml" href="/public/icons/icon.svg">
-  <link rel="icon" type="image/png" sizes="192x192" href="/public/icons/icon-192x192.png">
-  <link rel="apple-touch-icon" href="/public/icons/icon-192x192.png">
+  <link rel="icon" type="image/svg+xml" href="<?= $base ?>/public/icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="<?= $base ?>/public/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" href="<?= $base ?>/public/icons/icon-192x192.png">
   
   <!-- Stylesheets -->
   <link rel="stylesheet" href="public/css/theme.css">
@@ -107,8 +128,8 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        // Registrar SW con ruta absoluta para cubrir todo /unimind/
-        navigator.serviceWorker.register('/unimind/sw.js')
+        // Registrar SW usando la base dinámica para funcionar en diferentes entornos
+        navigator.serviceWorker.register('<?= $base ?>/sw.js')
           .then(registration => {
             console.log('✅ Service Worker registrado:', registration.scope);
           })
