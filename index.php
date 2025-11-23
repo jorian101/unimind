@@ -44,8 +44,9 @@ if ($currentRole === 'autenticacion' && $currentPage === 'login') {
     <!-- Stylesheets -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="public/css/style.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="public/css/theme.css?v=<?php echo time(); ?>">
+    <?php require_once __DIR__ . '/utils/asset-version.php'; ?>
+    <link rel="stylesheet" href="public/css/style.css?v=<?php echo asset_version('public/css/style.css'); ?>">
+    <link rel="stylesheet" href="public/css/theme.css?v=<?php echo asset_version('public/css/theme.css'); ?>">
 </head>
 <body>
     <div class="layout-wrapper">
@@ -63,7 +64,8 @@ if ($currentRole === 'autenticacion' && $currentPage === 'login') {
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                // Registrar SW con ruta absoluta para cubrir todo /unimind/
+                navigator.serviceWorker.register('/unimind/sw.js')
                     .then(registration => {
                         console.log('✅ Service Worker registrado correctamente:', registration.scope);
                         

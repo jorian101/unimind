@@ -3,21 +3,21 @@
   "short_name": "UniMind",
   "description": "Sistema de evaluación y monitoreo de salud mental para estudiantes universitarios",
   "id": "/",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/unimind/",
+  "scope": "/unimind/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4a90e2",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/public/icons/icon.php?size=192",
+      "src": "/unimind/public/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/public/icons/icon.php?size=512",
+      "src": "/unimind/public/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
@@ -25,14 +25,14 @@
   ],
   "screenshots": [
     {
-      "src": "/public/icons/icon.php?size=512",
+      "src": "/unimind/public/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "label": "UniMind Screenshot - Wide",
       "form_factor": "wide"
     },
     {
-      "src": "/public/icons/icon.php?size=512",
+      "src": "/unimind/public/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "label": "UniMind Screenshot - Mobile"
@@ -44,10 +44,10 @@
       "name": "Realizar Test",
       "short_name": "Test",
       "description": "Iniciar un nuevo test de evaluación",
-      "url": "/?role=estudiante&page=tests",
+      "url": "/unimind/?role=estudiante&page=tests",
       "icons": [
           {
-          "src": "/public/icons/icon.php?size=192",
+          "src": "/unimind/public/icons/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -56,10 +56,10 @@
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "Ver mi dashboard de resultados",
-      "url": "/?role=estudiante&page=dashboard",
+      "url": "/unimind/?role=estudiante&page=dashboard",
       "icons": [
         {
-          "src": "/public/icons/icon.php?size=192",
+          "src": "/unimind/public/icons/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -68,10 +68,10 @@
       "name": "Historial",
       "short_name": "Historial",
       "description": "Ver mi historial de evaluaciones",
-      "url": "/?role=estudiante&page=historial",
+      "url": "/unimind/?role=estudiante&page=historial",
       "icons": [
         {
-          "src": "/public/icons/icon.php?size=192",
+          "src": "/unimind/public/icons/icon-192.png",
           "sizes": "192x192"
         }
       ]

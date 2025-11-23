@@ -1,32 +1,40 @@
 // Service Worker colocado en /unimind/sw.js para que su scope cubra /unimind/
-// Versión 1.0.0
-const CACHE_NAME = "unimind-v1.0.0";
+// Versión 1.0.1 - Optimizado para rendimiento y caché offline
+const CACHE_NAME = "unimind-v1.0.1";
 const RUNTIME_CACHE = "unimind-runtime-v1";
 
+// Assets críticos con rutas relativas (resuelven bajo /unimind/)
 const STATIC_ASSETS = [
-  "/public/css/style.css",
-  "/public/css/theme.css",
-  "/public/js/main-simple.js",
-  "/public/js/dashboard.js",
-  "/public/js/header.js",
-  "/public/manifest.webmanifest",
-  "/public/icons/icon.php?size=192",
-  "/public/icons/icon.php?size=512",
-  "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap",
-  "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css",
+  "public/css/style.css",
+  "public/css/theme.css",
+  "public/js/main-simple.js",
+  "public/js/dashboard.js",
+  "public/js/header.js",
+  "public/manifest.webmanifest",
+  // CSS críticos de views
+  "views/layout.css",
+  "views/sidebar.css",
+  "views/header.css",
+  "views/pageHeader.css",
+  "views/estudiante/inicio.css",
+  "views/estudiante/dashboard.css",
+  "views/estudiante/tests.css",
+  "views/administrador/tests.css",
+  // Iconos (sin query string, se cachean por ruta base)
+  "public/icons/icon-192.png",
+  "public/icons/icon-512.png",
+  // Página offline mínima
+  "offline.html",
 ];
 
-const CACHEABLE_ROUTES = [
-  "/unimind/views/",
-  "/public/",
-  "/unimind/controllers/",
-];
+const CACHEABLE_ROUTES = ["views/", "public/", "controllers/"];
 
 const NO_CACHE_ROUTES = [
-  "/unimind/controllers/AuthController.php",
-  "/unimind/controllers/AplicacionesController.php",
-  "/unimind/controllers/TestsController.php",
-  "/unimind/controllers/UserController.php",
+  "controllers/AuthController.php",
+  "controllers/AplicacionesController.php",
+  "controllers/TestsController.php",
+  "controllers/UserController.php",
+  "controllers/Logout.php",
 ];
 
 self.addEventListener("install", (event) => {
@@ -95,22 +103,60 @@ self.addEventListener("fetch", (event) => {
 
 async function cacheFirst(request) {
   try {
-    const cached = await caches.match(request);
+    // Buscar en caché (con y sin query string para flexibilidad)
+    let cached = await caches.match(request);
+    if (!cached) {
+      // Intentar sin query string para assets versionados
+      const url = new URL(request.url);
+      url.search = "";
+      cached = await caches.match(url.toString());
+    }
     if (cached) return cached;
+
     const resp = await fetch(request);
     if (resp && resp.status === 200) {
       const c = await caches.open(CACHE_NAME);
-      c.put(request, resp.clone());
+      // Cachear sin query string para reutilizar mejor
+      const cacheUrl = new URL(request.url);
+      if (cacheUrl.search.includes("v=")) {
+        cacheUrl.search = "";
+        c.put(cacheUrl.toString(), resp.clone());
+      } else {
+        c.put(request, resp.clone());
+      }
     }
     return resp;
   } catch {
-    return caches.match("/unimind/views/autenticacion/login.php");
+    // Fallback genérico: intentar página offline si está disponible
+    try {
+      const offlineURL = new URL(
+        "offline.html",
+        self.registration.scope,
+      ).toString();
+      const offline = await caches.match(offlineURL);
+      if (offline) return offline;
+    } catch {}
+    return null;
+  }
+}
+
+async function networkWithTimeout(request, timeout = 3000) {
+  const controller = new AbortController();
+  const signal = controller.signal;
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(request, { signal });
+    clearTimeout(timer);
+    return response;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
   }
 }
 
 async function networkFirst(request) {
   try {
-    const res = await fetch(request);
+    const res = await networkWithTimeout(request, 3000);
     if (res && res.status === 200) {
       const c = await caches.open(RUNTIME_CACHE);
       c.put(request, res.clone());
@@ -119,6 +165,17 @@ async function networkFirst(request) {
   } catch {
     const cached = await caches.match(request);
     if (cached) return cached;
+    // Si es una petición de documento, intentar devolver offline.html cacheada
+    try {
+      if (request.destination === "document") {
+        const offlineURL = new URL(
+          "offline.html",
+          self.registration.scope,
+        ).toString();
+        const offlineCached = await caches.match(offlineURL);
+        if (offlineCached) return offlineCached;
+      }
+    } catch {}
     return new Response("<h1>Sin conexión</h1>", {
       headers: { "Content-Type": "text/html" },
     });
@@ -126,6 +183,8 @@ async function networkFirst(request) {
 }
 
 function isStaticAsset(pathname) {
+  // Remover query string para detectar extensión correctamente
+  const pathWithoutQuery = pathname.split("?")[0];
   const exts = [
     ".css",
     ".js",
@@ -137,8 +196,11 @@ function isStaticAsset(pathname) {
     ".woff",
     ".woff2",
     ".ttf",
+    ".eot",
+    ".ico",
+    ".webp",
   ];
-  return exts.some((ext) => pathname.endsWith(ext));
+  return exts.some((ext) => pathWithoutQuery.endsWith(ext));
 }
 
 function isDynamicRoute(pathname) {

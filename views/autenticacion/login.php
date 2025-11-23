@@ -107,7 +107,8 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        // Registrar SW con ruta absoluta para cubrir todo /unimind/
+        navigator.serviceWorker.register('/unimind/sw.js')
           .then(registration => {
             console.log('✅ Service Worker registrado:', registration.scope);
           })
