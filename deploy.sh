@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# Cambiar a la rama develop
-git checkout develop
-git pull origin develop  # Actualiza si es necesario
+# Allow selecting a branch to deploy (default: develop)
+BRANCH="${1:-develop}"
+echo "Deploying branch: $BRANCH"
+git fetch origin
+git checkout "$BRANCH"
+git pull origin "$BRANCH"  # Actualiza si es necesario
 
 # Iniciar XAMPP
 cd /opt/lampp
