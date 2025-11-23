@@ -1,9 +1,9 @@
-// Service Worker colocado en /unimind/sw.js para que su scope cubra /unimind/
-// Versión 1.0.4 - Fixed URL rewriting to include query params and use networkFirst for NO_CACHE_ROUTES
-const CACHE_NAME = "unimind-v1.0.4";
-const RUNTIME_CACHE = "unimind-runtime-v1.0.4";
+// Service Worker colocado en /sw.js para que su scope cubra toda la raíz /
+// Versión 1.0.5 - Fixed base path detection (changed from /unimind to /)
+const CACHE_NAME = "unimind-v1.0.5";
+const RUNTIME_CACHE = "unimind-runtime-v1.0.5";
 
-// Assets críticos con rutas relativas (resuelven bajo /unimind/)
+// Assets críticos con rutas relativas (resuelven bajo la raíz /)
 const STATIC_ASSETS = [
   "public/css/style.css",
   "public/css/theme.css",

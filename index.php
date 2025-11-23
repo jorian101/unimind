@@ -22,11 +22,12 @@ if (!function_exists('unimind_detect_base')) {
         $derived = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
         $docroot = rtrim($_SERVER['DOCUMENT_ROOT'], '/');
 
-        $candidates = [$derived, '/unimind', ''];
+        // Probar primero con raíz vacía, luego con /unimind, finalmente el derivado
+        $candidates = ['', '/unimind', $derived];
         foreach ($candidates as $c) {
             $swPath = $docroot . ($c === '' ? '' : $c) . '/sw.js';
             $manifestPath = $docroot . ($c === '' ? '' : $c) . '/public/manifest.webmanifest';
-            if (file_exists($swPath) || file_exists($manifestPath)) {
+            if (file_exists($swPath) && file_exists($manifestPath)) {
                 return $c;
             }
         }
