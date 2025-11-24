@@ -43,6 +43,9 @@ renderPageHeader();
                     <div class="test-details">
                         <span class="detail"><i class="fas fa-list"></i> <?php echo $test['num_items']; ?> ítems</span>
                         <span class="detail"><i class="fas fa-clock"></i> ~<?php echo $tiempoEstimado; ?> min</span>
+                        <?php if (!empty($test['created_at'])): ?>
+                        <span class="detail"><i class="fas fa-calendar"></i> <?php echo date('d/m/Y H:i', strtotime($test['created_at'])); ?></span>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="test-actions">

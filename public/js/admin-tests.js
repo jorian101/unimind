@@ -202,6 +202,10 @@ class AdminTestsManager {
     const card = document.createElement("div");
     card.className = "test-card";
     card.dataset.testId = test.id_test;
+    // Añadir created_at como atributo data para ordenar por fecha
+    if (test.created_at) {
+      card.dataset.created = test.created_at;
+    }
     card.dataset.testName = test.nombre;
     const isLocal = test.isLocal || String(test.id_test).startsWith("local");
     const actionsDisabled = isLocal
@@ -232,10 +236,19 @@ class AdminTestsManager {
                     <i class="fas fa-list-ol"></i>
                     <span><strong>${test.num_items}</strong> ítems</span>
                 </div>
-                <div class="meta-item">
+                  <div class="meta-item">
                     <i class="fas fa-calendar"></i>
-                    <span>Creado</span>
-                </div>
+                    <span>${test.created_at ? new Date(test.created_at).toLocaleString() : "—"}</span>
+                  </div>
+                  ${
+                    test.updated_at
+                      ? `
+                  <div class="meta-item">
+                    <i class="fas fa-edit"></i>
+                    <span>Últ. edición: ${new Date(test.updated_at).toLocaleString()}</span>
+                  </div>`
+                      : ""
+                  }
             </div>
         `;
 
@@ -1011,8 +1024,14 @@ class AdminTestsManager {
           );
           return itemsB - itemsA;
         case "fecha":
-          // Por defecto ya está ordenado por fecha
-          return 0;
+          // Ordenar por fecha de creación (más recientes primero)
+          const dateA = a.dataset.created
+            ? new Date(a.dataset.created)
+            : new Date(0);
+          const dateB = b.dataset.created
+            ? new Date(b.dataset.created)
+            : new Date(0);
+          return dateB - dateA;
         default:
           return 0;
       }

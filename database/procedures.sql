@@ -180,8 +180,8 @@ CREATE PROCEDURE `sp_crear_test`(
     IN p_num_items INT
 )
 BEGIN
-    INSERT INTO `Tests` (`nombre`, `descripcion`, `num_items`)
-    VALUES (p_nombre, p_descripcion, p_num_items);
+    INSERT INTO `Tests` (`nombre`, `descripcion`, `num_items`, `created_at`, `updated_at`)
+    VALUES (p_nombre, p_descripcion, p_num_items, NOW(), NOW());
     SELECT 'Test creado con éxito' AS Mensaje, LAST_INSERT_ID() AS Nuevo_ID_Test;
 END //
 
@@ -296,7 +296,7 @@ END //
 -- Obtener la lista de tests disponibles para tomar
 CREATE PROCEDURE `sp_obtener_tests_disponibles`()
 BEGIN
-    SELECT `id_test`, `nombre`, `descripcion`, `num_items`
+    SELECT `id_test`, `nombre`, `descripcion`, `num_items`, `created_at`, `updated_at`
     FROM `Tests`
     ORDER BY `nombre`;
 END //

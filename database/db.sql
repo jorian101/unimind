@@ -28,6 +28,8 @@ CREATE TABLE `Tests` (
     `nombre` VARCHAR(100) NOT NULL,
     `descripcion` TEXT,
     `num_items` INT NOT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id_test`)
 );
 

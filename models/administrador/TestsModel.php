@@ -90,8 +90,8 @@ class TestsModel {
      */
     public function createTest($nombre, $descripcion, $num_items) {
         try {
-            $query = "INSERT INTO {$this->table_tests} (nombre, descripcion, num_items) 
-                     VALUES (:nombre, :descripcion, :num_items)";
+            $query = "INSERT INTO {$this->table_tests} (nombre, descripcion, num_items, created_at, updated_at) 
+                     VALUES (:nombre, :descripcion, :num_items, NOW(), NOW())";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':nombre', $nombre);
             $stmt->bindParam(':descripcion', $descripcion);
@@ -116,7 +116,8 @@ class TestsModel {
             $query = "UPDATE {$this->table_tests} 
                      SET nombre = :nombre, 
                          descripcion = :descripcion, 
-                         num_items = :num_items 
+                         num_items = :num_items,
+                         updated_at = NOW() 
                      WHERE id_test = :id_test";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':id_test', $id_test, PDO::PARAM_INT);
