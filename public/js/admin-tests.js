@@ -343,6 +343,8 @@ class AdminTestsManager {
     if (numDisplayView) numDisplayView.textContent = test.num_items;
     if (numHiddenView) numHiddenView.value = test.num_items;
 
+    // (fechas de creación/edición removidas de la vista según petición)
+
     // Cargar items en modo lectura
     this.loadItemsReadOnly(test.items);
 
