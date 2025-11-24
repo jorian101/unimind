@@ -24,13 +24,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->closeCursor(); 
 
         if ($usuario && $password === $usuario['password']) {
+            // Mantener compatibilidad: algunos lugares usan 'user_id' y otros 'id_usuario'
             $_SESSION['user_id'] = $usuario['id_usuario'];
+            $_SESSION['id_usuario'] = $usuario['id_usuario'];
             $_SESSION['user_name'] = $usuario['nombre'] . ' ' . $usuario['apellido'];
             $_SESSION['user_role'] = strtolower($usuario['cargo']);
+            $_SESSION['id_rol'] = strtolower($usuario['cargo']);
 
             $role = strtolower($usuario['cargo']);
             if ($role === 'estudiante') {
-                header('Location: ../index.php?role=estudiante&page=inicio');
+                header('Location: ../index.php?role=estudiante&page=dashboard');
             } elseif ($role === 'docente') {
                 header('Location: ../index.php?role=docente&page=dashboard-profesor');
             } elseif ($role === 'administrador') {

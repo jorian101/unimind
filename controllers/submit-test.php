@@ -35,7 +35,11 @@ try {
     }
     
     $model = new TestsEstudianteModel();
-    $id_usuario = $_SESSION['id_usuario'];
+    $id_usuario = $_SESSION['id_usuario'] ?? $_SESSION['user_id'] ?? null;
+    
+    if (!$id_usuario) {
+        throw new Exception('Usuario no autenticado');
+    }
     
     // Recopilar todas las respuestas
     $respuestas = [];

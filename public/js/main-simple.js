@@ -78,8 +78,19 @@ document.addEventListener("DOMContentLoaded", function () {
           }
 
           // Agregar parámetro 'from_sidebar=1' para indicar navegación desde sidebar
+          // Construir URL absoluta usando la base detectada para evitar romper la cookie de sesión
+          var base = window.UNIMIND_BASE || "";
+          var origin = window.location.origin || "";
+          var prefix = origin + (base ? base : "");
+          // Asegurarse de no duplicar slashes
+          if (prefix.endsWith("/")) prefix = prefix.slice(0, -1);
           window.location.href =
-            "?role=" + role + "&page=" + page + "&from_sidebar=1";
+            prefix +
+            "/index.php?role=" +
+            encodeURIComponent(role) +
+            "&page=" +
+            encodeURIComponent(page) +
+            "&from_sidebar=1";
         }
       });
     });

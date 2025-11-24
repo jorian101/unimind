@@ -43,6 +43,10 @@ class AplicacionesController {
                     $this->getResultado();
                     break;
                 
+                case 'getDetalleAplicacion':
+                    $this->getDetalleAplicacion();
+                    break;
+                
                 default:
                     $this->sendResponse(false, 'Acción no válida');
             }
@@ -223,6 +227,34 @@ class AplicacionesController {
             $this->sendResponse(true, 'Resultado obtenido correctamente', $data);
         } else {
             $this->sendResponse(false, 'Resultado no encontrado');
+        }
+    }
+
+    /**
+     * Obtener detalle completo de una aplicación con respuestas
+     */
+    private function getDetalleAplicacion() {
+        $id_aplicacion = $_GET['id_aplicacion'] ?? null;
+        
+        if (!$id_aplicacion) {
+            $this->sendResponse(false, 'ID de aplicación no proporcionado');
+            return;
+        }
+
+        // Obtener resultado general
+        $resultado = $this->model->getResultadoAplicacion($id_aplicacion);
+        
+        // Obtener respuestas detalladas
+        $respuestas = $this->model->getDetalleAplicacion($id_aplicacion);
+
+        if ($resultado) {
+            $data = [
+                'resultado' => $resultado,
+                'respuestas' => $respuestas
+            ];
+            $this->sendResponse(true, 'Detalles obtenidos correctamente', $data);
+        } else {
+            $this->sendResponse(false, 'Aplicación no encontrada');
         }
     }
 
