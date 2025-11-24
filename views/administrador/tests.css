@@ -437,7 +437,8 @@
   height: 100%;
   background: rgba(0, 0, 0, 0.6);
   z-index: 9999;
-  overflow-y: auto;
+  /* Evitar scrollbar en el overlay; el scroll se maneja en .modal-content */
+  overflow: hidden;
   padding: 2rem 0;
 }
 
@@ -457,6 +458,17 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
+  /* Hacer que el contenido del modal sea el área desplazable con la rueda */
+  overflow-y: auto;
+  /* Ocultar barras de scroll visuales pero mantener el scroll por rueda/trackpad */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+
+/* WebKit browsers */
+.modal-content::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
 }
 
 .modal-small {
@@ -512,7 +524,8 @@
 /* ======== Form Styles ======== */
 #testForm {
   padding: 2rem;
-  overflow-y: auto;
+  /* Evitar scrollbar específico en el formulario; el scroll lo controla .modal-content */
+  overflow: visible;
   flex: 1;
 }
 
@@ -832,6 +845,20 @@
   margin-top: 1rem;
 }
 
+/* Ajustes específicos para el modal de eliminación: botones juntos, mismo tamaño, alineados a la derecha */
+#deleteModal .form-actions {
+  justify-content: flex-end; /* alinear a la derecha */
+  gap: 0.75rem;
+  padding: 1rem 2rem 1.5rem; /* padding consistente */
+  border-top: none; /* quitar línea superior en modal de confirmación */
+  margin-top: auto; /* empujar acciones hacia la parte inferior del modal */
+}
+
+#deleteModal .form-actions .btn-secondary,
+#deleteModal .form-actions .btn-danger {
+  width: 140px; /* botones del mismo tamaño */
+}
+
 /* ======== Responsive Breakpoints ======== */
 
 /* Mobile Small (≤ 390px) */
@@ -875,6 +902,30 @@
     width: 100%;
   }
 
+  /* Mantener botones del modal de eliminación juntos y del mismo tamaño en tablet pequeño */
+  #deleteModal .form-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  #deleteModal .form-actions .btn-secondary,
+  #deleteModal .form-actions .btn-danger {
+    width: 100px;
+  }
+
+  /* Mantener botones del modal de eliminación juntos y del mismo tamaño en móvil */
+  #deleteModal .form-actions {
+    flex-direction: row !important;
+    justify-content: flex-end !important;
+    gap: 0.5rem;
+  }
+
+  #deleteModal .form-actions .btn-secondary,
+  #deleteModal .form-actions .btn-danger {
+    width: 120px !important;
+  }
+
   /* Eficiencia: mantener contador visible en móvil */
   .section-title-group {
     flex-direction: column;
@@ -915,6 +966,18 @@
 
   .form-actions button {
     width: 100%;
+  }
+
+  /* Mantener botones del modal de eliminación juntos y del mismo tamaño en móvil */
+  #deleteModal .form-actions {
+    flex-direction: row !important;
+    justify-content: flex-end !important;
+    gap: 0.5rem;
+  }
+
+  #deleteModal .form-actions .btn-secondary,
+  #deleteModal .form-actions .btn-danger {
+    width: 120px !important;
   }
 }
 
