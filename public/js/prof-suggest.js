@@ -94,6 +94,12 @@
       alert("No se puede enviar sugerencia: falta test o curso.");
       return;
     }
+    // optional metadata provided on the button (when creating new test)
+    const testName = btn.getAttribute("data-test-name") || null;
+    const testDesc = btn.getAttribute("data-test-desc") || null;
+    const testItems = btn.getAttribute("data-test-items")
+      ? Number(btn.getAttribute("data-test-items"))
+      : null;
     try {
       btn.disabled = true;
       btn.dataset.orig = btn.textContent;
@@ -101,10 +107,21 @@
       const res = await fetch("/unimind/api/suggest_test.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id_test: Number(id_test),
-          id_curso: Number(id_curso),
-        }),
+        body: JSON.stringify(
+          Object.assign(
+            {
+              id_test: Number(id_test),
+              id_curso: Number(id_curso),
+            },
+            testName
+              ? {
+                  test_name: testName,
+                  test_description: testDesc || "",
+                  num_items: testItems || 0,
+                }
+              : {},
+          ),
+        ),
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -150,7 +167,81 @@
           if (!chosen) return;
           id_curso = chosen;
         }
-        await sendSuggest(id_test, id_curso, btn);
+        // If id_test is falsy (0/undefined) open a prompt to create a new test
+        if (!id_test) {
+          const meta = await showCreateTestPrompt();
+          if (!meta) return;
+          // attach metadata to button temporarily so sendSuggest includes it
+          btn.setAttribute("data-test-name", meta.name);
+          btn.setAttribute("data-test-desc", meta.description);
+          btn.setAttribute("data-test-items", meta.num_items);
+          // send with id_test = 0 to indicate create
+          await sendSuggest(0, id_curso, btn);
+          // cleanup attrs
+          btn.removeAttribute("data-test-name");
+          btn.removeAttribute("data-test-desc");
+          btn.removeAttribute("data-test-items");
+        } else {
+          await sendSuggest(id_test, id_curso, btn);
+        }
+      });
+    });
+  }
+
+  // small modal to create a test (name, description, num_items)
+  function showCreateTestPrompt() {
+    return new Promise((resolve) => {
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "fixed";
+      wrapper.style.inset = 0;
+      wrapper.style.background = "rgba(0,0,0,0.35)";
+      wrapper.style.display = "flex";
+      wrapper.style.alignItems = "center";
+      wrapper.style.justifyContent = "center";
+      wrapper.style.zIndex = 11000;
+
+      const box = document.createElement("div");
+      box.style.background = "#fff";
+      box.style.padding = "1rem";
+      box.style.borderRadius = "10px";
+      box.style.minWidth = "360px";
+      box.style.boxShadow = "0 10px 30px rgba(2,6,23,0.12)";
+
+      box.innerHTML = `
+        <h3 style="margin:0 0 .6rem 0">Crear Test</h3>
+        <label style="display:block;margin-bottom:.4rem">Nombre</label>
+        <input type="text" id="__create_test_name" style="width:100%;padding:.5rem;border:1px solid #e6e6e6;border-radius:6px;margin-bottom:.6rem">
+        <label style="display:block;margin-bottom:.4rem">Descripción (opcional)</label>
+        <textarea id="__create_test_desc" style="width:100%;padding:.5rem;border:1px solid #e6e6e6;border-radius:6px;height:70px;margin-bottom:.6rem"></textarea>
+        <label style="display:block;margin-bottom:.4rem">Número de ítems</label>
+        <input type="number" id="__create_test_items" min="1" value="10" style="width:120px;padding:.4rem;border:1px solid #e6e6e6;border-radius:6px;margin-bottom:.6rem">
+        <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.4rem">
+          <button id="__create_cancel" class="btn-outline">Cancelar</button>
+          <button id="__create_ok" class="btn-primary">Crear y Enviar</button>
+        </div>
+      `;
+
+      wrapper.appendChild(box);
+      document.body.appendChild(wrapper);
+
+      wrapper
+        .querySelector("#__create_cancel")
+        .addEventListener("click", () => {
+          document.body.removeChild(wrapper);
+          resolve(null);
+        });
+      wrapper.querySelector("#__create_ok").addEventListener("click", () => {
+        const name = wrapper.querySelector("#__create_test_name").value.trim();
+        const desc = wrapper.querySelector("#__create_test_desc").value.trim();
+        const num =
+          parseInt(wrapper.querySelector("#__create_test_items").value, 10) ||
+          0;
+        if (!name || num <= 0) {
+          alert("Por favor indica un nombre y un número de ítems mayor que 0.");
+          return;
+        }
+        document.body.removeChild(wrapper);
+        resolve({ name, description: desc, num_items: num });
       });
     });
   }

@@ -12,8 +12,23 @@ class TestsEstudianteModel {
     /**
      * Obtener todos los tests disponibles
      */
-    public function getTestsDisponibles() {
+    public function getTestsDisponibles($id_usuario = null) {
         try {
+            // Si se proporciona un usuario, devolver las aplicaciones pendientes asignadas a ese usuario
+            if ($id_usuario) {
+                $sql = "SELECT a.id_aplicacion, t.id_test, t.nombre, t.descripcion, t.num_items, a.fecha_aplicacion
+                        FROM Aplicaciones a
+                        JOIN Tests t ON a.id_test = t.id_test
+                        WHERE a.id_usuario = :id_usuario AND a.puntuacion_total IS NULL
+                        ORDER BY a.fecha_aplicacion DESC";
+                $stmt = $this->conn->prepare($sql);
+                $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+                $stmt->execute();
+                $tests = $stmt->fetchAll();
+                return $tests;
+            }
+
+            // Fallback: lista todos los tests (procedimiento heredado)
             $stmt = $this->conn->prepare("CALL sp_obtener_tests_disponibles()");
             $stmt->execute();
             $tests = $stmt->fetchAll();
@@ -40,6 +55,22 @@ class TestsEstudianteModel {
             return $stmt->fetch();
         } catch (PDOException $e) {
             error_log("Error en getTestById: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Obtener una aplicación pendiente para un usuario y test (si existe)
+     */
+    public function getPendingAplicacion($id_usuario, $id_test) {
+        try {
+            $stmt = $this->conn->prepare("SELECT id_aplicacion, id_usuario, id_test, fecha_aplicacion FROM Aplicaciones WHERE id_usuario = :id_usuario AND id_test = :id_test AND puntuacion_total IS NULL LIMIT 1");
+            $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+            $stmt->bindParam(':id_test', $id_test, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetch();
+        } catch (PDOException $e) {
+            error_log("Error en getPendingAplicacion: " . $e->getMessage());
             return null;
         }
     }

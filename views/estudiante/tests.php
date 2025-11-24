@@ -4,7 +4,8 @@ require_once __DIR__ . '/../../models/estudiante/TestsEstudianteModel.php';
 
 // Obtener tests desde la base de datos
 $model = new TestsEstudianteModel();
-$tests = $model->getTestsDisponibles();
+$userId = $_SESSION['id_usuario'] ?? null;
+$tests = $model->getTestsDisponibles($userId);
 
 // El breadcrumb se detecta automáticamente desde routes-config.php
 renderPageHeader();
@@ -36,7 +37,11 @@ renderPageHeader();
             <div class="test-item">
                 <div class="test-header">
                     <h3><i class="fas <?php echo $icon; ?>"></i> <?php echo htmlspecialchars($test['nombre']); ?></h3>
-                    <span class="status pending">Disponible</span>
+                    <?php if (!empty($test['id_aplicacion'])): ?>
+                        <span class="status suggested">Sugerido por profesor</span>
+                    <?php else: ?>
+                        <span class="status pending">Disponible</span>
+                    <?php endif; ?>
                 </div>
                 <div class="test-description">
                     <p><?php echo htmlspecialchars($test['descripcion'] ?: 'Test de evaluación psicológica'); ?></p>
@@ -46,13 +51,14 @@ renderPageHeader();
                     </div>
                 </div>
                 <div class="test-actions">
-                    <button class="btn-primary iniciar-test"
-                        data-id="<?php echo $test['id_test']; ?>"
-                        data-name="<?php echo htmlspecialchars($test['nombre']); ?>"
-                        data-questions="<?php echo $test['num_items']; ?>">
-                        Iniciar Test
-                    </button>
-                </div>
+                        <button class="btn-primary iniciar-test"
+                            data-id="<?php echo $test['id_test']; ?>"
+                            data-aplicacion="<?php echo isset($test['id_aplicacion']) ? $test['id_aplicacion'] : ''; ?>"
+                            data-name="<?php echo htmlspecialchars($test['nombre']); ?>"
+                            data-questions="<?php echo $test['num_items']; ?>">
+                            <?php echo !empty($test['id_aplicacion']) ? 'Iniciar (Sugerido)' : 'Iniciar Test'; ?>
+                        </button>
+                    </div>
             </div>
         <?php endforeach; ?>
     <?php endif; ?>
@@ -65,9 +71,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const testId = button.dataset.id;
             const testName = encodeURIComponent(button.dataset.name);
             const questions = button.dataset.questions;
+            const aplicacion = button.dataset.aplicacion || '';
 
             // Redirige al formulario con los parámetros del test seleccionado
-            const url = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
+            let url = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
+            if (aplicacion) url += `&id_aplicacion=${aplicacion}`;
             window.location.href = url;
         });
     });

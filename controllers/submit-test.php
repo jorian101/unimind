@@ -40,7 +40,21 @@ try {
     }
     
     // 1. Iniciar la aplicación
-    $id_aplicacion = $model->iniciarAplicacion($id_usuario, $testId);
+    // Si se envía una aplicación pendiente (sugerida por el profesor), reutilizarla
+    $postedAplicacion = $_POST['id_aplicacion'] ?? null;
+    $id_aplicacion = null;
+    if ($postedAplicacion) {
+        // Verificar que la aplicación pertenece al usuario y no esté finalizada
+        $check = $model->getPendingAplicacion($id_usuario, $testId);
+        if ($check && $check['id_aplicacion'] == $postedAplicacion) {
+            $id_aplicacion = $postedAplicacion;
+        } else {
+            // ignore invalid posted aplicacion and create a new one
+            $id_aplicacion = $model->iniciarAplicacion($id_usuario, $testId);
+        }
+    } else {
+        $id_aplicacion = $model->iniciarAplicacion($id_usuario, $testId);
+    }
     
     if (!$id_aplicacion) {
         throw new Exception('Error al crear la aplicación del test');

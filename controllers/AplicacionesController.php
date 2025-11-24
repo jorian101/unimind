@@ -55,7 +55,8 @@ class AplicacionesController {
      * Obtener todos los tests disponibles
      */
     private function getTestsDisponibles() {
-        $tests = $this->model->getTestsDisponibles();
+        $id_usuario = $_SESSION['id_usuario'] ?? null;
+        $tests = $this->model->getTestsDisponibles($id_usuario);
         $this->sendResponse(true, 'Tests obtenidos correctamente', $tests);
     }
 

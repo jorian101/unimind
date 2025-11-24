@@ -22,6 +22,23 @@ if (!$testInfo) {
 $items = $model->getItemsByTest($testId);
 $opciones = $model->getOpcionesRespuesta();
 
+// Verificar si existe una Aplicación pendiente para este usuario y test (sugerida por profesor)
+$userId = $_SESSION['id_usuario'] ?? null;
+$pendingAplicacion = null;
+// Prefer id_aplicacion passed via GET (redirect from tests list) otherwise try to detect pending
+$requestedAplicacion = isset($_GET['id_aplicacion']) ? (int)$_GET['id_aplicacion'] : 0;
+if ($requestedAplicacion) {
+    // Basic check: ensure this aplicación belongs to the current user and test
+    $check = $model->getPendingAplicacion($userId, $testId);
+    if ($check && (int)$check['id_aplicacion'] === $requestedAplicacion) {
+        $pendingAplicacion = $check;
+    }
+} else {
+    if ($userId) {
+        $pendingAplicacion = $model->getPendingAplicacion($userId, $testId);
+    }
+}
+
 $testName = $testInfo['nombre'];
 $totalQuestions = count($items);
 
@@ -57,6 +74,9 @@ renderPageHeader();
 
         <form class="formulario__form" id="testForm" method="POST" action="controllers/submit-test.php">
             <input type="hidden" name="test_id" value="<?php echo htmlspecialchars($testId); ?>">
+            <?php if ($pendingAplicacion): ?>
+                <input type="hidden" name="id_aplicacion" value="<?php echo htmlspecialchars($pendingAplicacion['id_aplicacion']); ?>">
+            <?php endif; ?>
             <input type="hidden" name="test_name" value="<?php echo htmlspecialchars($testName); ?>">
             
             <div class="formulario__progress">
