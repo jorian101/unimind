@@ -2,7 +2,7 @@
 require_once dirname(__DIR__) . '/utils/sidebar-config.php';
 
 $currentRole = $_GET['role'] ?? 'estudiante';
-$currentPage = $_GET['page'] ?? ($currentRole === 'estudiante' ? 'inicio' : 'dashboard');
+$currentPage = $_GET['page'] ?? 'dashboard';
 $sidebarProps = getSidebarConfig($currentRole, $currentPage);
 ?>
 

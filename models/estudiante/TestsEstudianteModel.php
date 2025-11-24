@@ -109,6 +109,50 @@ class TestsEstudianteModel {
     }
 
     /**
+     * Obtener opciones de respuesta filtradas por tipo de escala del test
+     */
+    public function getOpcionesByTestId($id_test) {
+        try {
+            // Obtener el tipo de escala del test
+            $stmt = $this->conn->prepare("SELECT tipo_escala FROM Tests WHERE id_test = :id_test");
+            $stmt->bindParam(':id_test', $id_test, PDO::PARAM_INT);
+            $stmt->execute();
+            $result = $stmt->fetch();
+            
+            if (!$result || !$result['tipo_escala']) {
+                // Si no tiene tipo de escala, retornar todas las opciones
+                return $this->getOpcionesRespuesta();
+            }
+            
+            $tipo_escala = $result['tipo_escala'];
+            
+            // Obtener los IDs de opciones para este tipo de escala
+            $stmt = $this->conn->prepare("SELECT opciones_ids FROM Tipos_Escalas WHERE id_tipo_escala = :tipo_escala");
+            $stmt->bindParam(':tipo_escala', $tipo_escala, PDO::PARAM_INT);
+            $stmt->execute();
+            $escalasResult = $stmt->fetch();
+            
+            if (!$escalasResult || !$escalasResult['opciones_ids']) {
+                return [];
+            }
+            
+            $opciones_ids = $escalasResult['opciones_ids'];
+            
+            // Obtener las opciones correspondientes
+            $query = "SELECT id_opcion, texto_opcion, valor_puntuacion 
+                      FROM Opciones_Respuesta 
+                      WHERE id_opcion IN ({$opciones_ids}) 
+                      ORDER BY valor_puntuacion ASC";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("Error en getOpcionesByTestId: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Iniciar una nueva aplicación de test
      */
     public function iniciarAplicacion($id_usuario, $id_test) {
@@ -223,6 +267,32 @@ class TestsEstudianteModel {
         } catch (PDOException $e) {
             error_log("Error en getResultadoAplicacion: " . $e->getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Obtener IDs de tests que el usuario ya ha completado
+     */
+    public function getTestsCompletadosPorUsuario($id_usuario) {
+        try {
+            $stmt = $this->conn->prepare("
+                SELECT DISTINCT t.id_test
+                FROM Aplicaciones a
+                INNER JOIN Tests t ON a.ID_Test = t.id_test
+                WHERE a.ID_Usuario = :id_usuario 
+                  AND a.Completado = 1
+                ORDER BY a.Fecha_Aplicacion DESC
+            ");
+            $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            // Retornar array de IDs
+            $completados = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+            $stmt->closeCursor();
+            return $completados;
+        } catch (PDOException $e) {
+            error_log("Error en getTestsCompletadosPorUsuario: " . $e->getMessage());
+            return [];
         }
     }
 }

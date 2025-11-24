@@ -20,7 +20,7 @@ if (!$testInfo) {
 }
 
 $items = $model->getItemsByTest($testId);
-$opciones = $model->getOpcionesRespuesta();
+$opciones = $model->getOpcionesByTestId($testId); // Obtener opciones filtradas por tipo de escala
 
 // Verificar si existe una Aplicación pendiente para este usuario y test (sugerida por profesor)
 $userId = $_SESSION['id_usuario'] ?? null;
@@ -72,7 +72,12 @@ renderPageHeader();
             </div>
         </div>
 
-        <form class="formulario__form" id="testForm" method="POST" action="controllers/submit-test.php">
+        <?php
+        // Construir action absoluto usando base detectado en index.php
+        $basePath = isset($base) ? rtrim($base, '/') : '';
+        $submitAction = $basePath . '/controllers/submit-test.php';
+        ?>
+        <form class="formulario__form" id="testForm" method="POST" action="<?php echo htmlspecialchars($submitAction); ?>">
             <input type="hidden" name="test_id" value="<?php echo htmlspecialchars($testId); ?>">
             <?php if ($pendingAplicacion): ?>
                 <input type="hidden" name="id_aplicacion" value="<?php echo htmlspecialchars($pendingAplicacion['id_aplicacion']); ?>">
@@ -241,11 +246,12 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', setupNavigation);
     setupNavigation();
 
-    // Form submission
-    form.addEventListener('submit', function(e) {
+    // Form submission via AJAX to maintain session
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
         const answered = form.querySelectorAll('input[type="radio"]:checked').length;
         if (answered < totalQuestions) {
-            e.preventDefault();
             alert(`Por favor, responde todas las preguntas. Te faltan ${totalQuestions - answered} preguntas.`);
             return;
         }
@@ -253,6 +259,55 @@ document.addEventListener('DOMContentLoaded', function() {
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        
+        try {
+            // Enviar formulario via AJAX para mantener sesión
+            const formData = new FormData(form);
+            const base = window.UNIMIND_BASE || '';
+            const baseUrl = window.location.origin && window.location.origin !== 'null' 
+                ? window.location.origin + base 
+                : base;
+            
+            const response = await fetch(`${baseUrl}/controllers/submit-test.php`, {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+            
+            let result;
+            try {
+                result = await response.json();
+            } catch (e) {
+                console.error('Error al parsear JSON:', e);
+                throw new Error('Respuesta del servidor no válida');
+            }
+            
+            if (result.success) {
+                // Redirigir con parámetros de resultado en la URL (fallback si sesión falla)
+                const params = new URLSearchParams({
+                    role: 'estudiante',
+                    page: 'tests',
+                    test_completed: '1',
+                    name: result.data.test_name || '',
+                    score: result.data.score || '0',
+                    level: result.data.level || '',
+                    completed_at: result.data.completed_at || ''
+                });
+                window.location.href = `${baseUrl}/index.php?${params.toString()}`;
+            } else {
+                // Si no está autenticado, redirigir al login
+                if (response.status === 401 && result.redirect) {
+                    window.location.href = result.redirect;
+                    return;
+                }
+                throw new Error(result.message || 'Error al enviar el test');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Hubo un error al enviar el test. Por favor, intenta de nuevo.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Enviar Evaluación';
+        }
     });
 });
 </script>

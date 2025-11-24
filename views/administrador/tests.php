@@ -7,10 +7,7 @@ renderPageHeader();
 
 <main class="admin-tests-container">
     <div class="page-header">
-        <div class="header-content">
-            <h1><i class="fas fa-clipboard-list"></i> Gestión de Tests</h1>
-            <p class="subtitle">Crea, edita y administra los tests psicológicos del sistema</p>
-        </div>
+        <p>Crea, edita y administra los tests psicológicos del sistema</p>
         <button class="btn-primary" id="btnNuevoTest">
             <i class="fas fa-plus"></i> Nuevo Test
         </button>
@@ -20,11 +17,11 @@ renderPageHeader();
     <div class="filters-section">
         <div class="search-box">
             <i class="fas fa-search"></i>
-            <input type="text" id="searchTest" placeholder="Buscar por nombre del test...">
+            <input type="text" id="searchTest" name="searchTest" placeholder="Buscar por nombre del test...">
         </div>
         <div class="filter-group">
-            <label>Ordenar por:</label>
-            <select id="sortTests">
+            <label for="sortTests">Ordenar por:</label>
+            <select id="sortTests" name="sortTests">
                 <option value="nombre">Nombre</option>
                 <option value="num_items">Número de ítems</option>
                 <option value="fecha">Fecha de creación</option>
@@ -72,33 +69,57 @@ renderPageHeader();
                 <h3><i class="fas fa-info-circle"></i> Información Básica</h3>
                 
                 <div class="form-group">
-                    <label for="nombreTest">Nombre del Test *</label>
+                    <label for="nombreTest">
+                        <i class="fas fa-file-alt"></i> Nombre del Test *
+                    </label>
                     <input type="text" id="nombreTest" name="nombre" required
-                           placeholder="Ej: Test de Ansiedad Generalizada GAD-7">
+                           placeholder="Ejemplo: Test de Ansiedad Generalizada GAD-7"
+                           minlength="3" maxlength="200">
+                    <small class="form-hint">Mínimo 3 caracteres, máximo 200</small>
                 </div>
 
                 <div class="form-group">
-                    <label for="descripcionTest">Descripción *</label>
+                    <label for="descripcionTest">
+                        <i class="fas fa-align-left"></i> Descripción *
+                    </label>
                     <textarea id="descripcionTest" name="descripcion" required rows="3"
-                              placeholder="Describe brevemente el objetivo del test..."></textarea>
+                              placeholder="Ejemplo: Este test evalúa el nivel de ansiedad generalizada en los últimos 7 días mediante preguntas sobre síntomas comunes."
+                              minlength="10" maxlength="500"></textarea>
+                    <small class="form-hint">Describe el objetivo y contenido del test (10-500 caracteres)</small>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="numItems">Número de Ítems *</label>
-                        <input type="number" id="numItems" name="num_items" required min="1" value="10"
-                               placeholder="Ej: 10">
-                    </div>
+                <div class="form-group">
+                    <label for="tipoEscala">
+                        <i class="fas fa-list-check"></i> Tipo de Escala de Respuesta *
+                    </label>
+                    <select id="tipoEscala" name="tipo_escala" required>
+                        <option value="">Selecciona el tipo de escala...</option>
+                        <!-- Se cargan dinámicamente desde la BD -->
+                    </select>
+                    <small class="form-hint">Define qué opciones verán los estudiantes al responder cada pregunta</small>
                 </div>
+
             </div>
 
             <!-- Ítems del test -->
             <div class="form-section">
                 <div class="section-header">
-                    <h3><i class="fas fa-list-ol"></i> Ítems del Test</h3>
-                    <button type="button" class="btn-secondary btn-sm" id="btnAgregarItem">
-                        <i class="fas fa-plus"></i> Agregar Ítem
+                    <div class="section-title-group">
+                        <h3><i class="fas fa-list-ol"></i> Ítems del Test</h3>
+                        <div class="num-items-badge">
+                            <i class="fas fa-hashtag"></i>
+                            <span id="numItems">0</span>
+                            <span class="badge-label">ítems</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-primary" id="btnAgregarItem">
+                        <i class="fas fa-plus-circle"></i> Agregar Ítem
                     </button>
+                </div>
+                <input type="hidden" id="numItemsHidden" name="num_items" value="0">
+                <div class="info-box info-box-compact">
+                    <i class="fas fa-lightbulb"></i>
+                    <p>Cada ítem representa una pregunta o afirmación del test. Agrega al menos 1 ítem para poder guardar.</p>
                 </div>
 
                 <div id="itemsContainer">
@@ -106,32 +127,37 @@ renderPageHeader();
                 </div>
 
                 <div class="empty-items" id="emptyItems">
-                    <i class="fas fa-list"></i>
-                    <p>No hay ítems agregados. Haz clic en "Agregar Ítem" para comenzar.</p>
+                    <i class="fas fa-inbox"></i>
+                    <p class="empty-title">No hay ítems agregados aún</p>
+                    <p class="empty-hint">Haz clic en <strong>"Agregar Ítem"</strong> para crear tu primera pregunta</p>
                 </div>
             </div>
 
-            <!-- Opciones de respuesta disponibles -->
-            <div class="form-section">
-                <h3><i class="fas fa-check-square"></i> Opciones de Respuesta Disponibles</h3>
+            <!-- Opciones de respuesta según escala seleccionada -->
+            <div class="form-section" id="opcionesSection" style="display: none;">
+                <h3><i class="fas fa-check-square"></i> Opciones de Respuesta para este Test</h3>
                 <div class="info-box">
                     <i class="fas fa-info-circle"></i>
-                    <p>Estas son las opciones de respuesta disponibles en el sistema. Cada ítem puede usar cualquiera de estas opciones.</p>
+                    <p>Los estudiantes verán estas opciones al responder cada pregunta del test.</p>
                 </div>
                 <div id="opcionesDisponibles" class="opciones-grid">
-                    <!-- Se cargan dinámicamente -->
+                    <!-- Se cargan dinámicamente según el tipo de escala -->
                 </div>
             </div>
 
             <!-- Botones de acción -->
             <div class="form-actions">
                 <button type="button" class="btn-secondary" id="btnCancelar">
-                    <i class="fas fa-times"></i> Cancelar
+                    <i class="fas fa-times-circle"></i> Cancelar
                 </button>
-                <button type="submit" class="btn-primary">
+                <button type="submit" class="btn-primary" id="btnGuardarTest">
                     <i class="fas fa-save"></i> Guardar Test
+                    <span class="btn-loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Guardando...
+                    </span>
                 </button>
             </div>
+            <div class="form-status" id="formStatus" style="display: none;"></div>
         </form>
     </div>
 </div>
@@ -172,4 +198,5 @@ if (!window.UNIMIND_BASE) {
 window.UNIMIND_BASE = '<?php echo $base; ?>';
 <?php endif; ?>
 </script>
+<script src="public/js/idb-wrapper.js?v=<?php echo time(); ?>"></script>
 <script src="public/js/admin-tests.js?v=<?php echo time(); ?>"></script>

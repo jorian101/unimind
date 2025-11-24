@@ -3,9 +3,11 @@ require_once __DIR__ . '/../../database/Database.php';
 
 class TestsModel {
     private $conn;
+    public $lastError = null;
     private $table_tests = 'Tests';
     private $table_items = 'Items';
     private $table_opciones = 'Opciones_Respuesta';
+    private $table_tipos_escalas = 'Tipos_Escalas';
 
     public function __construct() {
         $database = new Database();
@@ -85,22 +87,68 @@ class TestsModel {
     }
 
     /**
+     * Obtener todos los tipos de escalas
+     */
+    public function getTiposEscalas() {
+        try {
+            $query = "SELECT * FROM {$this->table_tipos_escalas} ORDER BY id_tipo_escala ASC";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener tipos de escalas: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Obtener opciones de respuesta por tipo de escala
+     */
+    public function getOpcionesByTipoEscala($tipo_escala) {
+        try {
+            // Obtener los IDs de opciones del tipo de escala
+            $query = "SELECT opciones_ids FROM {$this->table_tipos_escalas} WHERE id_tipo_escala = :tipo_escala";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':tipo_escala', $tipo_escala, PDO::PARAM_INT);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$result || !$result['opciones_ids']) {
+                return [];
+            }
+            
+            $opciones_ids = $result['opciones_ids'];
+            
+            // Obtener las opciones correspondientes
+            $query = "SELECT * FROM {$this->table_opciones} WHERE id_opcion IN ({$opciones_ids}) ORDER BY valor_puntuacion ASC";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener opciones por tipo de escala: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Crear un nuevo test
      */
-    public function createTest($nombre, $descripcion, $num_items) {
+    public function createTest($nombre, $descripcion, $num_items, $tipo_escala = 1) {
         try {
-            $query = "INSERT INTO {$this->table_tests} (nombre, descripcion, num_items) 
-                     VALUES (:nombre, :descripcion, :num_items)";
+            $query = "INSERT INTO {$this->table_tests} (nombre, descripcion, num_items, tipo_escala, created_at, updated_at) 
+                     VALUES (:nombre, :descripcion, :num_items, :tipo_escala, NOW(), NOW())";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':nombre', $nombre);
             $stmt->bindParam(':descripcion', $descripcion);
             $stmt->bindParam(':num_items', $num_items, PDO::PARAM_INT);
+            $stmt->bindParam(':tipo_escala', $tipo_escala, PDO::PARAM_INT);
             
             if ($stmt->execute()) {
                 return $this->conn->lastInsertId();
             }
             return false;
         } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
             error_log("Error al crear test: " . $e->getMessage());
             return false;
         }
@@ -109,18 +157,21 @@ class TestsModel {
     /**
      * Actualizar un test existente
      */
-    public function updateTest($id_test, $nombre, $descripcion, $num_items) {
+    public function updateTest($id_test, $nombre, $descripcion, $num_items, $tipo_escala = 1) {
         try {
             $query = "UPDATE {$this->table_tests} 
                      SET nombre = :nombre, 
                          descripcion = :descripcion, 
-                         num_items = :num_items 
+                         num_items = :num_items,
+                         tipo_escala = :tipo_escala,
+                         updated_at = NOW() 
                      WHERE id_test = :id_test";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':id_test', $id_test, PDO::PARAM_INT);
             $stmt->bindParam(':nombre', $nombre);
             $stmt->bindParam(':descripcion', $descripcion);
             $stmt->bindParam(':num_items', $num_items, PDO::PARAM_INT);
+            $stmt->bindParam(':tipo_escala', $tipo_escala, PDO::PARAM_INT);
             
             return $stmt->execute();
         } catch (PDOException $e) {
@@ -163,6 +214,7 @@ class TestsModel {
             }
             return false;
         } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
             error_log("Error al crear item: " . $e->getMessage());
             return false;
         }

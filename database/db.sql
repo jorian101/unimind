@@ -25,9 +25,11 @@ CREATE TABLE `Usuarios` (
 
 CREATE TABLE `Tests` (                             
     `id_test` INT NOT NULL AUTO_INCREMENT,
-    `nombre` VARCHAR(100) UNIQUE NOT NULL,
+    `nombre` VARCHAR(100) NOT NULL,
     `descripcion` TEXT,
     `num_items` INT NOT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id_test`)
 );
 
@@ -93,10 +95,12 @@ CREATE TABLE `Aplicaciones` (
     `id_aplicacion` INT NOT NULL AUTO_INCREMENT,
     `id_usuario` INT NOT NULL,
     `id_test` INT NOT NULL,
+    `client_uuid` VARCHAR(36) NULL DEFAULT NULL,
     `fecha_aplicacion` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `puntuacion_total` INT,
     `resultado_nivel` VARCHAR(50),
     PRIMARY KEY (`id_aplicacion`),
+    UNIQUE KEY `idx_aplicaciones_client_uuid` (`client_uuid`),
     FOREIGN KEY (`id_usuario`) REFERENCES `Usuarios`(`id_usuario`)
         ON DELETE CASCADE,
     FOREIGN KEY (`id_test`) REFERENCES `Tests`(`id_test`)
@@ -117,4 +121,18 @@ CREATE TABLE `Respuestas_Aplicacion` (
     FOREIGN KEY (`id_opcion_seleccionada`) REFERENCES `Opciones_Respuesta`(`id_opcion`)
         ON DELETE RESTRICT,
     UNIQUE KEY `uk_aplicacion_item` (`id_aplicacion`, `id_item`)
+);
+
+-- Tabla para registrar intentos de sincronización desde PWA
+CREATE TABLE IF NOT EXISTS `sync_logs` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `client_uuid` VARCHAR(36) NULL,
+    `request_payload` LONGTEXT NULL,
+    `response_payload` LONGTEXT NULL,
+    `status` VARCHAR(32) NULL,
+    `duration_ms` INT NULL,
+    `error_message` TEXT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX (`client_uuid`)
 );

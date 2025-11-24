@@ -7,6 +7,7 @@ class AdminTestsManager {
   constructor() {
     this.currentTestId = null;
     this.opcionesDisponibles = [];
+    this.tiposEscalas = [];
     this.itemCount = 0;
 
     this.init();
@@ -14,7 +15,7 @@ class AdminTestsManager {
 
   init() {
     this.setupEventListeners();
-    this.loadOpciones();
+    this.loadTiposEscalas();
     this.loadTests();
   }
 
@@ -55,6 +56,11 @@ class AdminTestsManager {
       this.sortTests(e.target.value);
     });
 
+    // Cambio de tipo de escala
+    document.getElementById("tipoEscala").addEventListener("change", (e) => {
+      this.onTipoEscalaChange(e.target.value);
+    });
+
     // Cerrar modal al hacer clic fuera
     document.getElementById("testModal").addEventListener("click", (e) => {
       if (e.target.id === "testModal") {
@@ -77,13 +83,72 @@ class AdminTestsManager {
   }
 
   /**
-   * Cargar opciones de respuesta disponibles
+   * Cargar tipos de escalas disponibles
    */
-  async loadOpciones() {
+  async loadTiposEscalas() {
     try {
       const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
       const response = await fetch(
-        `${base}/controllers/TestsController.php?action=getOpciones`,
+        `${baseUrl}/controllers/TestsController.php?action=getTiposEscalas`,
+        { credentials: "include" },
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        this.tiposEscalas = data.data;
+        this.renderTiposEscalas();
+      }
+    } catch {
+      // Silenciar error en entorno offline
+    }
+  }
+
+  /**
+   * Renderizar selector de tipos de escalas
+   */
+  renderTiposEscalas() {
+    const select = document.getElementById("tipoEscala");
+    const currentValue = select.value;
+
+    // Mantener la opción por defecto
+    select.innerHTML =
+      '<option value="">Selecciona el tipo de escala...</option>';
+
+    this.tiposEscalas.forEach((tipo) => {
+      const option = document.createElement("option");
+      option.value = tipo.id_tipo_escala;
+      option.textContent = tipo.nombre_escala;
+      option.title = tipo.descripcion;
+      select.appendChild(option);
+    });
+
+    // Restaurar valor si existía
+    if (currentValue) {
+      select.value = currentValue;
+    }
+  }
+
+  /**
+   * Cargar y mostrar opciones cuando cambia el tipo de escala
+   */
+  async onTipoEscalaChange(tipoEscalaId) {
+    if (!tipoEscalaId) {
+      document.getElementById("opcionesSection").style.display = "none";
+      return;
+    }
+
+    try {
+      const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
+      const response = await fetch(
+        `${baseUrl}/controllers/TestsController.php?action=getOpcionesByTipoEscala&tipo_escala=${tipoEscalaId}`,
         { credentials: "include" },
       );
       const data = await response.json();
@@ -91,11 +156,10 @@ class AdminTestsManager {
       if (data.success) {
         this.opcionesDisponibles = data.data;
         this.renderOpciones();
-      } else if (data.offline) {
-        // Modo offline detectado - no operable actualmente
+        document.getElementById("opcionesSection").style.display = "block";
       }
     } catch {
-      // Silenciar error en entorno offline
+      // Silenciar error
     }
   }
 
@@ -121,25 +185,52 @@ class AdminTestsManager {
    * Cargar todos los tests
    */
   async loadTests() {
+    let serverTests = [];
     try {
       const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
       const response = await fetch(
-        `${base}/controllers/TestsController.php?action=getAll`,
+        `${baseUrl}/controllers/TestsController.php?action=getAll`,
         { credentials: "include" },
       );
       const data = await response.json();
 
       if (data.success) {
-        this.renderTests(data.data);
-      } else if (data.offline) {
-        // Modo offline - mostrar mensaje informativo en lugar de error
-        this.showEmptyState();
-      } else {
-        this.showEmptyState();
+        serverTests = data.data || [];
       }
     } catch {
       // Silenciar error en entorno offline
+    }
+
+    // Cargar tests encolados desde IndexedDB (pendientes de sincronización)
+    let localTests = [];
+    try {
+      if (window.UnimindSync && window.UnimindSync.getQueuedTests) {
+        const queued = await window.UnimindSync.getQueuedTests(100);
+        localTests = queued.map((q) => ({
+          id_test: q.client_uuid
+            ? `local-${q.client_uuid}`
+            : `local-${Date.now()}`,
+          nombre: q.nombre || "Test sin nombre",
+          descripcion: q.descripcion || "",
+          num_items: q.num_items || 0,
+          items: q.items || [],
+          isLocal: true,
+        }));
+      }
+    } catch {
+      // Ignorar errores al cargar tests locales desde IndexedDB
+    }
+
+    // Combinar y renderizar
+    const allTests = [...localTests, ...serverTests];
+    if (allTests.length === 0) {
       this.showEmptyState();
+    } else {
+      this.renderTests(allTests);
     }
   }
 
@@ -171,25 +262,30 @@ class AdminTestsManager {
     const card = document.createElement("div");
     card.className = "test-card";
     card.dataset.testId = test.id_test;
+    // Añadir created_at como atributo data para ordenar por fecha
+    if (test.created_at) {
+      card.dataset.created = test.created_at;
+    }
     card.dataset.testName = test.nombre;
+    const isLocal = test.isLocal || String(test.id_test).startsWith("local");
+    const actionsDisabled = isLocal
+      ? 'disabled style="opacity:0.5;cursor:not-allowed;pointer-events:none;"'
+      : "";
+    const syncBadge = isLocal
+      ? '<span class="sync-badge" style="color:#f59e0b;font-size:0.85em;margin-left:8px;" title="Pendiente de sincronización"><i class="fas fa-sync-alt"></i> Pendiente</span>'
+      : "";
 
     card.innerHTML = `
             <div class="test-card-header">
-                <h3>${this.escapeHtml(test.nombre)}</h3>
+                <h3>${this.escapeHtml(test.nombre)} ${syncBadge}</h3>
                 <div class="test-actions-inline">
-                    <button class="btn-icon" title="Ver detalles" onclick="adminTests.viewTest(${
-                      test.id_test
-                    })">
+                    <button class="btn-icon" title="${isLocal ? "No disponible offline" : "Ver detalles"}" onclick="adminTests.viewTest('${test.id_test}')" ${actionsDisabled}>
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="btn-icon edit" title="Editar" onclick="adminTests.editTest(${
-                      test.id_test
-                    })">
+                    <button class="btn-icon edit" title="${isLocal ? "No disponible offline" : "Editar"}" onclick="adminTests.editTest('${test.id_test}')" ${actionsDisabled}>
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn-icon delete" title="Eliminar" onclick="adminTests.deleteTest(${
-                      test.id_test
-                    }, '${this.escapeHtml(test.nombre)}')">
+                    <button class="btn-icon delete" title="${isLocal ? "No disponible offline" : "Eliminar"}" onclick="adminTests.deleteTest('${test.id_test}', '${this.escapeHtml(test.nombre)}')" ${actionsDisabled}>
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -200,10 +296,19 @@ class AdminTestsManager {
                     <i class="fas fa-list-ol"></i>
                     <span><strong>${test.num_items}</strong> ítems</span>
                 </div>
-                <div class="meta-item">
+                  <div class="meta-item">
                     <i class="fas fa-calendar"></i>
-                    <span>Creado</span>
-                </div>
+                    <span>${test.created_at ? new Date(test.created_at).toLocaleString() : "—"}</span>
+                  </div>
+                  ${
+                    test.updated_at
+                      ? `
+                  <div class="meta-item">
+                    <i class="fas fa-edit"></i>
+                    <span>Últ. edición: ${new Date(test.updated_at).toLocaleString()}</span>
+                  </div>`
+                      : ""
+                  }
             </div>
         `;
 
@@ -236,9 +341,14 @@ class AdminTestsManager {
     document.getElementById("itemsContainer").innerHTML = "";
     document.getElementById("emptyItems").style.display = "block";
 
-    // Establecer valor por defecto
-    document.getElementById("numItems").value = 10;
+    // Ocultar sección de opciones hasta que se seleccione tipo de escala
+    document.getElementById("opcionesSection").style.display = "none";
 
+    // Actualizar display
+    this.updateDisplay();
+
+    // Asegurarse que el botón guardar no quede en estado loading
+    this.setSaveButtonLoading(false);
     this.openModal();
   }
 
@@ -246,10 +356,21 @@ class AdminTestsManager {
    * Ver detalles de un test
    */
   async viewTest(id_test) {
+    if (String(id_test).startsWith("local")) {
+      this.showNotification(
+        "No se puede ver un test pendiente de sincronización",
+        "warning",
+      );
+      return;
+    }
     try {
       const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
       const response = await fetch(
-        `${base}/controllers/TestsController.php?action=getById&id_test=${id_test}`,
+        `${baseUrl}/controllers/TestsController.php?action=getById&id_test=${id_test}`,
         { credentials: "include" },
       );
       const data = await response.json();
@@ -276,12 +397,16 @@ class AdminTestsManager {
     document.getElementById("testId").value = test.id_test;
     document.getElementById("nombreTest").value = test.nombre;
     document.getElementById("descripcionTest").value = test.descripcion;
-    document.getElementById("numItems").value = test.num_items;
-
     // Deshabilitar campos
     document.getElementById("nombreTest").disabled = true;
     document.getElementById("descripcionTest").disabled = true;
-    document.getElementById("numItems").disabled = true;
+    // Mostrar el número de ítems como texto (no editable)
+    const numDisplayView = document.getElementById("numItems");
+    const numHiddenView = document.getElementById("numItemsHidden");
+    if (numDisplayView) numDisplayView.textContent = test.num_items;
+    if (numHiddenView) numHiddenView.value = test.num_items;
+
+    // (fechas de creación/edición removidas de la vista según petición)
 
     // Cargar items en modo lectura
     this.loadItemsReadOnly(test.items);
@@ -314,43 +439,73 @@ class AdminTestsManager {
     items.forEach((item) => {
       const itemDiv = document.createElement("div");
       itemDiv.className = "item-card";
+
+      // Generar IDs únicos para modo lectura
+      const textoId = `readonly-texto-${item.orden}`;
+
       itemDiv.innerHTML = `
-                <div class="item-card-header">
-                    <span class="item-number">Ítem ${item.orden}</span>
-                </div>
-                <div class="item-form-group">
-                    <label>Pregunta:</label>
-                    <textarea disabled>${this.escapeHtml(
-                      item.texto_item,
-                    )}</textarea>
-                </div>
-                <div class="item-form-group">
-                    <label>Subescala:</label>
-                    <input type="text" value="${this.escapeHtml(
-                      item.subescala || "General",
-                    )}" disabled>
-                </div>
-            `;
+            <div class="item-card-header">
+              <span class="item-number">Ítem ${item.orden}</span>
+            </div>
+            <div class="item-form-group">
+              <label for="${textoId}">Pregunta:</label>
+              <textarea id="${textoId}" 
+                    name="readonly_items[${item.orden}][texto]" 
+                    disabled>${this.escapeHtml(item.texto_item)}</textarea>
+            </div>
+          `;
       container.appendChild(itemDiv);
     });
   }
 
   /**
+   * Actualizar display/hidden del contador de ítems
+   */
+  updateDisplay() {
+    const count = document.querySelectorAll(".item-card").length;
+    const numDisplay = document.getElementById("numItems");
+    const numHidden = document.getElementById("numItemsHidden");
+    if (numDisplay) numDisplay.textContent = count;
+    if (numHidden) numHidden.value = count;
+  }
+
+  /**
    * Editar un test
    */
-  async editTest(id_test) {
+  async editTest(id_test, retryCount = 0) {
+    if (String(id_test).startsWith("local")) {
+      this.showNotification(
+        "No se puede editar un test pendiente de sincronización",
+        "warning",
+      );
+      return;
+    }
     try {
       const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
       const response = await fetch(
-        `${base}/controllers/TestsController.php?action=getById&id_test=${id_test}`,
+        `${baseUrl}/controllers/TestsController.php?action=getById&id_test=${id_test}`,
         { credentials: "include" },
       );
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success && data.data) {
+        // Verificar que los items estén cargados (si no, aún así abrimos el modal)
         this.openEditModal(data.data);
       } else {
-        this.showNotification("Error al cargar el test", "error");
+        // Si el test no se encuentra y es el primer intento, recargar tests y reintentar
+        if (!data.success && retryCount === 0) {
+          await this.loadTests();
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          return this.editTest(id_test, 1);
+        }
+        this.showNotification(
+          data.message || "Error al cargar el test",
+          "error",
+        );
       }
     } catch {
       this.showNotification("Error al cargar el test", "error");
@@ -361,23 +516,32 @@ class AdminTestsManager {
    * Abrir modal en modo edición
    */
   openEditModal(test) {
+    if (!test || !test.id_test) {
+      this.showNotification("Datos de test inválidos", "error");
+      return;
+    }
+
     this.currentTestId = test.id_test;
     document.getElementById("modalTitle").innerHTML =
       '<i class="fas fa-edit"></i> Editar Test';
 
     // Llenar formulario
     document.getElementById("testId").value = test.id_test;
-    document.getElementById("nombreTest").value = test.nombre;
-    document.getElementById("descripcionTest").value = test.descripcion;
-    document.getElementById("numItems").value = test.num_items;
+    document.getElementById("nombreTest").value = test.nombre || "";
+    document.getElementById("descripcionTest").value = test.descripcion || "";
 
-    // Habilitar campos
+    // Establecer tipo de escala y cargar opciones
+    if (test.tipo_escala) {
+      document.getElementById("tipoEscala").value = test.tipo_escala;
+      this.onTipoEscalaChange(test.tipo_escala);
+    }
+
+    // Habilitar campos de texto (el número se muestra como texto y no es editable)
     document.getElementById("nombreTest").disabled = false;
     document.getElementById("descripcionTest").disabled = false;
-    document.getElementById("numItems").disabled = false;
 
     // Cargar items en modo edición
-    this.loadItemsForEdit(test.items);
+    this.loadItemsForEdit(test.items || []);
 
     // Mostrar botones de acción
     document.getElementById("btnAgregarItem").style.display = "inline-flex";
@@ -407,19 +571,24 @@ class AdminTestsManager {
 
     items.forEach((item) => {
       this.itemCount++;
-      const itemDiv = this.createItemCard(
-        this.itemCount,
-        item.texto_item,
-        item.subescala,
-      );
+      const itemDiv = this.createItemCard(this.itemCount, item.texto_item);
       container.appendChild(itemDiv);
     });
+    // Sincronizar el display y el hidden con la cantidad real de ítems cargados
+    this.updateDisplay();
   }
 
   /**
    * Eliminar test
    */
   deleteTest(id_test, nombre) {
+    if (String(id_test).startsWith("local")) {
+      this.showNotification(
+        "No se puede eliminar un test pendiente de sincronización",
+        "warning",
+      );
+      return;
+    }
     this.currentTestId = id_test;
     document.getElementById("testNameDelete").textContent = nombre;
     document.getElementById("deleteModal").classList.add("active");
@@ -431,15 +600,22 @@ class AdminTestsManager {
   async confirmDelete() {
     try {
       const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
       const formData = new FormData();
       formData.append("action", "delete");
       formData.append("id_test", this.currentTestId);
 
-      const response = await fetch(`${base}/controllers/TestsController.php`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${baseUrl}/controllers/TestsController.php`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        },
+      );
 
       const data = await response.json();
 
@@ -467,36 +643,61 @@ class AdminTestsManager {
 
     const itemDiv = this.createItemCard(this.itemCount);
     container.appendChild(itemDiv);
+    this.updateDisplay();
   }
 
   /**
    * Crear tarjeta de ítem
    */
-  createItemCard(orden, textoItem = "", subescala = "") {
+  createItemCard(orden, textoItem = "") {
     const itemDiv = document.createElement("div");
     itemDiv.className = "item-card";
     itemDiv.dataset.orden = orden;
 
-    itemDiv.innerHTML = `
-            <div class="item-card-header">
-                <span class="item-number">Ítem ${orden}</span>
-                <button type="button" class="btn-remove-item" onclick="adminTests.removeItem(this)">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="item-form-group">
-                <label>Pregunta/Afirmación *</label>
-                <textarea class="item-texto" placeholder="Ej: Me siento nervioso/a o ansioso/a" required>${this.escapeHtml(
-                  textoItem,
-                )}</textarea>
-            </div>
-            <div class="item-form-group">
-                <label>Subescala (opcional)</label>
-                <input type="text" class="item-subescala" placeholder="Ej: Ansiedad emocional" value="${this.escapeHtml(
-                  subescala,
-                )}">
-            </div>
-        `;
+    // Generar IDs únicos para los campos
+    const textoId = `item-texto-${orden}`;
+
+    // Crear elementos del header
+    const header = document.createElement("div");
+    header.className = "item-card-header";
+    header.innerHTML = `
+        <span class="item-number"><i class="fas fa-question-circle"></i> Ítem ${orden}</span>
+        <button type="button" class="btn-remove-item" onclick="adminTests.removeItem(this)" title="Eliminar este ítem">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+    `;
+
+    // Crear grupo de pregunta
+    const preguntaGroup = document.createElement("div");
+    preguntaGroup.className = "item-form-group";
+
+    const preguntaLabel = document.createElement("label");
+    preguntaLabel.setAttribute("for", textoId);
+    preguntaLabel.innerHTML =
+      '<i class="fas fa-comment-dots"></i> Pregunta/Afirmación *';
+
+    const preguntaTextarea = document.createElement("textarea");
+    preguntaTextarea.id = textoId;
+    preguntaTextarea.name = `items[${orden}][texto]`;
+    preguntaTextarea.className = "item-texto";
+    preguntaTextarea.placeholder =
+      "Ejemplo: Durante las últimas 2 semanas, ¿con qué frecuencia te has sentido nervioso/a o ansioso/a?";
+    preguntaTextarea.required = true;
+    preguntaTextarea.minLength = 10;
+    preguntaTextarea.maxLength = 500;
+    preguntaTextarea.value = textoItem;
+
+    const preguntaHint = document.createElement("small");
+    preguntaHint.className = "form-hint";
+    preguntaHint.textContent = "Mínimo 10 caracteres, máximo 500";
+
+    preguntaGroup.appendChild(preguntaLabel);
+    preguntaGroup.appendChild(preguntaTextarea);
+    preguntaGroup.appendChild(preguntaHint);
+
+    // Ensamblar el itemDiv (sin subescala)
+    itemDiv.appendChild(header);
+    itemDiv.appendChild(preguntaGroup);
 
     return itemDiv;
   }
@@ -519,6 +720,7 @@ class AdminTestsManager {
       emptyItems.style.display = "block";
       this.itemCount = 0;
     }
+    this.updateDisplay();
   }
 
   /**
@@ -532,6 +734,7 @@ class AdminTestsManager {
       item.querySelector(".item-number").textContent = `Ítem ${orden}`;
     });
     this.itemCount = items.length;
+    this.updateDisplay();
   }
 
   /**
@@ -541,22 +744,50 @@ class AdminTestsManager {
     // Validar datos básicos
     const nombre = document.getElementById("nombreTest").value.trim();
     const descripcion = document.getElementById("descripcionTest").value.trim();
-    const numItems = parseInt(document.getElementById("numItems").value);
+    const tipoEscala = document.getElementById("tipoEscala").value;
+    // El número de ítems se calcula a partir de las tarjetas (no editable manualmente)
+    const numItems = document.querySelectorAll(".item-card").length;
 
-    if (!nombre || !descripcion || numItems <= 0) {
+    if (!nombre || !descripcion || !tipoEscala || numItems <= 0) {
+      this.showFormStatus(
+        "Por favor completa todos los campos obligatorios. Revisa el nombre, descripción, tipo de escala y agrega al menos 1 ítem.",
+        "warning",
+      );
       this.showNotification(
-        "Por favor completa todos los campos obligatorios",
+        "Completa todos los campos obligatorios",
         "warning",
       );
       return;
     }
 
-    // Recopilar items
+    // Recopilar items y validar completitud
     const items = this.collectItems();
+    // Si hay tarjetas con textarea vacío, resaltarlas y evitar guardar
+    const itemCards = Array.from(document.querySelectorAll(".item-card"));
+    const emptyCards = [];
+    itemCards.forEach((card) => {
+      const ta = card.querySelector(".item-texto");
+      if (!ta || !ta.value || ta.value.trim() === "") {
+        card.classList.add("item-empty");
+        emptyCards.push(card);
+      } else {
+        card.classList.remove("item-empty");
+      }
+    });
+
+    if (emptyCards.length > 0) {
+      this.showNotification(
+        `Hay ${emptyCards.length} ítem(s) sin completar. Por favor complétalos antes de guardar.`,
+        "warning",
+      );
+      // desplazar hasta el primer vacío
+      emptyCards[0].scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
 
     if (items.length !== numItems) {
       this.showNotification(
-        `El número de ítems (${items.length}) no coincide con el valor especificado (${numItems})`,
+        `El número de ítems (${items.length}) no coincide con el valor esperado (${numItems})`,
         "warning",
       );
       return;
@@ -574,27 +805,181 @@ class AdminTestsManager {
     formData.append("nombre", nombre);
     formData.append("descripcion", descripcion);
     formData.append("num_items", numItems);
+    formData.append("tipo_escala", tipoEscala);
     formData.append("items", JSON.stringify(items));
+
+    // Mostrar estado de guardando
+    this.setSaveButtonLoading(true);
+    this.showFormStatus("Guardando test...", "info");
+
+    // Si estamos offline, no intentamos hacer el POST (evitamos el error net::ERR_INTERNET_DISCONNECTED)
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      try {
+        if (window.UnimindSync && window.UnimindSync.addTest) {
+          // Encolar operación. Para updates incluimos el id_test y action:'update'
+          const payload = Object.assign(
+            { nombre, descripcion, num_items: numItems, items },
+            this.currentTestId
+              ? { id_test: this.currentTestId, action: "update" }
+              : {},
+          );
+
+          await window.UnimindSync.addTest(payload);
+
+          this.closeModal();
+          this.showFormStatus("Guardado localmente (sin conexión)", "success");
+          this.showNotification(
+            "Test guardado localmente. Se sincronizará cuando vuelvas online.",
+            "info",
+          );
+          this.setSaveButtonLoading(false);
+          // Reload to show the test (or just insert card - but reload is safer for consistency)
+          this.loadTests();
+          return;
+        } else {
+          this.showFormStatus(
+            "No hay conexión y el sincronizador no está disponible.",
+            "error",
+          );
+          this.setSaveButtonLoading(false);
+          return;
+        }
+      } catch {
+        this.showFormStatus(
+          "Error al encolar localmente. Verifica el almacenamiento del navegador.",
+          "error",
+        );
+        this.setSaveButtonLoading(false);
+        return;
+      }
+    }
 
     try {
       const base = window.UNIMIND_BASE || "";
-      const response = await fetch(`${base}/controllers/TestsController.php`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
+      const response = await fetch(
+        `${baseUrl}/controllers/TestsController.php`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        },
+      );
 
       const data = await response.json();
 
       if (data.success) {
+        this.showFormStatus(data.message, "success");
         this.showNotification(data.message, "success");
-        this.closeModal();
-        this.loadTests();
+        this.setSaveButtonLoading(false);
+        setTimeout(() => {
+          this.closeModal();
+          this.loadTests();
+        }, 1000);
       } else {
+        this.showFormStatus(data.message, "error");
         this.showNotification(data.message, "error");
+        this.setSaveButtonLoading(false);
       }
     } catch {
-      this.showNotification("Error al guardar el test", "error");
+      // Intentar guardar localmente en IndexedDB para sincronizar luego
+      try {
+        if (window.UnimindSync && window.UnimindSync.addTest) {
+          const rec = await window.UnimindSync.addTest({
+            nombre: nombre,
+            descripcion: descripcion,
+            num_items: numItems,
+            items: items,
+          });
+
+          // Mostrar el test en la interfaz como si se hubiera guardado online
+          const localTest = {
+            id_test: `local-${rec.client_uuid}`,
+            nombre: nombre,
+            descripcion: descripcion,
+            num_items: numItems,
+            items: items,
+          };
+
+          // Cerrar modal y añadir tarjeta nueva al grid sin notificaciones
+          this.closeModal();
+          const container = document.getElementById("testsGrid");
+          const emptyState = document.getElementById("emptyState");
+          if (emptyState) emptyState.style.display = "none";
+          const card = this.createTestCard(localTest);
+          container.insertBefore(card, container.firstChild);
+
+          // Opcional: actualizar cualquier UI relacionada
+          this.showFormStatus("Guardado localmente", "success");
+          this.setSaveButtonLoading(false);
+        } else {
+          this.showFormStatus(
+            "Error al conectar con el servidor. Verifica tu conexión.",
+            "error",
+          );
+        }
+      } catch {
+        this.showFormStatus(
+          "Error al guardar localmente. Verifica el almacenamiento del navegador.",
+          "error",
+        );
+      } finally {
+        this.setSaveButtonLoading(false);
+      }
+    }
+  }
+
+  /**
+   * Controlar estado de carga del botón guardar
+   */
+  setSaveButtonLoading(isLoading) {
+    const btn = document.getElementById("btnGuardarTest");
+    const btnIcon = btn.querySelector(".fa-save");
+    const btnLoading = btn.querySelector(".btn-loading");
+
+    if (isLoading) {
+      btn.classList.add("is-loading");
+      btn.disabled = true;
+      if (btnIcon) btnIcon.style.display = "none";
+      if (btnLoading) btnLoading.style.display = "inline-flex";
+    } else {
+      btn.classList.remove("is-loading");
+      btn.disabled = false;
+      if (btnIcon) btnIcon.style.display = "inline";
+      if (btnLoading) btnLoading.style.display = "none";
+    }
+  }
+
+  /**
+   * Mostrar estado en el formulario
+   */
+  showFormStatus(message, type = "info") {
+    const statusDiv = document.getElementById("formStatus");
+    if (!statusDiv) return;
+
+    statusDiv.className = "form-status status-" + type;
+    statusDiv.innerHTML = `
+      <i class="fas fa-${
+        type === "success"
+          ? "check-circle"
+          : type === "error"
+            ? "exclamation-circle"
+            : type === "warning"
+              ? "exclamation-triangle"
+              : "info-circle"
+      }"></i>
+      <span>${message}</span>
+    `;
+    statusDiv.style.display = "flex";
+
+    // Auto-ocultar después de 5 segundos si es success
+    if (type === "success") {
+      setTimeout(() => {
+        statusDiv.style.display = "none";
+      }, 5000);
     }
   }
 
@@ -607,14 +992,12 @@ class AdminTestsManager {
 
     itemCards.forEach((card) => {
       const textoItem = card.querySelector(".item-texto").value.trim();
-      const subescala =
-        card.querySelector(".item-subescala").value.trim() || "General";
       const orden = parseInt(card.dataset.orden) || items.length + 1;
 
       if (textoItem) {
         items.push({
           texto_item: textoItem,
-          subescala: subescala,
+          subescala: "General",
           orden: orden,
         });
       }
@@ -656,7 +1039,7 @@ class AdminTestsManager {
   sortTests(sortBy) {
     const container = document.getElementById("testsGrid");
     const cards = Array.from(container.querySelectorAll(".test-card"));
-
+    // no-op: el contador de ítems es un display y se actualiza desde las tarjetas
     cards.sort((a, b) => {
       switch (sortBy) {
         case "nombre":
@@ -670,8 +1053,14 @@ class AdminTestsManager {
           );
           return itemsB - itemsA;
         case "fecha":
-          // Por defecto ya está ordenado por fecha
-          return 0;
+          // Ordenar por fecha de creación (más recientes primero)
+          const dateA = a.dataset.created
+            ? new Date(a.dataset.created)
+            : new Date(0);
+          const dateB = b.dataset.created
+            ? new Date(b.dataset.created)
+            : new Date(0);
+          return dateB - dateA;
         default:
           return 0;
       }
@@ -699,11 +1088,15 @@ class AdminTestsManager {
     // Restaurar campos
     document.getElementById("nombreTest").disabled = false;
     document.getElementById("descripcionTest").disabled = false;
-    document.getElementById("numItems").disabled = false;
+    // `numItems` es ahora un display + hidden; no hay input que habilitar
     document.getElementById("btnAgregarItem").style.display = "inline-flex";
     document.querySelector(
       '.form-actions button[type="submit"]',
     ).style.display = "inline-flex";
+    // Asegurar que el botón guardar quede habilitado
+    try {
+      this.setSaveButtonLoading(false);
+    } catch {}
   }
 
   /**

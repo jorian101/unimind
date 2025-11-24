@@ -43,6 +43,10 @@ class AplicacionesController {
                     $this->getResultado();
                     break;
                 
+                case 'getDetalleAplicacion':
+                    $this->getDetalleAplicacion();
+                    break;
+                
                 default:
                     $this->sendResponse(false, 'Acción no válida');
             }
@@ -55,9 +59,14 @@ class AplicacionesController {
      * Obtener todos los tests disponibles
      */
     private function getTestsDisponibles() {
-        $id_usuario = $_SESSION['id_usuario'] ?? null;
-        $tests = $this->model->getTestsDisponibles($id_usuario);
-        $this->sendResponse(true, 'Tests obtenidos correctamente', $tests);
+    $id_usuario = $_SESSION['id_usuario'] ?? null;
+    $tests = $this->model->getTestsDisponibles($id_usuario);
+    // Si quieres marcar completados, descomenta y ajusta:
+    // $completados = $this->model->getTestsCompletadosPorUsuario($id_usuario);
+    // foreach ($tests as &$test) {
+    //     $test['completado'] = in_array($test['id_test'], $completados);
+    // }
+    $this->sendResponse(true, 'Tests obtenidos correctamente', $tests);
     }
 
     /**
@@ -211,6 +220,34 @@ class AplicacionesController {
             $this->sendResponse(true, 'Resultado obtenido correctamente', $data);
         } else {
             $this->sendResponse(false, 'Resultado no encontrado');
+        }
+    }
+
+    /**
+     * Obtener detalle completo de una aplicación con respuestas
+     */
+    private function getDetalleAplicacion() {
+        $id_aplicacion = $_GET['id_aplicacion'] ?? null;
+        
+        if (!$id_aplicacion) {
+            $this->sendResponse(false, 'ID de aplicación no proporcionado');
+            return;
+        }
+
+        // Obtener resultado general
+        $resultado = $this->model->getResultadoAplicacion($id_aplicacion);
+        
+        // Obtener respuestas detalladas
+        $respuestas = $this->model->getDetalleAplicacion($id_aplicacion);
+
+        if ($resultado) {
+            $data = [
+                'resultado' => $resultado,
+                'respuestas' => $respuestas
+            ];
+            $this->sendResponse(true, 'Detalles obtenidos correctamente', $data);
+        } else {
+            $this->sendResponse(false, 'Aplicación no encontrada');
         }
     }
 

@@ -182,7 +182,7 @@ class SimpleRouter {
             'autenticacion' => 'login',
             'administrador' => 'dashboard',
             'docente' => 'dashboard-profesor',
-            'estudiante' => 'inicio',
+            'estudiante' => 'dashboard',
         ];
         
         return $defaults[$role] ?? 'login';

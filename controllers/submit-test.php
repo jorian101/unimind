@@ -2,15 +2,27 @@
 session_start();
 require_once __DIR__ . '/../models/estudiante/TestsEstudianteModel.php';
 
+// Responder siempre con JSON
+header('Content-Type: application/json');
+
 // Verificar que el usuario esté autenticado
 if (!isset($_SESSION['id_usuario'])) {
-    header('Location: ../index.php?role=estudiante&page=login');
+    http_response_code(401);
+    echo json_encode([
+        'success' => false,
+        'message' => 'No estás autenticado. Por favor, inicia sesión.',
+        'redirect' => '../index.php?role=estudiante&page=login'
+    ]);
     exit;
 }
 
 // Verificar método de envío
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../index.php?role=estudiante&page=tests');
+    http_response_code(405);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Método no permitido'
+    ]);
     exit;
 }
 
@@ -23,7 +35,11 @@ try {
     }
     
     $model = new TestsEstudianteModel();
-    $id_usuario = $_SESSION['id_usuario'];
+    $id_usuario = $_SESSION['id_usuario'] ?? $_SESSION['user_id'] ?? null;
+    
+    if (!$id_usuario) {
+        throw new Exception('Usuario no autenticado');
+    }
     
     // Recopilar todas las respuestas
     $respuestas = [];
@@ -81,23 +97,39 @@ try {
         throw new Exception('Error al calcular la puntuación del test');
     }
     
-    // Guardar resultado en sesión para mostrarlo
+    // Guardar resultado en sesión para mostrarlo cuando sea posible
+    $puntuacion_total = $resultado['Puntuacion_Final'] ?? 0;
+    $resultado_nivel = $resultado['Nivel_Resultado'] ?? 'No determinado';
+    $completed_at = date('Y-m-d H:i:s');
+
     $_SESSION['test_resultado'] = [
         'id_aplicacion' => $id_aplicacion,
         'test_name' => $testName,
-        'puntuacion_total' => $resultado['Puntuacion_Final'] ?? 0,
-        'resultado_nivel' => $resultado['Nivel_Resultado'] ?? 'No determinado',
-        'completed_at' => date('Y-m-d H:i:s')
+        'puntuacion_total' => $puntuacion_total,
+        'resultado_nivel' => $resultado_nivel,
+        'completed_at' => $completed_at
     ];
-    
-    // Redirigir a página de historial con mensaje de éxito
-    header('Location: ../index.php?role=estudiante&page=historial&success=1&id_aplicacion=' . $id_aplicacion);
+
+    // Responder con JSON para que el cliente maneje la redirección
+    echo json_encode([
+        'success' => true,
+        'message' => 'Test completado exitosamente',
+        'data' => [
+            'test_name' => $testName,
+            'score' => $puntuacion_total,
+            'level' => $resultado_nivel,
+            'completed_at' => $completed_at
+        ]
+    ]);
     exit;
     
 } catch (Exception $e) {
     error_log("Error en submit-test.php: " . $e->getMessage());
-    $_SESSION['error_message'] = 'Error al procesar el test: ' . $e->getMessage();
-    header('Location: ../index.php?role=estudiante&page=tests&error=1');
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error al procesar el test: ' . $e->getMessage()
+    ]);
     exit;
 }
 ?>
