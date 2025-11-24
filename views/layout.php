@@ -59,6 +59,7 @@ window.UNIMIND_BASE = '<?php echo $base; ?>';
 </script>
 
 <script src="public/js/main-simple.js?v=<?php echo asset_version('public/js/main-simple.js'); ?>"></script>
+<script src="public/js/idb-wrapper.js?v=<?php echo asset_version('public/js/idb-wrapper.js'); ?>"></script>
 <script src="public/js/pwa-sync.js?v=<?php echo asset_version('public/js/pwa-sync.js'); ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

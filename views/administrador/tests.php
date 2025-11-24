@@ -190,4 +190,5 @@ if (!window.UNIMIND_BASE) {
 window.UNIMIND_BASE = '<?php echo $base; ?>';
 <?php endif; ?>
 </script>
+<script src="public/js/idb-wrapper.js?v=<?php echo time(); ?>"></script>
 <script src="public/js/admin-tests.js?v=<?php echo time(); ?>"></script>

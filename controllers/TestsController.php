@@ -100,6 +100,19 @@ class TestsController {
         $num_items = $_POST['num_items'] ?? 0;
         $items = json_decode($_POST['items'] ?? '[]', true);
 
+        // Si no vienen por form-data, intentar leer JSON raw (usado por PWA offline sync)
+        if ((empty($nombre) || empty($descripcion) || $num_items == 0) &&
+            strpos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== false) {
+            $raw = file_get_contents('php://input');
+            $json = json_decode($raw, true);
+            if (is_array($json)) {
+                $nombre = $json['nombre'] ?? $nombre;
+                $descripcion = $json['descripcion'] ?? $descripcion;
+                $num_items = $json['num_items'] ?? $num_items;
+                $items = $json['items'] ?? $items;
+            }
+        }
+
         if (!$nombre || !$descripcion || $num_items <= 0) {
             $this->sendResponse(false, 'Datos incompletos o inválidos');
             return;

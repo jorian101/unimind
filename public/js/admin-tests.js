@@ -125,6 +125,7 @@ class AdminTestsManager {
    * Cargar todos los tests
    */
   async loadTests() {
+    let serverTests = [];
     try {
       const base = window.UNIMIND_BASE || "";
       const baseUrl =
@@ -138,16 +139,38 @@ class AdminTestsManager {
       const data = await response.json();
 
       if (data.success) {
-        this.renderTests(data.data);
-      } else if (data.offline) {
-        // Modo offline - mostrar mensaje informativo en lugar de error
-        this.showEmptyState();
-      } else {
-        this.showEmptyState();
+        serverTests = data.data || [];
       }
     } catch {
       // Silenciar error en entorno offline
+    }
+
+    // Cargar tests encolados desde IndexedDB (pendientes de sincronización)
+    let localTests = [];
+    try {
+      if (window.UnimindSync && window.UnimindSync.getQueuedTests) {
+        const queued = await window.UnimindSync.getQueuedTests(100);
+        localTests = queued.map((q) => ({
+          id_test: q.client_uuid
+            ? `local-${q.client_uuid}`
+            : `local-${Date.now()}`,
+          nombre: q.nombre || "Test sin nombre",
+          descripcion: q.descripcion || "",
+          num_items: q.num_items || 0,
+          items: q.items || [],
+          isLocal: true,
+        }));
+      }
+    } catch {
+      // Ignorar errores al cargar tests locales desde IndexedDB
+    }
+
+    // Combinar y renderizar
+    const allTests = [...localTests, ...serverTests];
+    if (allTests.length === 0) {
       this.showEmptyState();
+    } else {
+      this.renderTests(allTests);
     }
   }
 
@@ -180,24 +203,25 @@ class AdminTestsManager {
     card.className = "test-card";
     card.dataset.testId = test.id_test;
     card.dataset.testName = test.nombre;
+    const isLocal = test.isLocal || String(test.id_test).startsWith("local");
+    const actionsDisabled = isLocal
+      ? 'disabled style="opacity:0.5;cursor:not-allowed;pointer-events:none;"'
+      : "";
+    const syncBadge = isLocal
+      ? '<span class="sync-badge" style="color:#f59e0b;font-size:0.85em;margin-left:8px;" title="Pendiente de sincronización"><i class="fas fa-sync-alt"></i> Pendiente</span>'
+      : "";
 
     card.innerHTML = `
             <div class="test-card-header">
-                <h3>${this.escapeHtml(test.nombre)}</h3>
+                <h3>${this.escapeHtml(test.nombre)} ${syncBadge}</h3>
                 <div class="test-actions-inline">
-                    <button class="btn-icon" title="Ver detalles" onclick="adminTests.viewTest(${
-                      test.id_test
-                    })">
+                    <button class="btn-icon" title="${isLocal ? "No disponible offline" : "Ver detalles"}" onclick="adminTests.viewTest('${test.id_test}')" ${actionsDisabled}>
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="btn-icon edit" title="Editar" onclick="adminTests.editTest(${
-                      test.id_test
-                    })">
+                    <button class="btn-icon edit" title="${isLocal ? "No disponible offline" : "Editar"}" onclick="adminTests.editTest('${test.id_test}')" ${actionsDisabled}>
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn-icon delete" title="Eliminar" onclick="adminTests.deleteTest(${
-                      test.id_test
-                    }, '${this.escapeHtml(test.nombre)}')">
+                    <button class="btn-icon delete" title="${isLocal ? "No disponible offline" : "Eliminar"}" onclick="adminTests.deleteTest('${test.id_test}', '${this.escapeHtml(test.nombre)}')" ${actionsDisabled}>
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -247,6 +271,8 @@ class AdminTestsManager {
     // Actualizar display
     this.updateDisplay();
 
+    // Asegurarse que el botón guardar no quede en estado loading
+    this.setSaveButtonLoading(false);
     this.openModal();
   }
 
@@ -254,6 +280,13 @@ class AdminTestsManager {
    * Ver detalles de un test
    */
   async viewTest(id_test) {
+    if (String(id_test).startsWith("local")) {
+      this.showNotification(
+        "No se puede ver un test pendiente de sincronización",
+        "warning",
+      );
+      return;
+    }
     try {
       const base = window.UNIMIND_BASE || "";
       const baseUrl =
@@ -370,7 +403,14 @@ class AdminTestsManager {
   /**
    * Editar un test
    */
-  async editTest(id_test) {
+  async editTest(id_test, retryCount = 0) {
+    if (String(id_test).startsWith("local")) {
+      this.showNotification(
+        "No se puede editar un test pendiente de sincronización",
+        "warning",
+      );
+      return;
+    }
     try {
       const base = window.UNIMIND_BASE || "";
       const baseUrl =
@@ -383,10 +423,20 @@ class AdminTestsManager {
       );
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success && data.data) {
+        // Verificar que los items estén cargados (si no, aún así abrimos el modal)
         this.openEditModal(data.data);
       } else {
-        this.showNotification("Error al cargar el test", "error");
+        // Si el test no se encuentra y es el primer intento, recargar tests y reintentar
+        if (!data.success && retryCount === 0) {
+          await this.loadTests();
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          return this.editTest(id_test, 1);
+        }
+        this.showNotification(
+          data.message || "Error al cargar el test",
+          "error",
+        );
       }
     } catch {
       this.showNotification("Error al cargar el test", "error");
@@ -397,21 +447,26 @@ class AdminTestsManager {
    * Abrir modal en modo edición
    */
   openEditModal(test) {
+    if (!test || !test.id_test) {
+      this.showNotification("Datos de test inválidos", "error");
+      return;
+    }
+
     this.currentTestId = test.id_test;
     document.getElementById("modalTitle").innerHTML =
       '<i class="fas fa-edit"></i> Editar Test';
 
     // Llenar formulario
     document.getElementById("testId").value = test.id_test;
-    document.getElementById("nombreTest").value = test.nombre;
-    document.getElementById("descripcionTest").value = test.descripcion;
+    document.getElementById("nombreTest").value = test.nombre || "";
+    document.getElementById("descripcionTest").value = test.descripcion || "";
 
     // Habilitar campos de texto (el número se muestra como texto y no es editable)
     document.getElementById("nombreTest").disabled = false;
     document.getElementById("descripcionTest").disabled = false;
 
     // Cargar items en modo edición
-    this.loadItemsForEdit(test.items);
+    this.loadItemsForEdit(test.items || []);
 
     // Mostrar botones de acción
     document.getElementById("btnAgregarItem").style.display = "inline-flex";
@@ -449,8 +504,6 @@ class AdminTestsManager {
       container.appendChild(itemDiv);
     });
     // Sincronizar el display y el hidden con la cantidad real de ítems cargados
-    // Después de crear las tarjetas, asegurarnos de listeners y conteo
-    this.attachTextareaListeners();
     this.updateDisplay();
   }
 
@@ -458,6 +511,13 @@ class AdminTestsManager {
    * Eliminar test
    */
   deleteTest(id_test, nombre) {
+    if (String(id_test).startsWith("local")) {
+      this.showNotification(
+        "No se puede eliminar un test pendiente de sincronización",
+        "warning",
+      );
+      return;
+    }
     this.currentTestId = id_test;
     document.getElementById("testNameDelete").textContent = nombre;
     document.getElementById("deleteModal").classList.add("active");
@@ -708,6 +768,48 @@ class AdminTestsManager {
     this.setSaveButtonLoading(true);
     this.showFormStatus("Guardando test...", "info");
 
+    // Si estamos offline, no intentamos hacer el POST (evitamos el error net::ERR_INTERNET_DISCONNECTED)
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      try {
+        if (window.UnimindSync && window.UnimindSync.addTest) {
+          // Encolar operación. Para updates incluimos el id_test y action:'update'
+          const payload = Object.assign(
+            { nombre, descripcion, num_items: numItems, items },
+            this.currentTestId
+              ? { id_test: this.currentTestId, action: "update" }
+              : {},
+          );
+
+          await window.UnimindSync.addTest(payload);
+
+          this.closeModal();
+          this.showFormStatus("Guardado localmente (sin conexión)", "success");
+          this.showNotification(
+            "Test guardado localmente. Se sincronizará cuando vuelvas online.",
+            "info",
+          );
+          this.setSaveButtonLoading(false);
+          // Reload to show the test (or just insert card - but reload is safer for consistency)
+          this.loadTests();
+          return;
+        } else {
+          this.showFormStatus(
+            "No hay conexión y el sincronizador no está disponible.",
+            "error",
+          );
+          this.setSaveButtonLoading(false);
+          return;
+        }
+      } catch {
+        this.showFormStatus(
+          "Error al encolar localmente. Verifica el almacenamiento del navegador.",
+          "error",
+        );
+        this.setSaveButtonLoading(false);
+        return;
+      }
+    }
+
     try {
       const base = window.UNIMIND_BASE || "";
       const baseUrl =
@@ -728,6 +830,7 @@ class AdminTestsManager {
       if (data.success) {
         this.showFormStatus(data.message, "success");
         this.showNotification(data.message, "success");
+        this.setSaveButtonLoading(false);
         setTimeout(() => {
           this.closeModal();
           this.loadTests();
@@ -738,12 +841,50 @@ class AdminTestsManager {
         this.setSaveButtonLoading(false);
       }
     } catch {
-      this.showFormStatus(
-        "Error al conectar con el servidor. Verifica tu conexión.",
-        "error",
-      );
-      this.showNotification("Error al guardar el test", "error");
-      this.setSaveButtonLoading(false);
+      // Intentar guardar localmente en IndexedDB para sincronizar luego
+      try {
+        if (window.UnimindSync && window.UnimindSync.addTest) {
+          const rec = await window.UnimindSync.addTest({
+            nombre: nombre,
+            descripcion: descripcion,
+            num_items: numItems,
+            items: items,
+          });
+
+          // Mostrar el test en la interfaz como si se hubiera guardado online
+          const localTest = {
+            id_test: `local-${rec.client_uuid}`,
+            nombre: nombre,
+            descripcion: descripcion,
+            num_items: numItems,
+            items: items,
+          };
+
+          // Cerrar modal y añadir tarjeta nueva al grid sin notificaciones
+          this.closeModal();
+          const container = document.getElementById("testsGrid");
+          const emptyState = document.getElementById("emptyState");
+          if (emptyState) emptyState.style.display = "none";
+          const card = this.createTestCard(localTest);
+          container.insertBefore(card, container.firstChild);
+
+          // Opcional: actualizar cualquier UI relacionada
+          this.showFormStatus("Guardado localmente", "success");
+          this.setSaveButtonLoading(false);
+        } else {
+          this.showFormStatus(
+            "Error al conectar con el servidor. Verifica tu conexión.",
+            "error",
+          );
+        }
+      } catch {
+        this.showFormStatus(
+          "Error al guardar localmente. Verifica el almacenamiento del navegador.",
+          "error",
+        );
+      } finally {
+        this.setSaveButtonLoading(false);
+      }
     }
   }
 
@@ -904,6 +1045,10 @@ class AdminTestsManager {
     document.querySelector(
       '.form-actions button[type="submit"]',
     ).style.display = "inline-flex";
+    // Asegurar que el botón guardar quede habilitado
+    try {
+      this.setSaveButtonLoading(false);
+    } catch {}
   }
 
   /**

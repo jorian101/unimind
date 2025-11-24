@@ -1,130 +1,107 @@
 /* pwa-sync.js
-   Minimal IndexedDB queue + sync to server with retries and credentials: 'include'
+   IndexedDB queue + sync to server with retries (refactorizado con IDBWrapper)
 */
 (function (window) {
   "use strict";
 
-  const DB_NAME = "unimind-sync";
-  const DB_VERSION = 2; // bump when changing schema
   const STORE_NAME = "applications";
-
+  const STORE_TESTS = "tests";
   const META_STORE = "meta";
 
-  function openDB() {
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        const oldVersion = e.oldVersion;
-        // Meta store to keep schema version and other metadata
-        if (!db.objectStoreNames.contains(META_STORE)) {
-          db.createObjectStore(META_STORE, { keyPath: "key" });
-        }
+  // Inicializar stores con IDBWrapper
+  if (window.IDBWrapper) {
+    window.IDBWrapper.setDBName("unimind-sync");
+    window.IDBWrapper.setVersion(3);
 
-        // Create main store and indexes if missing
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const os = db.createObjectStore(STORE_NAME, {
-            keyPath: "client_uuid",
-          });
-          os.createIndex("status", "status");
-        }
+    // Definir stores antes de abrir
+    window.IDBWrapper.defineStore(META_STORE, {
+      options: { keyPath: "key" },
+      indexes: [],
+    });
 
-        // Migrate to v2: ensure created_at index exists
-        if (oldVersion < 2) {
-          try {
-            const tx = e.target.transaction;
-            if (
-              tx &&
-              tx.objectStoreNames &&
-              tx.objectStoreNames.contains(STORE_NAME)
-            ) {
-              const store = tx.objectStore(STORE_NAME);
-              if (!store.indexNames.contains("created_at")) {
-                store.createIndex("created_at", "created_at");
-              }
-            }
-          } catch {}
-        }
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
+    window.IDBWrapper.defineStore(STORE_NAME, {
+      options: { keyPath: "client_uuid" },
+      indexes: [
+        { name: "status", keyPath: "status" },
+        { name: "created_at", keyPath: "created_at" },
+      ],
+    });
+
+    window.IDBWrapper.defineStore(STORE_TESTS, {
+      options: { keyPath: "client_uuid" },
+      indexes: [
+        { name: "status", keyPath: "status" },
+        { name: "created_at", keyPath: "created_at" },
+      ],
     });
   }
 
   // Meta helpers
   async function getMeta(key) {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(META_STORE, "readonly");
-      const store = tx.objectStore(META_STORE);
-      const r = store.get(key);
-      r.onsuccess = () => resolve(r.result ? r.result.value : null);
-      r.onerror = () => reject(r.error);
-    });
+    try {
+      const record = await window.IDBWrapper.get(META_STORE, key);
+      return record ? record.value : null;
+    } catch (e) {
+      console.error("Error getting meta:", e);
+      return null;
+    }
   }
 
   async function setMeta(key, value) {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(META_STORE, "readwrite");
-      const store = tx.objectStore(META_STORE);
-      store.put({ key: key, value: value });
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => reject(tx.error);
-    });
+    try {
+      await window.IDBWrapper.add(META_STORE, { key, value });
+      return true;
+    } catch (e) {
+      console.error("Error setting meta:", e);
+      return false;
+    }
   }
 
+  // Applications (estudiante tests)
   async function addApplication(item) {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
-      const now = new Date().toISOString();
-      const record = Object.assign(
-        { status: "queued", attempts: 0, created_at: now },
-        item,
-      );
-      store.put(record);
-      tx.oncomplete = () => resolve(record);
-      tx.onerror = () => reject(tx.error);
-    });
+    const now = new Date().toISOString();
+    const record = Object.assign(
+      { status: "queued", attempts: 0, created_at: now },
+      item,
+    );
+    return window.IDBWrapper.add(STORE_NAME, record);
   }
 
   async function getQueuedItems(limit = 100) {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const store = tx.objectStore(STORE_NAME);
-      const idx = store.index("status");
-      const req = idx.openCursor("queued");
-      const out = [];
-      req.onsuccess = (e) => {
-        const cur = e.target.result;
-        if (cur && out.length < limit) {
-          out.push(cur.value);
-          cur.continue();
-        } else {
-          resolve(out);
-        }
-      };
-      req.onerror = () => reject(req.error);
-    });
+    return window.IDBWrapper.getAll(STORE_NAME, "status", "queued", limit);
   }
 
   async function markItem(client_uuid, status, extra = {}) {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
-      const getReq = store.get(client_uuid);
-      getReq.onsuccess = () => {
-        const rec = getReq.result;
-        if (!rec) return resolve(null);
-        Object.assign(rec, { status: status }, extra);
-        store.put(rec);
-      };
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => reject(tx.error);
+    return window.IDBWrapper.update(STORE_NAME, client_uuid, {
+      status,
+      ...extra,
+    });
+  }
+
+  // Tests (admin-created tests)
+  async function addTest(item) {
+    const now = new Date().toISOString();
+    // Ensure client_uuid exists
+    if (!item.client_uuid) {
+      item.client_uuid = crypto.randomUUID
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random();
+    }
+    const record = Object.assign(
+      { status: "queued", attempts: 0, created_at: now },
+      item,
+    );
+    return window.IDBWrapper.add(STORE_TESTS, record);
+  }
+
+  async function getQueuedTests(limit = 100) {
+    return window.IDBWrapper.getAll(STORE_TESTS, "status", "queued", limit);
+  }
+
+  async function markTest(client_uuid, status, extra = {}) {
+    return window.IDBWrapper.update(STORE_TESTS, client_uuid, {
+      status,
+      ...extra,
     });
   }
 
@@ -202,11 +179,113 @@
     }
   }
 
+  async function flushTests() {
+    const queued = await getQueuedTests(50);
+    if (!queued.length) return { sent: 0 };
+
+    try {
+      const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
+
+      // Send each test to TestsController. Support create (JSON) and update (FormData) depending on record
+      for (const t of queued) {
+        try {
+          // If the queued record indicates an update (has id_test or explicit action), send as FormData with action=update
+          if (t.id_test || t.action === "update") {
+            const form = new FormData();
+            form.append("action", "update");
+            form.append("id_test", t.id_test || "");
+            form.append("nombre", t.nombre || "");
+            form.append("descripcion", t.descripcion || "");
+            form.append("num_items", t.num_items || 0);
+            form.append("items", JSON.stringify(t.items || []));
+
+            const sendFn = () =>
+              fetch(`${baseUrl}/controllers/TestsController.php`, {
+                method: "POST",
+                credentials: "include",
+                body: form,
+              }).then((r) => {
+                if (!r.ok) {
+                  const err = new Error("HTTP " + r.status);
+                  err.status = r.status;
+                  throw err;
+                }
+                return r.json();
+              });
+
+            const res = await retryWithBackoff(sendFn, 4);
+            if (res && res.success) {
+              await markTest(t.client_uuid, "synced", {
+                server_id: res.data?.id_test || null,
+                synced_at: new Date().toISOString(),
+              });
+            } else {
+              await markTest(t.client_uuid, "error", {
+                error: res.message || "unknown",
+              });
+            }
+          } else {
+            // Create new test via JSON raw (createTest supports JSON input)
+            const payload = {
+              nombre: t.nombre,
+              descripcion: t.descripcion,
+              num_items: t.num_items,
+              items: t.items,
+            };
+
+            const sendFn = () =>
+              fetch(`${baseUrl}/controllers/TestsController.php`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              }).then((r) => {
+                if (!r.ok) {
+                  const err = new Error("HTTP " + r.status);
+                  err.status = r.status;
+                  throw err;
+                }
+                return r.json();
+              });
+
+            const res = await retryWithBackoff(sendFn, 4);
+            if (res && res.success) {
+              await markTest(t.client_uuid, "synced", {
+                server_id: res.data?.id_test || null,
+                synced_at: new Date().toISOString(),
+              });
+            } else {
+              await markTest(t.client_uuid, "error", {
+                error: res.message || "unknown",
+              });
+            }
+          }
+        } catch {
+          await markTest(t.client_uuid, "queued", {
+            attempts: (t.attempts || 0) + 1,
+          });
+        }
+      }
+
+      return { sent: queued.length };
+    } catch (e) {
+      throw e;
+    }
+  }
+
   // Expose API
   window.UnimindSync = {
     addApplication,
     flushQueue,
     getQueuedItems,
+    addTest,
+    flushTests,
+    getQueuedTests,
+    markTest,
     getMeta,
     setMeta,
   };
@@ -214,7 +293,48 @@
   // Auto-register message to trigger flush from SW or UI
   navigator.serviceWorker?.addEventListener("message", (ev) => {
     if (ev.data && ev.data.type === "SYNC_NOW") {
+      // Flush both queues (applications and tests) when requested by SW/UI
       flushQueue().catch(() => {});
+      flushTests().catch(() => {});
     }
   });
+
+  // Auto-sync cuando se reconecta a internet
+  window.addEventListener("online", () => {
+    console.log("[PWA-Sync] Conexión restaurada, iniciando sincronización...");
+    Promise.all([
+      flushQueue().catch((e) =>
+        console.warn("[PWA-Sync] Error al sincronizar aplicaciones:", e),
+      ),
+      flushTests().catch((e) =>
+        console.warn("[PWA-Sync] Error al sincronizar tests:", e),
+      ),
+    ]).then(() => {
+      console.log("[PWA-Sync] Sincronización completada");
+    });
+  });
+
+  // Inicializar IDBWrapper al cargar
+  if (window.IDBWrapper) {
+    window.IDBWrapper.open()
+      .then(() => {
+        console.log("[PWA-Sync] IndexedDB abierta");
+        // Si ya estamos online al cargar la página (por ejemplo recargaste
+        // después de recuperar la conexión), intentar flush inmediato.
+        if (navigator.onLine) {
+          console.log(
+            "[PWA-Sync] Detectado online en carga, ejecutando flush inmediato...",
+          );
+          flushQueue().catch((e) =>
+            console.warn("[PWA-Sync] Error al sincronizar aplicaciones:", e),
+          );
+          flushTests().catch((e) =>
+            console.warn("[PWA-Sync] Error al sincronizar tests:", e),
+          );
+        }
+      })
+      .catch((e) => {
+        console.error("[PWA-Sync] Error al abrir IndexedDB:", e);
+      });
+  }
 })(window);
