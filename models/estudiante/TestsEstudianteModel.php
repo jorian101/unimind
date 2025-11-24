@@ -238,5 +238,31 @@ class TestsEstudianteModel {
             return null;
         }
     }
+
+    /**
+     * Obtener IDs de tests que el usuario ya ha completado
+     */
+    public function getTestsCompletadosPorUsuario($id_usuario) {
+        try {
+            $stmt = $this->conn->prepare("
+                SELECT DISTINCT t.id_test
+                FROM Aplicaciones a
+                INNER JOIN Tests t ON a.ID_Test = t.id_test
+                WHERE a.ID_Usuario = :id_usuario 
+                  AND a.Completado = 1
+                ORDER BY a.Fecha_Aplicacion DESC
+            ");
+            $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            // Retornar array de IDs
+            $completados = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+            $stmt->closeCursor();
+            return $completados;
+        } catch (PDOException $e) {
+            error_log("Error en getTestsCompletadosPorUsuario: " . $e->getMessage());
+            return [];
+        }
+    }
 }
 ?>

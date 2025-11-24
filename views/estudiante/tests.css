@@ -70,6 +70,41 @@
   color: var(--acc-700);
 }
 
+/* Estilo para tests completados (descolorido) */
+.test-item.test-completado {
+  opacity: 0.6;
+  filter: grayscale(50%);
+  position: relative;
+}
+
+.test-item.test-completado::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+
+.test-item.test-completado:hover {
+  opacity: 0.8;
+  filter: grayscale(30%);
+}
+
+.test-item.test-completado h3 {
+  color: var(--var-500);
+}
+
+.test-item.test-completado .btn-primary {
+  background: var(--var-500);
+}
+
+.test-item.test-completado .btn-primary:hover {
+  background: var(--var-600);
+}
+
 .test-actions {
   margin-top: 1.5rem;
 }

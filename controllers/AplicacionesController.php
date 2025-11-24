@@ -56,6 +56,19 @@ class AplicacionesController {
      */
     private function getTestsDisponibles() {
         $tests = $this->model->getTestsDisponibles();
+        
+        // Obtener tests completados por el usuario actual
+        $id_usuario = $_SESSION['id_usuario'] ?? null;
+        $completados = [];
+        if ($id_usuario) {
+            $completados = $this->model->getTestsCompletadosPorUsuario($id_usuario);
+        }
+        
+        // Marcar cada test con su estado de completado
+        foreach ($tests as &$test) {
+            $test['completado'] = in_array($test['id_test'], $completados);
+        }
+        
         $this->sendResponse(true, 'Tests obtenidos correctamente', $tests);
     }
 
