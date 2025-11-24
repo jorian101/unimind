@@ -30,6 +30,14 @@ class TestsController {
                     $this->getAllOpciones();
                     break;
                 
+                case 'getTiposEscalas':
+                    $this->getTiposEscalas();
+                    break;
+                
+                case 'getOpcionesByTipoEscala':
+                    $this->getOpcionesByTipoEscala();
+                    break;
+                
                 case 'create':
                     $this->createTest();
                     break;
@@ -91,6 +99,29 @@ class TestsController {
     }
 
     /**
+     * Obtener todos los tipos de escalas
+     */
+    private function getTiposEscalas() {
+        $tipos = $this->model->getTiposEscalas();
+        $this->sendResponse(true, 'Tipos de escalas obtenidos correctamente', $tipos);
+    }
+
+    /**
+     * Obtener opciones de respuesta por tipo de escala
+     */
+    private function getOpcionesByTipoEscala() {
+        $tipo_escala = $_GET['tipo_escala'] ?? null;
+        
+        if (!$tipo_escala) {
+            $this->sendResponse(false, 'Tipo de escala no proporcionado');
+            return;
+        }
+
+        $opciones = $this->model->getOpcionesByTipoEscala($tipo_escala);
+        $this->sendResponse(true, 'Opciones obtenidas correctamente', $opciones);
+    }
+
+    /**
      * Crear un nuevo test con sus items
      */
     private function createTest() {
@@ -98,6 +129,7 @@ class TestsController {
         $nombre = $_POST['nombre'] ?? null;
         $descripcion = $_POST['descripcion'] ?? null;
         $num_items = $_POST['num_items'] ?? 0;
+        $tipo_escala = $_POST['tipo_escala'] ?? 1; // Por defecto escala de frecuencia
         $items = json_decode($_POST['items'] ?? '[]', true);
 
         // Si no vienen por form-data, intentar leer JSON raw (usado por PWA offline sync)
@@ -109,11 +141,12 @@ class TestsController {
                 $nombre = $json['nombre'] ?? $nombre;
                 $descripcion = $json['descripcion'] ?? $descripcion;
                 $num_items = $json['num_items'] ?? $num_items;
+                $tipo_escala = $json['tipo_escala'] ?? $tipo_escala;
                 $items = $json['items'] ?? $items;
             }
         }
 
-        if (!$nombre || !$descripcion || $num_items <= 0) {
+        if (!$nombre || !$descripcion || $num_items <= 0 || !$tipo_escala) {
             $this->sendResponse(false, 'Datos incompletos o inválidos');
             return;
         }
@@ -125,7 +158,7 @@ class TestsController {
         }
 
         // Crear el test
-        $id_test = $this->model->createTest($nombre, $descripcion, $num_items);
+        $id_test = $this->model->createTest($nombre, $descripcion, $num_items, $tipo_escala);
         
         if (!$id_test) {
             $err = $this->model->lastError ?? null;
@@ -170,9 +203,10 @@ class TestsController {
         $nombre = $_POST['nombre'] ?? null;
         $descripcion = $_POST['descripcion'] ?? null;
         $num_items = $_POST['num_items'] ?? 0;
+        $tipo_escala = $_POST['tipo_escala'] ?? 1;
         $items = json_decode($_POST['items'] ?? '[]', true);
 
-        if (!$id_test || !$nombre || !$descripcion || $num_items <= 0) {
+        if (!$id_test || !$nombre || !$descripcion || $num_items <= 0 || !$tipo_escala) {
             $this->sendResponse(false, 'Datos incompletos o inválidos');
             return;
         }
@@ -184,7 +218,7 @@ class TestsController {
         }
 
         // Actualizar el test
-        $result = $this->model->updateTest($id_test, $nombre, $descripcion, $num_items);
+        $result = $this->model->updateTest($id_test, $nombre, $descripcion, $num_items, $tipo_escala);
         
         if (!$result) {
             $this->sendResponse(false, 'Error al actualizar el test');

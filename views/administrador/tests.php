@@ -88,6 +88,17 @@ renderPageHeader();
                     <small class="form-hint">Describe el objetivo y contenido del test (10-500 caracteres)</small>
                 </div>
 
+                <div class="form-group">
+                    <label for="tipoEscala">
+                        <i class="fas fa-list-check"></i> Tipo de Escala de Respuesta *
+                    </label>
+                    <select id="tipoEscala" name="tipo_escala" required>
+                        <option value="">Selecciona el tipo de escala...</option>
+                        <!-- Se cargan dinámicamente desde la BD -->
+                    </select>
+                    <small class="form-hint">Define qué opciones verán los estudiantes al responder cada pregunta</small>
+                </div>
+
             </div>
 
             <!-- Ítems del test -->
@@ -122,15 +133,15 @@ renderPageHeader();
                 </div>
             </div>
 
-            <!-- Opciones de respuesta disponibles -->
-            <div class="form-section">
-                <h3><i class="fas fa-check-square"></i> Opciones de Respuesta Disponibles</h3>
+            <!-- Opciones de respuesta según escala seleccionada -->
+            <div class="form-section" id="opcionesSection" style="display: none;">
+                <h3><i class="fas fa-check-square"></i> Opciones de Respuesta para este Test</h3>
                 <div class="info-box">
                     <i class="fas fa-info-circle"></i>
-                    <p>Estas son las opciones de respuesta disponibles en el sistema. Cada ítem puede usar cualquiera de estas opciones.</p>
+                    <p>Los estudiantes verán estas opciones al responder cada pregunta del test.</p>
                 </div>
                 <div id="opcionesDisponibles" class="opciones-grid">
-                    <!-- Se cargan dinámicamente -->
+                    <!-- Se cargan dinámicamente según el tipo de escala -->
                 </div>
             </div>
 

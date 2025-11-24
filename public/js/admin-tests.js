@@ -7,6 +7,7 @@ class AdminTestsManager {
   constructor() {
     this.currentTestId = null;
     this.opcionesDisponibles = [];
+    this.tiposEscalas = [];
     this.itemCount = 0;
 
     this.init();
@@ -14,7 +15,7 @@ class AdminTestsManager {
 
   init() {
     this.setupEventListeners();
-    this.loadOpciones();
+    this.loadTiposEscalas();
     this.loadTests();
   }
 
@@ -55,6 +56,11 @@ class AdminTestsManager {
       this.sortTests(e.target.value);
     });
 
+    // Cambio de tipo de escala
+    document.getElementById("tipoEscala").addEventListener("change", (e) => {
+      this.onTipoEscalaChange(e.target.value);
+    });
+
     // Cerrar modal al hacer clic fuera
     document.getElementById("testModal").addEventListener("click", (e) => {
       if (e.target.id === "testModal") {
@@ -77,9 +83,9 @@ class AdminTestsManager {
   }
 
   /**
-   * Cargar opciones de respuesta disponibles
+   * Cargar tipos de escalas disponibles
    */
-  async loadOpciones() {
+  async loadTiposEscalas() {
     try {
       const base = window.UNIMIND_BASE || "";
       const baseUrl =
@@ -87,7 +93,62 @@ class AdminTestsManager {
           ? window.location.origin + base
           : base;
       const response = await fetch(
-        `${baseUrl}/controllers/TestsController.php?action=getOpciones`,
+        `${baseUrl}/controllers/TestsController.php?action=getTiposEscalas`,
+        { credentials: "include" },
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        this.tiposEscalas = data.data;
+        this.renderTiposEscalas();
+      }
+    } catch {
+      // Silenciar error en entorno offline
+    }
+  }
+
+  /**
+   * Renderizar selector de tipos de escalas
+   */
+  renderTiposEscalas() {
+    const select = document.getElementById("tipoEscala");
+    const currentValue = select.value;
+
+    // Mantener la opción por defecto
+    select.innerHTML =
+      '<option value="">Selecciona el tipo de escala...</option>';
+
+    this.tiposEscalas.forEach((tipo) => {
+      const option = document.createElement("option");
+      option.value = tipo.id_tipo_escala;
+      option.textContent = tipo.nombre_escala;
+      option.title = tipo.descripcion;
+      select.appendChild(option);
+    });
+
+    // Restaurar valor si existía
+    if (currentValue) {
+      select.value = currentValue;
+    }
+  }
+
+  /**
+   * Cargar y mostrar opciones cuando cambia el tipo de escala
+   */
+  async onTipoEscalaChange(tipoEscalaId) {
+    if (!tipoEscalaId) {
+      document.getElementById("opcionesSection").style.display = "none";
+      return;
+    }
+
+    try {
+      const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
+      const response = await fetch(
+        `${baseUrl}/controllers/TestsController.php?action=getOpcionesByTipoEscala&tipo_escala=${tipoEscalaId}`,
         { credentials: "include" },
       );
       const data = await response.json();
@@ -95,11 +156,10 @@ class AdminTestsManager {
       if (data.success) {
         this.opcionesDisponibles = data.data;
         this.renderOpciones();
-      } else if (data.offline) {
-        // Modo offline detectado - no operable actualmente
+        document.getElementById("opcionesSection").style.display = "block";
       }
     } catch {
-      // Silenciar error en entorno offline
+      // Silenciar error
     }
   }
 
@@ -281,6 +341,9 @@ class AdminTestsManager {
     document.getElementById("itemsContainer").innerHTML = "";
     document.getElementById("emptyItems").style.display = "block";
 
+    // Ocultar sección de opciones hasta que se seleccione tipo de escala
+    document.getElementById("opcionesSection").style.display = "none";
+
     // Actualizar display
     this.updateDisplay();
 
@@ -379,27 +442,18 @@ class AdminTestsManager {
 
       // Generar IDs únicos para modo lectura
       const textoId = `readonly-texto-${item.orden}`;
-      const subescalaId = `readonly-subescala-${item.orden}`;
 
       itemDiv.innerHTML = `
-                <div class="item-card-header">
-                    <span class="item-number">Ítem ${item.orden}</span>
-                </div>
-                <div class="item-form-group">
-                    <label for="${textoId}">Pregunta:</label>
-                    <textarea id="${textoId}" 
-                              name="readonly_items[${item.orden}][texto]" 
-                              disabled>${this.escapeHtml(item.texto_item)}</textarea>
-                </div>
-                <div class="item-form-group">
-                    <label for="${subescalaId}">Subescala:</label>
-                    <input type="text" 
-                           id="${subescalaId}" 
-                           name="readonly_items[${item.orden}][subescala]" 
-                           value="${this.escapeHtml(item.subescala || "General")}" 
-                           disabled>
-                </div>
-            `;
+            <div class="item-card-header">
+              <span class="item-number">Ítem ${item.orden}</span>
+            </div>
+            <div class="item-form-group">
+              <label for="${textoId}">Pregunta:</label>
+              <textarea id="${textoId}" 
+                    name="readonly_items[${item.orden}][texto]" 
+                    disabled>${this.escapeHtml(item.texto_item)}</textarea>
+            </div>
+          `;
       container.appendChild(itemDiv);
     });
   }
@@ -476,6 +530,12 @@ class AdminTestsManager {
     document.getElementById("nombreTest").value = test.nombre || "";
     document.getElementById("descripcionTest").value = test.descripcion || "";
 
+    // Establecer tipo de escala y cargar opciones
+    if (test.tipo_escala) {
+      document.getElementById("tipoEscala").value = test.tipo_escala;
+      this.onTipoEscalaChange(test.tipo_escala);
+    }
+
     // Habilitar campos de texto (el número se muestra como texto y no es editable)
     document.getElementById("nombreTest").disabled = false;
     document.getElementById("descripcionTest").disabled = false;
@@ -511,11 +571,7 @@ class AdminTestsManager {
 
     items.forEach((item) => {
       this.itemCount++;
-      const itemDiv = this.createItemCard(
-        this.itemCount,
-        item.texto_item,
-        item.subescala,
-      );
+      const itemDiv = this.createItemCard(this.itemCount, item.texto_item);
       container.appendChild(itemDiv);
     });
     // Sincronizar el display y el hidden con la cantidad real de ítems cargados
@@ -593,14 +649,13 @@ class AdminTestsManager {
   /**
    * Crear tarjeta de ítem
    */
-  createItemCard(orden, textoItem = "", subescala = "") {
+  createItemCard(orden, textoItem = "") {
     const itemDiv = document.createElement("div");
     itemDiv.className = "item-card";
     itemDiv.dataset.orden = orden;
 
     // Generar IDs únicos para los campos
     const textoId = `item-texto-${orden}`;
-    const subescalaId = `item-subescala-${orden}`;
 
     // Crear elementos del header
     const header = document.createElement("div");
@@ -640,37 +695,9 @@ class AdminTestsManager {
     preguntaGroup.appendChild(preguntaTextarea);
     preguntaGroup.appendChild(preguntaHint);
 
-    // Crear grupo de subescala
-    const subescalaGroup = document.createElement("div");
-    subescalaGroup.className = "item-form-group";
-
-    const subescalaLabel = document.createElement("label");
-    subescalaLabel.setAttribute("for", subescalaId);
-    subescalaLabel.innerHTML =
-      '<i class="fas fa-tag"></i> Subescala (opcional)';
-
-    const subescalaInput = document.createElement("input");
-    subescalaInput.type = "text";
-    subescalaInput.id = subescalaId;
-    subescalaInput.name = `items[${orden}][subescala]`;
-    subescalaInput.className = "item-subescala";
-    subescalaInput.placeholder =
-      "Ejemplo: Ansiedad emocional, Ansiedad física, etc.";
-    subescalaInput.maxLength = 100;
-    subescalaInput.value = subescala;
-
-    const subescalaHint = document.createElement("small");
-    subescalaHint.className = "form-hint";
-    subescalaHint.textContent = "Categoría o dimensión que evalúa este ítem";
-
-    subescalaGroup.appendChild(subescalaLabel);
-    subescalaGroup.appendChild(subescalaInput);
-    subescalaGroup.appendChild(subescalaHint);
-
-    // Ensamblar el itemDiv
+    // Ensamblar el itemDiv (sin subescala)
     itemDiv.appendChild(header);
     itemDiv.appendChild(preguntaGroup);
-    itemDiv.appendChild(subescalaGroup);
 
     return itemDiv;
   }
@@ -717,12 +744,13 @@ class AdminTestsManager {
     // Validar datos básicos
     const nombre = document.getElementById("nombreTest").value.trim();
     const descripcion = document.getElementById("descripcionTest").value.trim();
+    const tipoEscala = document.getElementById("tipoEscala").value;
     // El número de ítems se calcula a partir de las tarjetas (no editable manualmente)
     const numItems = document.querySelectorAll(".item-card").length;
 
-    if (!nombre || !descripcion || numItems <= 0) {
+    if (!nombre || !descripcion || !tipoEscala || numItems <= 0) {
       this.showFormStatus(
-        "Por favor completa todos los campos obligatorios. Revisa el nombre, descripción y agrega al menos 1 ítem.",
+        "Por favor completa todos los campos obligatorios. Revisa el nombre, descripción, tipo de escala y agrega al menos 1 ítem.",
         "warning",
       );
       this.showNotification(
@@ -777,6 +805,7 @@ class AdminTestsManager {
     formData.append("nombre", nombre);
     formData.append("descripcion", descripcion);
     formData.append("num_items", numItems);
+    formData.append("tipo_escala", tipoEscala);
     formData.append("items", JSON.stringify(items));
 
     // Mostrar estado de guardando
@@ -963,14 +992,12 @@ class AdminTestsManager {
 
     itemCards.forEach((card) => {
       const textoItem = card.querySelector(".item-texto").value.trim();
-      const subescala =
-        card.querySelector(".item-subescala").value.trim() || "General";
       const orden = parseInt(card.dataset.orden) || items.length + 1;
 
       if (textoItem) {
         items.push({
           texto_item: textoItem,
-          subescala: subescala,
+          subescala: "General",
           orden: orden,
         });
       }

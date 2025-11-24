@@ -20,7 +20,7 @@ if (!$testInfo) {
 }
 
 $items = $model->getItemsByTest($testId);
-$opciones = $model->getOpcionesRespuesta();
+$opciones = $model->getOpcionesByTestId($testId); // Obtener opciones filtradas por tipo de escala
 
 $testName = $testInfo['nombre'];
 $totalQuestions = count($items);
