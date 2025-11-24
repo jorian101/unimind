@@ -236,8 +236,8 @@ class AdminTestsManager {
     document.getElementById("itemsContainer").innerHTML = "";
     document.getElementById("emptyItems").style.display = "block";
 
-    // Establecer valor por defecto
-    document.getElementById("numItems").value = 10;
+    // Actualizar display
+    this.updateDisplay();
 
     this.openModal();
   }
@@ -276,12 +276,14 @@ class AdminTestsManager {
     document.getElementById("testId").value = test.id_test;
     document.getElementById("nombreTest").value = test.nombre;
     document.getElementById("descripcionTest").value = test.descripcion;
-    document.getElementById("numItems").value = test.num_items;
-
     // Deshabilitar campos
     document.getElementById("nombreTest").disabled = true;
     document.getElementById("descripcionTest").disabled = true;
-    document.getElementById("numItems").disabled = true;
+    // Mostrar el número de ítems como texto (no editable)
+    const numDisplayView = document.getElementById("numItems");
+    const numHiddenView = document.getElementById("numItemsHidden");
+    if (numDisplayView) numDisplayView.textContent = test.num_items;
+    if (numHiddenView) numHiddenView.value = test.num_items;
 
     // Cargar items en modo lectura
     this.loadItemsReadOnly(test.items);
@@ -314,25 +316,43 @@ class AdminTestsManager {
     items.forEach((item) => {
       const itemDiv = document.createElement("div");
       itemDiv.className = "item-card";
+
+      // Generar IDs únicos para modo lectura
+      const textoId = `readonly-texto-${item.orden}`;
+      const subescalaId = `readonly-subescala-${item.orden}`;
+
       itemDiv.innerHTML = `
                 <div class="item-card-header">
                     <span class="item-number">Ítem ${item.orden}</span>
                 </div>
                 <div class="item-form-group">
-                    <label>Pregunta:</label>
-                    <textarea disabled>${this.escapeHtml(
-                      item.texto_item,
-                    )}</textarea>
+                    <label for="${textoId}">Pregunta:</label>
+                    <textarea id="${textoId}" 
+                              name="readonly_items[${item.orden}][texto]" 
+                              disabled>${this.escapeHtml(item.texto_item)}</textarea>
                 </div>
                 <div class="item-form-group">
-                    <label>Subescala:</label>
-                    <input type="text" value="${this.escapeHtml(
-                      item.subescala || "General",
-                    )}" disabled>
+                    <label for="${subescalaId}">Subescala:</label>
+                    <input type="text" 
+                           id="${subescalaId}" 
+                           name="readonly_items[${item.orden}][subescala]" 
+                           value="${this.escapeHtml(item.subescala || "General")}" 
+                           disabled>
                 </div>
             `;
       container.appendChild(itemDiv);
     });
+  }
+
+  /**
+   * Actualizar display/hidden del contador de ítems
+   */
+  updateDisplay() {
+    const count = document.querySelectorAll(".item-card").length;
+    const numDisplay = document.getElementById("numItems");
+    const numHidden = document.getElementById("numItemsHidden");
+    if (numDisplay) numDisplay.textContent = count;
+    if (numHidden) numHidden.value = count;
   }
 
   /**
@@ -369,12 +389,10 @@ class AdminTestsManager {
     document.getElementById("testId").value = test.id_test;
     document.getElementById("nombreTest").value = test.nombre;
     document.getElementById("descripcionTest").value = test.descripcion;
-    document.getElementById("numItems").value = test.num_items;
 
-    // Habilitar campos
+    // Habilitar campos de texto (el número se muestra como texto y no es editable)
     document.getElementById("nombreTest").disabled = false;
     document.getElementById("descripcionTest").disabled = false;
-    document.getElementById("numItems").disabled = false;
 
     // Cargar items en modo edición
     this.loadItemsForEdit(test.items);
@@ -414,6 +432,10 @@ class AdminTestsManager {
       );
       container.appendChild(itemDiv);
     });
+    // Sincronizar el display y el hidden con la cantidad real de ítems cargados
+    // Después de crear las tarjetas, asegurarnos de listeners y conteo
+    this.attachTextareaListeners();
+    this.updateDisplay();
   }
 
   /**
@@ -467,6 +489,7 @@ class AdminTestsManager {
 
     const itemDiv = this.createItemCard(this.itemCount);
     container.appendChild(itemDiv);
+    this.updateDisplay();
   }
 
   /**
@@ -477,26 +500,79 @@ class AdminTestsManager {
     itemDiv.className = "item-card";
     itemDiv.dataset.orden = orden;
 
-    itemDiv.innerHTML = `
-            <div class="item-card-header">
-                <span class="item-number">Ítem ${orden}</span>
-                <button type="button" class="btn-remove-item" onclick="adminTests.removeItem(this)">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="item-form-group">
-                <label>Pregunta/Afirmación *</label>
-                <textarea class="item-texto" placeholder="Ej: Me siento nervioso/a o ansioso/a" required>${this.escapeHtml(
-                  textoItem,
-                )}</textarea>
-            </div>
-            <div class="item-form-group">
-                <label>Subescala (opcional)</label>
-                <input type="text" class="item-subescala" placeholder="Ej: Ansiedad emocional" value="${this.escapeHtml(
-                  subescala,
-                )}">
-            </div>
-        `;
+    // Generar IDs únicos para los campos
+    const textoId = `item-texto-${orden}`;
+    const subescalaId = `item-subescala-${orden}`;
+
+    // Crear elementos del header
+    const header = document.createElement("div");
+    header.className = "item-card-header";
+    header.innerHTML = `
+        <span class="item-number"><i class="fas fa-question-circle"></i> Ítem ${orden}</span>
+        <button type="button" class="btn-remove-item" onclick="adminTests.removeItem(this)" title="Eliminar este ítem">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+    `;
+
+    // Crear grupo de pregunta
+    const preguntaGroup = document.createElement("div");
+    preguntaGroup.className = "item-form-group";
+
+    const preguntaLabel = document.createElement("label");
+    preguntaLabel.setAttribute("for", textoId);
+    preguntaLabel.innerHTML =
+      '<i class="fas fa-comment-dots"></i> Pregunta/Afirmación *';
+
+    const preguntaTextarea = document.createElement("textarea");
+    preguntaTextarea.id = textoId;
+    preguntaTextarea.name = `items[${orden}][texto]`;
+    preguntaTextarea.className = "item-texto";
+    preguntaTextarea.placeholder =
+      "Ejemplo: Durante las últimas 2 semanas, ¿con qué frecuencia te has sentido nervioso/a o ansioso/a?";
+    preguntaTextarea.required = true;
+    preguntaTextarea.minLength = 10;
+    preguntaTextarea.maxLength = 500;
+    preguntaTextarea.value = textoItem;
+
+    const preguntaHint = document.createElement("small");
+    preguntaHint.className = "form-hint";
+    preguntaHint.textContent = "Mínimo 10 caracteres, máximo 500";
+
+    preguntaGroup.appendChild(preguntaLabel);
+    preguntaGroup.appendChild(preguntaTextarea);
+    preguntaGroup.appendChild(preguntaHint);
+
+    // Crear grupo de subescala
+    const subescalaGroup = document.createElement("div");
+    subescalaGroup.className = "item-form-group";
+
+    const subescalaLabel = document.createElement("label");
+    subescalaLabel.setAttribute("for", subescalaId);
+    subescalaLabel.innerHTML =
+      '<i class="fas fa-tag"></i> Subescala (opcional)';
+
+    const subescalaInput = document.createElement("input");
+    subescalaInput.type = "text";
+    subescalaInput.id = subescalaId;
+    subescalaInput.name = `items[${orden}][subescala]`;
+    subescalaInput.className = "item-subescala";
+    subescalaInput.placeholder =
+      "Ejemplo: Ansiedad emocional, Ansiedad física, etc.";
+    subescalaInput.maxLength = 100;
+    subescalaInput.value = subescala;
+
+    const subescalaHint = document.createElement("small");
+    subescalaHint.className = "form-hint";
+    subescalaHint.textContent = "Categoría o dimensión que evalúa este ítem";
+
+    subescalaGroup.appendChild(subescalaLabel);
+    subescalaGroup.appendChild(subescalaInput);
+    subescalaGroup.appendChild(subescalaHint);
+
+    // Ensamblar el itemDiv
+    itemDiv.appendChild(header);
+    itemDiv.appendChild(preguntaGroup);
+    itemDiv.appendChild(subescalaGroup);
 
     return itemDiv;
   }
@@ -519,6 +595,7 @@ class AdminTestsManager {
       emptyItems.style.display = "block";
       this.itemCount = 0;
     }
+    this.updateDisplay();
   }
 
   /**
@@ -532,6 +609,7 @@ class AdminTestsManager {
       item.querySelector(".item-number").textContent = `Ítem ${orden}`;
     });
     this.itemCount = items.length;
+    this.updateDisplay();
   }
 
   /**
@@ -541,22 +619,49 @@ class AdminTestsManager {
     // Validar datos básicos
     const nombre = document.getElementById("nombreTest").value.trim();
     const descripcion = document.getElementById("descripcionTest").value.trim();
-    const numItems = parseInt(document.getElementById("numItems").value);
+    // El número de ítems se calcula a partir de las tarjetas (no editable manualmente)
+    const numItems = document.querySelectorAll(".item-card").length;
 
     if (!nombre || !descripcion || numItems <= 0) {
+      this.showFormStatus(
+        "Por favor completa todos los campos obligatorios. Revisa el nombre, descripción y agrega al menos 1 ítem.",
+        "warning",
+      );
       this.showNotification(
-        "Por favor completa todos los campos obligatorios",
+        "Completa todos los campos obligatorios",
         "warning",
       );
       return;
     }
 
-    // Recopilar items
+    // Recopilar items y validar completitud
     const items = this.collectItems();
+    // Si hay tarjetas con textarea vacío, resaltarlas y evitar guardar
+    const itemCards = Array.from(document.querySelectorAll(".item-card"));
+    const emptyCards = [];
+    itemCards.forEach((card) => {
+      const ta = card.querySelector(".item-texto");
+      if (!ta || !ta.value || ta.value.trim() === "") {
+        card.classList.add("item-empty");
+        emptyCards.push(card);
+      } else {
+        card.classList.remove("item-empty");
+      }
+    });
+
+    if (emptyCards.length > 0) {
+      this.showNotification(
+        `Hay ${emptyCards.length} ítem(s) sin completar. Por favor complétalos antes de guardar.`,
+        "warning",
+      );
+      // desplazar hasta el primer vacío
+      emptyCards[0].scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
 
     if (items.length !== numItems) {
       this.showNotification(
-        `El número de ítems (${items.length}) no coincide con el valor especificado (${numItems})`,
+        `El número de ítems (${items.length}) no coincide con el valor esperado (${numItems})`,
         "warning",
       );
       return;
@@ -576,6 +681,10 @@ class AdminTestsManager {
     formData.append("num_items", numItems);
     formData.append("items", JSON.stringify(items));
 
+    // Mostrar estado de guardando
+    this.setSaveButtonLoading(true);
+    this.showFormStatus("Guardando test...", "info");
+
     try {
       const base = window.UNIMIND_BASE || "";
       const response = await fetch(`${base}/controllers/TestsController.php`, {
@@ -587,14 +696,75 @@ class AdminTestsManager {
       const data = await response.json();
 
       if (data.success) {
+        this.showFormStatus(data.message, "success");
         this.showNotification(data.message, "success");
-        this.closeModal();
-        this.loadTests();
+        setTimeout(() => {
+          this.closeModal();
+          this.loadTests();
+        }, 1000);
       } else {
+        this.showFormStatus(data.message, "error");
         this.showNotification(data.message, "error");
+        this.setSaveButtonLoading(false);
       }
     } catch {
+      this.showFormStatus(
+        "Error al conectar con el servidor. Verifica tu conexión.",
+        "error",
+      );
       this.showNotification("Error al guardar el test", "error");
+      this.setSaveButtonLoading(false);
+    }
+  }
+
+  /**
+   * Controlar estado de carga del botón guardar
+   */
+  setSaveButtonLoading(isLoading) {
+    const btn = document.getElementById("btnGuardarTest");
+    const btnIcon = btn.querySelector(".fa-save");
+    const btnLoading = btn.querySelector(".btn-loading");
+
+    if (isLoading) {
+      btn.classList.add("is-loading");
+      btn.disabled = true;
+      if (btnIcon) btnIcon.style.display = "none";
+      if (btnLoading) btnLoading.style.display = "inline-flex";
+    } else {
+      btn.classList.remove("is-loading");
+      btn.disabled = false;
+      if (btnIcon) btnIcon.style.display = "inline";
+      if (btnLoading) btnLoading.style.display = "none";
+    }
+  }
+
+  /**
+   * Mostrar estado en el formulario
+   */
+  showFormStatus(message, type = "info") {
+    const statusDiv = document.getElementById("formStatus");
+    if (!statusDiv) return;
+
+    statusDiv.className = "form-status status-" + type;
+    statusDiv.innerHTML = `
+      <i class="fas fa-${
+        type === "success"
+          ? "check-circle"
+          : type === "error"
+            ? "exclamation-circle"
+            : type === "warning"
+              ? "exclamation-triangle"
+              : "info-circle"
+      }"></i>
+      <span>${message}</span>
+    `;
+    statusDiv.style.display = "flex";
+
+    // Auto-ocultar después de 5 segundos si es success
+    if (type === "success") {
+      setTimeout(() => {
+        statusDiv.style.display = "none";
+      }, 5000);
     }
   }
 
@@ -656,7 +826,7 @@ class AdminTestsManager {
   sortTests(sortBy) {
     const container = document.getElementById("testsGrid");
     const cards = Array.from(container.querySelectorAll(".test-card"));
-
+    // no-op: el contador de ítems es un display y se actualiza desde las tarjetas
     cards.sort((a, b) => {
       switch (sortBy) {
         case "nombre":
@@ -699,7 +869,7 @@ class AdminTestsManager {
     // Restaurar campos
     document.getElementById("nombreTest").disabled = false;
     document.getElementById("descripcionTest").disabled = false;
-    document.getElementById("numItems").disabled = false;
+    // `numItems` es ahora un display + hidden; no hay input que habilitar
     document.getElementById("btnAgregarItem").style.display = "inline-flex";
     document.querySelector(
       '.form-actions button[type="submit"]',
