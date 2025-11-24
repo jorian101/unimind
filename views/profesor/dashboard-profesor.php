@@ -1,154 +1,133 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard del Profesor</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <link rel="stylesheet" href="views/profesor/styles.css">
-</head>
+<?php
+require_once dirname(__DIR__) . '/pageHeader.php';
+renderPageHeader();
+?>
 
-<body>
+<link rel="stylesheet" href="views/profesor/dashboard.css?v=<?php echo time(); ?>">
+<?php
+// Embedir lista de cursos y tests relevantes para que el JS pueda enviar sugerencias
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+$prof_courses = [];
+$test_map = ['estres' => null, 'ansiedad' => null];
+try {
+    require_once __DIR__ . '/../../database/Database.php';
+    if (isset($_SESSION['user_id'])) {
+        $db = new Database();
+        $conn = $db->connect();
+        $stmt = $conn->prepare('SELECT id_curso, nombre_curso FROM Cursos WHERE id_profesor = :id_profesor');
+        $stmt->bindParam(':id_profesor', $_SESSION['user_id'], PDO::PARAM_INT);
+        $stmt->execute();
+        $prof_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    <main class="container">
+        // buscar tests por nombre (primer match)
+        $stmt = $conn->prepare("SELECT id_test, nombre FROM Tests WHERE LOWER(nombre) LIKE '%estres%' LIMIT 1");
+        $stmt->execute();
+        $r = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($r) $test_map['estres'] = (int)$r['id_test'];
 
-        <header class="dashboard-header">
-            <div>
-                <h1 class="header-title">Dashboard de Reportes</h1>
-                <p id="subtitulo-curso" class="header-subtitle">Monitorea el bienestar de tu aula</p>
-            </div>
-        </header>
-
-        <section class="recommendations">
-            <h2 class="section-title">Recomendaciones</h2>
-            <p class="section-subtitle">Recursos y estrategias para apoyar a tus estudiantes</p>
-            
-            <div class="grid-container">
-                
-                <form id="form-sugerir-estres" class="card">
-                    <div class="card-content">
-                        <div class="card-icon bg-sky">
-                            <span class="material-symbols-outlined">psychology_alt</span>
-                        </div>
-                        <div class="card-text">
-                            <h3>Sugerir test de estrés</h3>
-                            <p>Medir estrés de aula</p>
-                        </div>
-                    </div>
-                    <button type="submit" id="btn-sugerir-estres" class="card-button">
-                        Ver Más <span class="material-symbols-outlined">open_in_new</span>
-                    </button>
-                </form>
-                
-                <form id="form-sugerir-ansiedad" class="card">
-                    <div class="card-content">
-                        <div class="card-icon bg-pink">
-                            <span class="material-symbols-outlined">monitor_heart</span>
-                        </div>
-                        <div class="card-text">
-                            <h3>Sugerir test de ansiedad</h3>
-                            <p>Medir ansiedad de aula</p>
-                        </div>
-                    </div>
-                    <button type="submit" id="btn-sugerir-ansiedad" class="card-button">
-                        Ver Más <span class="material-symbols-outlined">open_in_new</span>
-                    </button>
-                </form>
-                
-                <div class="card">
-                    <div class="card-content">
-                        <div class="card-icon bg-red">
-                            <span class="material-symbols-outlined">warning</span>
-                        </div>
-                        <div class="card-text">
-                            <h3>Niveles altos</h3>
-                            <p>Requieren atención</p>
-                        </div>
-                    </div>
-                    <a id="link-niveles-altos" href="#" class="card-button">
-                        Ver Más <span class="material-symbols-outlined">open_in_new</span>
-                    </a>
-                </div>
-            </div>
-        </section>
-        
-        <section class="charts-grid">
-            <div class="chart-container chart-span-2">
-                <h3 class="chart-title">Evolución Temporal del Curso</h3>
-                <div class="chart-wrapper" style="height: 320px;">
-                    <div id="stats-temporal" class="chart-stats"></div>
-                    <canvas id="temporalEvolutionChart"></canvas>
-                </div>
-            </div>
-            <div class="chart-container">
-                <h3 class="chart-title">Distribución por Nivel de Riesgo (Curso)</h3>
-                <div class="chart-wrapper chart-doughnut-wrapper" style="height: 320px;">
-                    <div class="chart-doughnut-inner">
-                        <canvas id="riskDistributionChart"></canvas>
-                    </div>
-                    <div id="leyenda-riesgo" class="chart-doughnut-legend"></div>
-                </div>
-            </div>
-            <div class="chart-container chart-span-3">
-                <h3 class="chart-title">Niveles de Estrés y Ansiedad por Facultad (Global)</h3>
-                <div class="chart-wrapper" style="height: 320px;">
-                    <canvas id="facultyLevelsChart"></canvas>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Modal para sugerir tests (inyectado para que dashboard.js lo controle) -->
-    <div id="sugerir-test-modal" class="modal-overlay" aria-hidden="true">
-        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-            <div class="modal-header">
-                <h3 id="modal-title">Sugerir Test</h3>
-                <button id="modal-btn-cerrar" class="modal-close-btn" aria-label="Cerrar">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="modal-form-nombre">Nombre</label>
-                    <input id="modal-form-nombre" type="text" readonly />
-                </div>
-                <div class="form-group">
-                    <label for="modal-form-descripcion">Descripción</label>
-                    <textarea id="modal-form-descripcion" rows="3" readonly></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="modal-form-preguntas">Número de preguntas</label>
-                    <input id="modal-form-preguntas" type="text" readonly />
-                </div>
-                <div class="form-group">
-                    <label for="modal-form-curso-select">Seleccionar curso</label>
-                    <select id="modal-form-curso-select"></select>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button id="modal-btn-cancelar" class="btn btn-secondary">Cancelar</button>
-                <button id="modal-btn-sugerir" class="btn btn-primary">Sugerir</button>
-            </div>
+        $stmt = $conn->prepare("SELECT id_test, nombre FROM Tests WHERE LOWER(nombre) LIKE '%ansiedad%' LIMIT 1");
+        $stmt->execute();
+        $r = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($r) $test_map['ansiedad'] = (int)$r['id_test'];
+    }
+} catch (Exception $e) {
+    // no bloquear la vista si falla
+}
+?>
+<script>
+window.__PROF_SUGGEST = {
+    courses: <?php echo json_encode($prof_courses ?: []); ?>,
+    tests: <?php echo json_encode($test_map); ?>
+};
+</script>
+<main class="prof-dashboard-container" id="profDashboard">
+    <div class="page-header">
+        <div class="header-left">
+            <h1><i class="fas fa-chalkboard-teacher"></i> Panel del Docente</h1>
+            <p class="subtitle">Monitorea el bienestar de tu aula</p>
         </div>
     </div>
 
-    <script>
-    // Base path para construcción de URLs
-    if (!window.UNIMIND_BASE) {
-        var pathname = window.location.pathname;
-        if (pathname.includes('/unimind/') || pathname.startsWith('/unimind')) {
-            window.UNIMIND_BASE = '/unimind';
-        } else {
-            window.UNIMIND_BASE = '';
-        }
-    }
-    <?php if (isset($base) && $base): ?>
-    window.UNIMIND_BASE = '<?php echo $base; ?>';
-    <?php endif; ?>
-    </script>
-    <script src="dashboard.js"></script>
+    <!-- Mantener únicamente las opciones de sugerir y la tarjeta 'Niveles altos' -->
+    <section class="recommendations-row">
+        <h2>Recomendaciones</h2>
+        <p class="subtitle">Recursos y estrategias para apoyar a tus salones</p>
+        <div class="recommendations-cards">
+            <div class="rec-card rec-card--stress" data-test-id="1" aria-label="Sugerir test de estrés">
+                <div class="icon" aria-hidden="true">📈</div>
+                <div class="rec-content">
+                    <h3>Sugerir test de estrés</h3>
+                    <p class="muted">Medir estrés de aula</p>
+                </div>
+                <div class="rec-actions">
+                    <button class="btn-primary btn-suggest" data-test="estres" aria-label="Sugerir test de estrés">Sugerir</button>
+                </div>
+            </div>
 
-</body>
-</html>
+            <div class="rec-card rec-card--anxiety" data-test-id="2" aria-label="Sugerir test de ansiedad">
+                <div class="icon" aria-hidden="true">⚠️</div>
+                <div class="rec-content">
+                    <h3>Sugerir test de ansiedad</h3>
+                    <p class="muted">Medir ansiedad de aula</p>
+                </div>
+                <div class="rec-actions">
+                    <button class="btn-primary btn-suggest" data-test="ansiedad" aria-label="Sugerir test de ansiedad">Sugerir</button>
+                </div>
+            </div>
+
+            <div class="rec-card rec-card--alert" data-test-id="3" aria-label="Niveles altos - acciones recomendadas">
+                <div class="icon" aria-hidden="true">🔔</div>
+                <div class="rec-content">
+                    <h3>Niveles altos</h3>
+                    <p class="muted">Acciones recomendadas cuando hay niveles altos</p>
+                </div>
+                <div class="rec-actions">
+                    <button class="btn-outline" onclick="window.location.href='?role=docente&page=dashboard-profesor'" aria-label="Ver más niveles altos">Ver Más</button>
+                </div>
+            </div>
+        </div>
+    </section>
+</section>
+
+        <!-- Gráficos (estáticos, maqueta visual) -->
+        <section class="charts-row">
+                <div class="charts-grid">
+                        <div class="card chart-card chart-card--line">
+                                <h3>Evolución Temporal</h3>
+                                <small>Promedio por fecha</small>
+                                <div class="chart">
+                                        <canvas id="prof-line" aria-label="Evolución temporal" role="img"></canvas>
+                                </div>
+                        </div>
+
+                        <div class="card chart-card chart-card--pie">
+                            <h3>Distribución por Nivel de Riesgo</h3>
+                            <small>Últimas aplicaciones</small>
+                            <div class="chart chart-pie-wrap">
+                                <canvas id="prof-pie" aria-label="Distribución por nivel" role="img" width="140" height="140"></canvas>
+                                <div class="pie-legend">
+                                    <div><span class="legend-color" style="background:#34D399"></span><strong>Bajo</strong><small class="legend-val">—</small></div>
+                                    <div><span class="legend-color" style="background:#FBBF24"></span><strong>Moderado</strong><small class="legend-val">—</small></div>
+                                    <div><span class="legend-color" style="background:#F87171"></span><strong>Alto</strong><small class="legend-val">—</small></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card chart-card chart-card--bar fullwidth">
+                                <h3>Niveles por Facultad</h3>
+                                <small>Comparativo</small>
+                                <div class="chart chart-bar-wrap">
+                                        <canvas id="prof-bar" aria-label="Niveles por Facultad" role="img"></canvas>
+                                </div>
+                        </div>
+                </div>
+        </section>
+</main>
+
+<?php
+// Fin de vista (se eliminaron secciones excepto sugerencias y 'Niveles altos')
+?>
+<script src="/unimind/public/js/prof-suggest.js?v=<?php echo time(); ?>"></script>
+<!-- Chart.js and charts initializer -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/unimind/public/js/prof-charts.js?v=<?php echo time(); ?>"></script>
