@@ -82,8 +82,12 @@ class AdminTestsManager {
   async loadOpciones() {
     try {
       const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
       const response = await fetch(
-        `${base}/controllers/TestsController.php?action=getOpciones`,
+        `${baseUrl}/controllers/TestsController.php?action=getOpciones`,
         { credentials: "include" },
       );
       const data = await response.json();
@@ -123,8 +127,12 @@ class AdminTestsManager {
   async loadTests() {
     try {
       const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
       const response = await fetch(
-        `${base}/controllers/TestsController.php?action=getAll`,
+        `${baseUrl}/controllers/TestsController.php?action=getAll`,
         { credentials: "include" },
       );
       const data = await response.json();
@@ -248,8 +256,12 @@ class AdminTestsManager {
   async viewTest(id_test) {
     try {
       const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
       const response = await fetch(
-        `${base}/controllers/TestsController.php?action=getById&id_test=${id_test}`,
+        `${baseUrl}/controllers/TestsController.php?action=getById&id_test=${id_test}`,
         { credentials: "include" },
       );
       const data = await response.json();
@@ -361,8 +373,12 @@ class AdminTestsManager {
   async editTest(id_test) {
     try {
       const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
       const response = await fetch(
-        `${base}/controllers/TestsController.php?action=getById&id_test=${id_test}`,
+        `${baseUrl}/controllers/TestsController.php?action=getById&id_test=${id_test}`,
         { credentials: "include" },
       );
       const data = await response.json();
@@ -453,15 +469,22 @@ class AdminTestsManager {
   async confirmDelete() {
     try {
       const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
       const formData = new FormData();
       formData.append("action", "delete");
       formData.append("id_test", this.currentTestId);
 
-      const response = await fetch(`${base}/controllers/TestsController.php`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${baseUrl}/controllers/TestsController.php`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        },
+      );
 
       const data = await response.json();
 
@@ -687,11 +710,18 @@ class AdminTestsManager {
 
     try {
       const base = window.UNIMIND_BASE || "";
-      const response = await fetch(`${base}/controllers/TestsController.php`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
+      const response = await fetch(
+        `${baseUrl}/controllers/TestsController.php`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        },
+      );
 
       const data = await response.json();
 

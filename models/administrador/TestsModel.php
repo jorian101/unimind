@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../database/Database.php';
 
 class TestsModel {
     private $conn;
+    public $lastError = null;
     private $table_tests = 'Tests';
     private $table_items = 'Items';
     private $table_opciones = 'Opciones_Respuesta';
@@ -101,6 +102,7 @@ class TestsModel {
             }
             return false;
         } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
             error_log("Error al crear test: " . $e->getMessage());
             return false;
         }
@@ -163,6 +165,7 @@ class TestsModel {
             }
             return false;
         } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
             error_log("Error al crear item: " . $e->getMessage());
             return false;
         }

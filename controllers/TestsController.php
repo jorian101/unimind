@@ -115,7 +115,9 @@ class TestsController {
         $id_test = $this->model->createTest($nombre, $descripcion, $num_items);
         
         if (!$id_test) {
-            $this->sendResponse(false, 'Error al crear el test');
+            $err = $this->model->lastError ?? null;
+            $msg = 'Error al crear el test' . ($err ? (': ' . $err) : '');
+            $this->sendResponse(false, $msg);
             return;
         }
 

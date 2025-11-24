@@ -156,8 +156,12 @@
 
     try {
       const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
       const sendFn = () =>
-        fetch(`${base}/controllers/SyncController.php`, {
+        fetch(`${baseUrl}/controllers/SyncController.php`, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
