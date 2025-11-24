@@ -7,10 +7,7 @@ renderPageHeader();
 
 <main class="admin-tests-container">
     <div class="page-header">
-        <div class="header-content">
-            <h1><i class="fas fa-clipboard-list"></i> Gestión de Tests</h1>
-            <p class="subtitle">Crea, edita y administra los tests psicológicos del sistema</p>
-        </div>
+        <p>Crea, edita y administra los tests psicológicos del sistema</p>
         <button class="btn-primary" id="btnNuevoTest">
             <i class="fas fa-plus"></i> Nuevo Test
         </button>
