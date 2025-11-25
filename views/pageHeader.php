@@ -167,7 +167,7 @@ function renderPageHeader($title = null, $breadcrumb = null) {
             </div>
         </div>
     </header>
-    <script src="/js/notifications.js"></script>
+    <script src="/public/js/notifications.js"></script>
     ';
 }
 ?>

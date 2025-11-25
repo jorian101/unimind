@@ -149,4 +149,4 @@ window.__PROF_SUGGEST = {
 ?>
 <script src="/unimind/public/js/prof-suggest.js?v=<?php echo time(); ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="/unimind/public/js/prof-charts.js?v=<?php echo time(); ?>"></script>
+<script src="/public/js/prof-charts.js?v=<?php echo time(); ?>"></script>

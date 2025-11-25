@@ -77,20 +77,19 @@ document.addEventListener("DOMContentLoaded", function () {
             );
           }
 
-          // Agregar parámetro 'from_sidebar=1' para indicar navegación desde sidebar
-          // Construir URL absoluta usando la base detectada para evitar romper la cookie de sesión
+          // Construir URL relativa usando la base definida en PHP para evitar problemas con cookies
           var base = window.UNIMIND_BASE || "";
-          var origin = window.location.origin || "";
-          var prefix = origin + (base ? base : "");
-          // Asegurarse de no duplicar slashes
-          if (prefix.endsWith("/")) prefix = prefix.slice(0, -1);
-          window.location.href =
-            prefix +
+          var pagePath =
+            (base ? base : "") +
             "/index.php?role=" +
             encodeURIComponent(role) +
             "&page=" +
             encodeURIComponent(page) +
             "&from_sidebar=1";
+          // Asegurarse de que la URL comience con slash
+          if (!pagePath.startsWith("/")) pagePath = "/" + pagePath;
+          // Log para depuración: muestra la URL que se va a cargar
+          window.location.assign(pagePath);
         }
       });
     });

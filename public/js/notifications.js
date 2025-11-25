@@ -5,7 +5,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function fetchNotifs() {
     try {
-      const res = await fetch("/api/notifications.php");
+      const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
+      const res = await fetch(`${baseUrl}/api/notifications.php`, {
+        credentials: "include",
+      });
       if (!res.ok) return;
       const data = await res.json();
       if (!data.success) return;
