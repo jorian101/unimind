@@ -249,4 +249,86 @@
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", init);
   else init();
+
+  document.addEventListener("DOMContentLoaded", function () {
+    // Botones sugerir
+    document.querySelectorAll(".btn-suggest").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        openSuggestModal(btn.dataset.test);
+      });
+    });
+
+    // Modal y formulario
+    const modal = document.getElementById("suggestModal");
+    const closeBtn = document.getElementById("closeSuggestModal");
+    const selectCourse = document.getElementById("selectCourse");
+    const selectTest = document.getElementById("selectTest");
+    const suggestForm = document.getElementById("suggestForm");
+    const suggestMsg = document.getElementById("suggestMsg");
+
+    closeBtn.onclick = () => {
+      modal.style.display = "none";
+      suggestMsg.textContent = "";
+    };
+    window.onclick = (e) => {
+      if (e.target === modal) {
+        modal.style.display = "none";
+        suggestMsg.textContent = "";
+      }
+    };
+
+    function openSuggestModal(testType) {
+      // Cargar cursos asignados al profesor
+      selectCourse.innerHTML = "";
+      const cursos = window.__PROF_SUGGEST.courses || [];
+      if (!cursos.length) {
+        document.getElementById("suggestMsg").textContent =
+          "No se encontraron cursos asignados.";
+        modal.style.display = "block";
+        return;
+      }
+      cursos.forEach((c) => {
+        const opt = document.createElement("option");
+        opt.value = c.id_curso;
+        opt.textContent = c.nombre_curso;
+        selectCourse.appendChild(opt);
+      });
+      selectTest.value = testType || "estres";
+      modal.style.display = "block";
+      selectCourse.focus();
+    }
+
+    suggestForm.onsubmit = function (e) {
+      e.preventDefault();
+      suggestMsg.textContent = "";
+      const idCurso = selectCourse.value;
+      const testKey = selectTest.value;
+      const testId = window.__PROF_SUGGEST.tests[testKey];
+      if (!idCurso || !testId) {
+        suggestMsg.textContent = "Selecciona curso y test.";
+        return;
+      }
+      fetch("/unimind/api/suggest_test.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_curso: idCurso, id_test: testId }),
+      })
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.success) {
+            suggestMsg.textContent =
+              "Test sugerido correctamente. Los alumnos recibirán la notificación.";
+            setTimeout(() => {
+              modal.style.display = "none";
+              suggestMsg.textContent = "";
+            }, 1200);
+          } else {
+            suggestMsg.textContent = res.message || "Error al sugerir test.";
+          }
+        })
+        .catch(() => {
+          suggestMsg.textContent = "Error de red o servidor.";
+        });
+    };
+  });
 })();

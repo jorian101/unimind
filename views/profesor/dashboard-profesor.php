@@ -87,47 +87,66 @@ window.__PROF_SUGGEST = {
             </div>
         </div>
     </section>
-</section>
 
-        <!-- Gráficos (estáticos, maqueta visual) -->
-        <section class="charts-row">
-                <div class="charts-grid">
-                        <div class="card chart-card chart-card--line">
-                                <h3>Evolución Temporal</h3>
-                                <small>Promedio por fecha</small>
-                                <div class="chart">
-                                        <canvas id="prof-line" aria-label="Evolución temporal" role="img"></canvas>
-                                </div>
-                        </div>
+    <!-- Modal para sugerir test a curso -->
+    <div id="suggestModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" id="closeSuggestModal">&times;</span>
+            <h2>Sugerir Test a Curso</h2>
+            <form id="suggestForm">
+                <label for="selectCourse">Curso:</label>
+                <select id="selectCourse" name="curso" required></select>
+                <label for="selectTest">Test:</label>
+                <select id="selectTest" name="test" required>
+                    <option value="estres">Test de Estrés</option>
+                    <option value="ansiedad">Test de Ansiedad</option>
+                </select>
+                <button type="submit" class="btn-primary">Sugerir</button>
+            </form>
+            <div id="suggestMsg" class="modal-msg"></div>
+        </div>
+    </div>
 
-                        <div class="card chart-card chart-card--pie">
-                            <h3>Distribución por Nivel de Riesgo</h3>
-                            <small>Últimas aplicaciones</small>
-                            <div class="chart chart-pie-wrap">
-                                <canvas id="prof-pie" aria-label="Distribución por nivel" role="img" width="140" height="140"></canvas>
-                                <div class="pie-legend">
-                                    <div><span class="legend-color" style="background:#34D399"></span><strong>Bajo</strong><small class="legend-val">—</small></div>
-                                    <div><span class="legend-color" style="background:#FBBF24"></span><strong>Moderado</strong><small class="legend-val">—</small></div>
-                                    <div><span class="legend-color" style="background:#F87171"></span><strong>Alto</strong><small class="legend-val">—</small></div>
-                                </div>
+    <div id="profMsg" class="prof-msg"></div>
+
+    <!-- Gráficos (estáticos, maqueta visual) -->
+    <section class="charts-row">
+            <div class="charts-grid">
+                    <div class="card chart-card chart-card--line">
+                            <h3>Evolución Temporal</h3>
+                            <small>Promedio por fecha</small>
+                            <div class="chart">
+                                    <canvas id="prof-line" aria-label="Evolución temporal" role="img"></canvas>
+                            </div>
+                    </div>
+
+                    <div class="card chart-card chart-card--pie">
+                        <h3>Distribución por Nivel de Riesgo</h3>
+                        <small>Últimas aplicaciones</small>
+                        <div class="chart chart-pie-wrap">
+                            <canvas id="prof-pie" aria-label="Distribución por nivel" role="img" width="140" height="140"></canvas>
+                            <div class="pie-legend">
+                                <div><span class="legend-color" style="background:#34D399"></span><strong>Bajo</strong><small class="legend-val">—</small></div>
+                                <div><span class="legend-color" style="background:#FBBF24"></span><strong>Moderado</strong><small class="legend-val">—</small></div>
+                                <div><span class="legend-color" style="background:#F87171"></span><strong>Alto</strong><small class="legend-val">—</small></div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="card chart-card chart-card--bar fullwidth">
-                                <h3>Niveles por Facultad</h3>
-                                <small>Comparativo</small>
-                                <div class="chart chart-bar-wrap">
-                                        <canvas id="prof-bar" aria-label="Niveles por Facultad" role="img"></canvas>
-                                </div>
-                        </div>
-                </div>
-        </section>
+                    <div class="card chart-card chart-card--bar fullwidth">
+                            <h3>Niveles por Facultad</h3>
+                            <small>Comparativo</small>
+                            <div class="chart chart-bar-wrap">
+                                    <canvas id="prof-bar" aria-label="Niveles por Facultad" role="img"></canvas>
+                            </div>
+                    </div>
+            </div>
+    </section>
 </main>
 
 <?php
 // Fin de vista (se eliminaron secciones excepto sugerencias y 'Niveles altos')
 ?>
 <script src="/unimind/public/js/prof-suggest.js?v=<?php echo time(); ?>"></script>
-<!-- Chart.js and charts initializer -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="/unimind/public/js/prof-charts.js?v=<?php echo time(); ?>"></script>

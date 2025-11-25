@@ -301,7 +301,7 @@
 
   // Auto-sync cuando se reconecta a internet
   window.addEventListener("online", () => {
-    console.log("[PWA-Sync] Conexión restaurada, iniciando sincronización...");
+    // Producción: eliminar logs
     Promise.all([
       flushQueue().catch((e) =>
         console.warn("[PWA-Sync] Error al sincronizar aplicaciones:", e),
@@ -310,7 +310,7 @@
         console.warn("[PWA-Sync] Error al sincronizar tests:", e),
       ),
     ]).then(() => {
-      console.log("[PWA-Sync] Sincronización completada");
+      // Producción: eliminar logs
     });
   });
 
@@ -318,13 +318,9 @@
   if (window.IDBWrapper) {
     window.IDBWrapper.open()
       .then(() => {
-        console.log("[PWA-Sync] IndexedDB abierta");
         // Si ya estamos online al cargar la página (por ejemplo recargaste
         // después de recuperar la conexión), intentar flush inmediato.
         if (navigator.onLine) {
-          console.log(
-            "[PWA-Sync] Detectado online en carga, ejecutando flush inmediato...",
-          );
           flushQueue().catch((e) =>
             console.warn("[PWA-Sync] Error al sincronizar aplicaciones:", e),
           );
