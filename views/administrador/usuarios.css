@@ -1,0 +1,129 @@
+/* views/administrador/usuarios.css */
+.usuarios-dashboard {
+    max-width: 1100px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px #0002;
+    padding: 32px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+.usuarios-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+.usuarios-header h2 {
+    font-size: 2em;
+    color: #1976d2;
+    margin: 0;
+}
+.usuarios-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 32px;
+    background: #fafcff;
+}
+.usuarios-table th, .usuarios-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+.usuarios-table th {
+    background: #f7f7f7;
+    color: #1976d2;
+    font-weight: 600;
+}
+.usuarios-table tr:hover {
+    background: #e3f2fd;
+}
+.usuarios-actions button {
+    margin-right: 8px;
+    font-size: 0.95em;
+}
+.btn {
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn:hover {
+    background: #1565c0;
+}
+.btn-danger {
+    background: #d32f2f;
+}
+.btn-danger:hover {
+    background: #b71c1c;
+}
+.btn-secondary {
+    background: #aaa;
+}
+.btn-secondary:hover {
+    background: #888;
+}
+.btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: #0006;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-content {
+    background: #fff;
+    padding: 32px;
+    border-radius: 10px;
+    min-width: 350px;
+    max-width: 400px;
+    box-shadow: 0 2px 16px #0003;
+}
+.modal-header {
+    font-size: 1.2em;
+    margin-bottom: 16px;
+    color: #1976d2;
+    font-weight: 600;
+}
+.modal-actions {
+    margin-top: 24px;
+    text-align: right;
+}
+input[type="text"], input[type="email"], input[type="password"], select {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 8px;
+    width: 100%;
+    font-size: 1em;
+    margin-top: 4px;
+    box-sizing: border-box;
+    background: #f9f9f9;
+}
+input:focus, select:focus {
+    outline: none;
+    border-color: #1976d2;
+    background: #e3f2fd;
+}
+label {
+    font-weight: 500;
+    color: #333;
+}
+@media (max-width: 700px) {
+    .usuarios-dashboard {
+        padding: 12px;
+    }
+    .modal-content {
+        padding: 16px;
+        min-width: 90vw;
+        max-width: 95vw;
+    }
+}
