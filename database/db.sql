@@ -40,6 +40,23 @@ CREATE TABLE `Opciones_Respuesta` (
     PRIMARY KEY (`id_opcion`)
 );
 
+-- Tabla de Tipos de Escala
+CREATE TABLE `Tipos_Escalas` (
+    `id_tipo_escala` INT NOT NULL AUTO_INCREMENT,
+    `nombre` VARCHAR(100) NOT NULL,
+    `descripcion` TEXT,
+    PRIMARY KEY (`id_tipo_escala`)
+);
+
+-- Tabla intermedia para vincular tipos de escala con opciones
+CREATE TABLE `TiposEscala_Opciones` (
+    `id_tipo_escala` INT NOT NULL,
+    `id_opcion` INT NOT NULL,
+    PRIMARY KEY (`id_tipo_escala`, `id_opcion`),
+    FOREIGN KEY (`id_tipo_escala`) REFERENCES `Tipos_Escalas`(`id_tipo_escala`) ON DELETE CASCADE,
+    FOREIGN KEY (`id_opcion`) REFERENCES `Opciones_Respuesta`(`id_opcion`) ON DELETE CASCADE
+);
+
 -- 2. Tablas Dependientes (Con Foreign Keys)
 
 CREATE TABLE `Cursos` (
@@ -121,6 +138,20 @@ CREATE TABLE `Respuestas_Aplicacion` (
     FOREIGN KEY (`id_opcion_seleccionada`) REFERENCES `Opciones_Respuesta`(`id_opcion`)
         ON DELETE RESTRICT,
     UNIQUE KEY `uk_aplicacion_item` (`id_aplicacion`, `id_item`)
+);
+
+
+-- Tabla para registrar sugerencias de tests por el profesor
+CREATE TABLE IF NOT EXISTS `Sugerencias` (
+    `id_sugerencia` INT AUTO_INCREMENT PRIMARY KEY,
+    `id_curso` INT NOT NULL,
+    `id_test` INT NOT NULL,
+    `id_profesor` INT NOT NULL,
+    `fecha_sugerencia` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `estado` ENUM('pendiente', 'visto') DEFAULT 'pendiente',
+    FOREIGN KEY (`id_curso`) REFERENCES `Cursos`(`id_curso`) ON DELETE CASCADE,
+    FOREIGN KEY (`id_test`) REFERENCES `Tests`(`id_test`) ON DELETE CASCADE,
+    FOREIGN KEY (`id_profesor`) REFERENCES `Usuarios`(`id_usuario`) ON DELETE RESTRICT
 );
 
 -- Tabla para registrar intentos de sincronización desde PWA

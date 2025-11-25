@@ -1,268 +1,208 @@
--- Datos iniciales del sistema prueba
-INSERT INTO `Escuelas` (`nombre_escuela`, `telefono`) VALUES
-('Civil', '555-1001'),
-('Educacion', '555-1002'),
-('Artes', '555-1003'),
-('Ambiental', '555-1004'),
-('Medicina', '555-1005'),
-('Biologia', '555-1006'),
-('Veterinaria', '555-1007'),
-('Alimentaria', '555-1008'),
-('Sistemas', '555-1009'),
-('Administracion', '555-1010'),
-('Psicologia', '555-1011'),
-('Obs', '555-1012'),
-('Conta', '555-1013');
+-- 1.1 Escuelas
+INSERT INTO `Escuelas` (`id_escuela`, `nombre_escuela`, `telefono`) VALUES
+(1, 'Ingeniería de Sistemas', '555-1001'),
+(2, 'Psicología', '555-2002'),
+(3, 'Ciencias de la Comunicación', '555-3003');
 
-INSERT INTO `Usuarios` (`nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`, `fecha_nacimiento`, `genero`) VALUES
--- Administradores
-('Ana', 'García', 'ADM001', 'adminpass', 'Administrador', '1980-01-10', 'Femenino'),
-('Luis', 'Martínez', 'ADM002', 'adminpass', 'Administrador', '1978-05-22', 'Masculino'),
-('Carmen', 'López', 'ADM003', 'adminpass', 'Administrador', '1985-09-15', 'Femenino'),
-('Jorge', 'Paredes', 'ADM004', 'adminpass', 'Administrador', '1982-12-03', 'Masculino'),
-('Patricia', 'Ríos', 'ADM005', 'adminpass', 'Administrador', '1987-04-26', 'Femenino'),
--- Profesores
-('Carlos', 'Gonzalez', 'PROF001', 'profpass', 'Docente', '1975-03-30', 'Masculino'),
-('Sofía', 'Mendoza', 'PROF002', 'profpass', 'Docente', '1982-06-21', 'Femenino'),
-('Raúl', 'Castillo', 'PROF003', 'profpass', 'Docente', '1979-11-22', 'Masculino'),
-('María', 'Silva', 'PROF004', 'profpass', 'Docente', '1981-05-14', 'Femenino'),
-('Fernando', 'Paredes', 'PROF005', 'profpass', 'Docente', '1984-07-27', 'Masculino'),
--- Alumnos
-('Esteban', 'Bravo', 'ALU001', 'alupass', 'Estudiante', '2002-03-10', 'Masculino'),
-('Luciana', 'Mora', 'ALU002', 'alupass', 'Estudiante', '2003-07-22', 'Femenino'),
-('Diego', 'Rojas', 'ALU003', 'alupass', 'Estudiante', '2004-01-15', 'Masculino'),
-('Camila', 'Vega', 'ALU004', 'alupass', 'Estudiante', '2005-11-28', 'Femenino'),
-('Julián', 'Serrano', 'ALU005', 'alupass', 'Estudiante', '2002-05-01', 'Masculino'),
-('Valentina', 'Cruz', 'ALU006', 'alupass', 'Estudiante', '2003-12-05', 'Femenino'),
-('Sebastián', 'Gómez', 'ALU007', 'alupass', 'Estudiante', '2004-09-19', 'Masculino'),
-('Martina', 'Herrera', 'ALU008', 'alupass', 'Estudiante', '2005-04-14', 'Femenino'),
-('Tomás', 'Pinto', 'ALU009', 'alupass', 'Estudiante', '2002-02-28', 'Masculino'),
-('Renata', 'Silva', 'ALU010', 'alupass', 'Estudiante', '2003-08-30', 'Femenino'),
-('Agustín', 'López', 'ALU011', 'alupass', 'Estudiante', '2004-10-12', 'Masculino'),
-('Emilia', 'Castro', 'ALU012', 'alupass', 'Estudiante', '2005-06-03', 'Femenino'),
-('Nicolás', 'Reyes', 'ALU013', 'alupass', 'Estudiante', '2002-03-07', 'Masculino'),
-('Valeria', 'Mendoza', 'ALU014', 'alupass', 'Estudiante', '2003-01-25', 'Femenino'),
-('Matías', 'Ortega', 'ALU015', 'alupass', 'Estudiante', '2004-11-11', 'Masculino'),
-('Isabella', 'Baca', 'ALU016', 'alupass', 'Estudiante', '2005-04-04', 'Femenino'),
-('Gabriel', 'Cáceres', 'ALU017', 'alupass', 'Estudiante', '2002-02-09', 'Masculino'),
-('Antonella', 'Linares', 'ALU018', 'alupass', 'Estudiante', '2003-10-21', 'Femenino'),
-('Facundo', 'Salas', 'ALU019', 'alupass', 'Estudiante', '2004-12-31', 'Masculino'),
-('Josefina', 'Zapata', 'ALU020', 'alupass', 'Estudiante', '2005-08-17', 'Femenino')
-ON DUPLICATE KEY UPDATE nombre=VALUES(nombre);
+-- 1.2 Opciones de Respuesta (Escala Likert 0-3)
+INSERT INTO `Opciones_Respuesta` (`id_opcion`, `texto_opcion`, `valor_puntuacion`) VALUES
+(1, 'Nunca', 0),
+(2, 'A veces', 1),
+(3, 'Frecuentemente', 2),
+(4, 'Siempre', 3);
 
-INSERT INTO `Usuario_Escuela` (`id_usuario`, `id_escuela`) VALUES
-(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9), (10, 10),
-(11, 11), (12, 12), (13, 13), (14, 13), (15, 12), (16, 12), (17, 9), (18, 2), (19, 7), (20, 3),
-(21, 8), (22, 7), (23, 5), (24, 4), (25, 10), (26, 2), (27, 1), (28, 4), (29, 9), (30, 6);
+-- Más opciones de respuesta
+INSERT INTO `Opciones_Respuesta` (`id_opcion`, `texto_opcion`, `valor_puntuacion`) VALUES
+(5, 'Totalmente en desacuerdo', 1),
+(6, 'En desacuerdo', 2),
+(7, 'De acuerdo', 3),
+(8, 'Totalmente de acuerdo', 4),
+(9, 'No', 0),
+(10, 'Sí', 1),
+(11, 'Nada en absoluto', 0),
+(12, 'Un poco', 1),
+(13, 'Bastante', 2),
+(14, 'Mucho', 3),
+(15, 'Muy insatisfecho', 1),
+(16, 'Insatisfecho', 2),
+(17, 'Neutral', 3),
+(18, 'Satisfecho', 4),
+(19, 'Muy satisfecho', 5);
+-- Más tipos de escala
+INSERT INTO `Tipos_Escalas` (`id_tipo_escala`, `nombre`, `descripcion`) VALUES
+(2, 'Likert 5 puntos', 'Totalmente en desacuerdo, En desacuerdo, De acuerdo, Totalmente de acuerdo'),
+(3, 'Binario', 'Sí o No'),
+(4, 'Intensidad 4 puntos', 'Nada en absoluto, Un poco, Bastante, Mucho'),
+(5, 'Satisfacción 5 puntos', 'Muy insatisfecho, Insatisfecho, Neutral, Satisfecho, Muy satisfecho');
+-- Vinculación de Tipos de Escala con Opciones
+-- Likert 5 puntos
+INSERT INTO `TiposEscala_Opciones` (`id_tipo_escala`, `id_opcion`) VALUES
+(2, 5),
+(2, 6),
+(2, 7),
+(2, 8);
 
-INSERT INTO `Tests` (`nombre`, `descripcion`, `num_items`) VALUES
-('Test Ansiedad Generalizada 1', 'Inventario para medir la ansiedad general.', 15),
-('Test Estrés Académico Corto', 'Mide el nivel de estrés asociado a tareas estudiantiles.', 8),
-('Escala de Depresión Hamilton', 'Para evaluar la severidad de la depresión.', 10),
-('Inventario de Burnout de Maslach', 'Mide el agotamiento emocional, despersonalización y logros personales.', 22),
-('Escala de Resiliencia Connor-Davidson', 'Mide la capacidad de afrontar la adversidad.', 10),
-('Cuestionario de Miedos Específicos', 'Evalúa la presencia de fobias específicas.', 12),
-('Test de Calidad de Sueño PSQI', 'Evalúa la calidad del sueño a lo largo de un mes.', 7),
-('Inventario de Ansiedad Social', 'Mide la ansiedad en situaciones sociales.', 15),
-('Escala de Estrés Laboral ELS', 'Específico para el entorno de trabajo.', 10),
-('Cuestionario de Autoestima Rosenberg', 'Mide la autoestima global.', 10),
-('Test Ansiedad Generalizada 2', 'Versión alternativa para ansiedad.', 15),
-('Test Estrés Académico Largo', 'Versión detallada para estrés estudiantil.', 15),
-('Escala de Estrés Parental', 'Mide el estrés derivado de la crianza.', 10),
-('Cuestionario de Afrontamiento al Estrés (COPE)', 'Evalúa estrategias de afrontamiento.', 60),
-('Test de Clima Laboral', 'Evalúa la percepción del ambiente de trabajo.', 10),
-('Inventario de Síntomas Somáticos', 'Mide síntomas físicos relacionados con el estrés.', 10),
-('Escala de Satisfacción con la Vida', 'Evalúa el bienestar subjetivo.', 5),
-('Cuestionario de Perfeccionismo', 'Mide tendencias perfeccionistas.', 10),
-('Test de Preocupación Crónica', 'Evalúa la tendencia a la preocupación excesiva.', 10),
-('Escala de Riesgo Suicida (BHS)', 'Evalúa el riesgo de autolesión.', 20),
-('Test Ansiedad de Examen', 'Específico para situaciones de evaluación.', 10),
-('Escala de Estrés Familiar', 'Mide el estrés en el contexto familiar.', 8),
-('Inventario de Ira (STAXI)', 'Evalúa la experiencia y expresión de la ira.', 10),
-('Cuestionario de Detección de Trauma (PCL)', 'Evalúa síntomas de estrés postraumático.', 20),
-('Escala de Apego en Adultos', 'Evalúa patrones de apego.', 10),
-('Test de Habilidades Sociales', 'Mide la competencia social.', 10),
-('Inventario de Estrategias de Regulación Emocional', 'Evalúa cómo se regulan las emociones.', 10),
-('Escala de Soledad UCLA', 'Mide la sensación de soledad.', 20),
-('Cuestionario de Estilos de Vida Saludable', 'Evalúa hábitos de salud.', 15),
-('Test de Motivación Intrínseca', 'Mide el grado de motivación interna.', 10);
+-- Binario
+INSERT INTO `TiposEscala_Opciones` (`id_tipo_escala`, `id_opcion`) VALUES
+(3, 9),
+(3, 10);
 
-INSERT INTO `Opciones_Respuesta` (`texto_opcion`, `valor_puntuacion`) VALUES
--- Escala 4 puntos (Likert)
-('Totalmente en desacuerdo', 1), ('En desacuerdo', 2), ('De acuerdo', 3), ('Totalmente de acuerdo', 4),
--- Escala 5 puntos (Frecuencia)
-('Nunca', 0), ('Casi nunca', 1), ('A veces', 2), ('A menudo', 3), ('Siempre', 4),
--- Escala 3 puntos (Intensidad)
-('Nada en absoluto', 0), ('Un poco', 1), ('Bastante', 2), ('Mucho', 3),
--- Escala 2 puntos (Sí/No)
-('No', 0), ('Sí', 1),
--- Escala 5 puntos (Burnout)
-('0 - Nunca', 0), ('1 - Pocas veces al año', 1), ('2 - Una vez al mes', 2), ('3 - Pocas veces al mes', 3), ('4 - Una vez a la semana', 4),
--- Escala 5 puntos (Sueño)
-('Muy bueno', 0), ('Bueno', 1), ('Regular', 2), ('Malo', 3), ('Muy malo', 4),
--- Escala 4 puntos (Sentimiento)
-('No me siento así', 0), ('Raramente', 1), ('A veces', 2), ('Casi siempre', 3),
--- Escala 5 puntos (Satisfacción)
-('Muy insatisfecho', 1), ('Insatisfecho', 2), ('Neutral', 3), ('Satisfecho', 4), ('Muy Satisfecho', 5);
+-- Intensidad 4 puntos
+INSERT INTO `TiposEscala_Opciones` (`id_tipo_escala`, `id_opcion`) VALUES
+(4, 11),
+(4, 12),
+(4, 13),
+(4, 14);
 
-INSERT INTO `Items` (`id_test`, `texto_item`, `subescala`, `orden`) VALUES
--- Test Ansiedad Generalizada 1 (id_test: 1)
-(1, 'Me he sentido más nervioso/a o ansioso/a de lo habitual.', 'Ansiedad Emocional', 1),
-(1, 'He tenido problemas para relajarme.', 'Ansiedad Tensión', 2),
-(1, 'He estado preocupado/a por demasiadas cosas.', 'Preocupación', 3),
-(1, 'He sentido que mi corazón latía muy rápido o con fuerza.', 'Síntomas Físicos', 4),
-(1, 'He tenido dificultad para conciliar el sueño.', 'Ansiedad Tensión', 5),
-(1, 'Me he asustado fácilmente.', 'Ansiedad Emocional', 6),
-(1, 'He tenido dificultad para concentrarme.', 'Preocupación', 7),
-(1, 'Me he sentido inquieto/a o incapaz de quedarme quieto/a.', 'Ansiedad Tensión', 8),
-(1, 'Me he sentido mareado/a o con la cabeza ligera.', 'Síntomas Físicos', 9),
-(1, 'He tenido la sensación de que algo terrible iba a pasar.', 'Preocupación', 10),
--- Test Estrés Académico Corto (id_test: 2)
-(2, 'La cantidad de tareas me resulta abrumadora.', 'Carga Laboral', 1),
-(2, 'Siento presión por obtener buenas calificaciones.', 'Presión Externa', 2),
-(2, 'He tenido dificultad para organizar mi tiempo de estudio.', 'Autogestión', 3),
-(2, 'Siento que el tiempo no me alcanza para estudiar todo.', 'Carga Laboral', 4),
-(2, 'Me preocupo por el resultado de los exámenes.', 'Presión Externa', 5),
-(2, 'He tenido dolores de cabeza o estómago por el estudio.', 'Síntomas Físicos', 6),
-(2, 'He pospuesto tareas importantes.', 'Autogestión', 7),
-(2, 'Me cuesta relajarme después de un día de clases/estudio.', 'Carga Laboral', 8),
--- Escala de Depresión Hamilton (id_test: 3)
-(3, 'Tristeza (estado de ánimo).', 'Afectivo', 1),
-(3, 'Sentimientos de culpa.', 'Afectivo', 2),
-(3, 'Suicidio.', 'Afectivo', 3),
-(3, 'Insomnio precoz (dificultad para conciliar el sueño).', 'Somático', 4),
-(3, 'Insomnio medio (despertar en la noche).', 'Somático', 5),
-(3, 'Insomnio tardío (despertar temprano).', 'Somático', 6),
-(3, 'Trabajo y actividades.', 'Conductual', 7),
-(3, 'Inhibición / Retraso.', 'Conductual', 8),
-(3, 'Agitación.', 'Conductual', 9),
-(3, 'Ansiedad psíquica (tensión, miedos).', 'Afectivo', 10),
-(3, 'Ansiedad somática (síntomas físicos).', 'Somático', 11),
-(3, 'Síntomas somáticos generales (peso, boca seca).', 'Somático', 12);
+-- Satisfacción 5 puntos
+INSERT INTO `TiposEscala_Opciones` (`id_tipo_escala`, `id_opcion`) VALUES
+(5, 15),
+(5, 16),
+(5, 17),
+(5, 18),
+(5, 19);
 
-INSERT INTO `Aplicaciones` (`id_usuario`, `id_test`, `fecha_aplicacion`, `puntuacion_total`, `resultado_nivel`) VALUES
-(1, 1, '2025-11-18 09:00:00', 35, 'Ansiedad Moderada'),
-(2, 2, '2025-11-18 10:00:00', 18, 'Estrés Bajo'),
-(3, 3, '2025-11-18 11:00:00', 25, 'Depresión Leve'),
-(4, 1, '2025-11-18 12:00:00', 40, 'Ansiedad Alta'),
-(5, 2, '2025-11-19 08:30:00', 12, 'Estrés Mínimo'),
-(6, 3, '2025-11-19 09:30:00', 35, 'Depresión Moderada'),
-(7, 1, '2025-11-19 10:30:00', 30, 'Ansiedad Media'),
-(8, 2, '2025-11-19 11:30:00', 25, 'Estrés Medio'),
-(9, 3, '2025-11-19 12:30:00', 45, 'Depresión Severa'),
-(10, 1, '2025-11-20 14:00:00', 20, 'Ansiedad Baja'),
-(11, 2, '2025-11-20 15:00:00', 30, 'Estrés Alto'),
-(12, 3, '2025-11-20 16:00:00', 15, 'Depresión Mínima'),
-(13, 1, '2025-11-21 09:00:00', 45, 'Ansiedad Severa'),
-(14, 2, '2025-11-21 10:00:00', 16, 'Estrés Bajo'),
-(15, 3, '2025-11-21 11:00:00', 28, 'Depresión Leve'),
-(16, 1, '2025-11-22 13:00:00', 38, 'Ansiedad Moderada'),
-(17, 2, '2025-11-22 14:00:00', 22, 'Estrés Medio'),
-(18, 3, '2025-11-22 15:00:00', 30, 'Depresión Moderada'),
-(19, 1, '2025-11-22 09:00:00', 25, 'Ansiedad Media'),
-(20, 2, '2025-11-22 10:00:00', 10, 'Estrés Mínimo'),
-(21, 3, '2025-11-22 11:00:00', 40, 'Depresión Alta'),
-(22, 1, '2025-11-23 14:00:00', 32, 'Ansiedad Media'),
-(23, 2, '2025-11-23 15:00:00', 28, 'Estrés Alto'),
-(24, 3, '2025-11-23 16:00:00', 20, 'Depresión Leve'),
-(25, 1, '2025-11-23 08:30:00', 42, 'Ansiedad Alta'),
-(26, 2, '2025-11-23 09:30:00', 15, 'Estrés Bajo'),
-(27, 3, '2025-11-23 10:30:00', 33, 'Depresión Moderada'),
-(28, 1, '2025-11-23 11:00:00', 28, 'Ansiedad Media'),
-(29, 2, '2025-11-23 12:00:00', 20, 'Estrés Medio'),
-(30, 3, '2025-11-23 13:00:00', 48, 'Depresión Severa');
+-- Tipos de Escala
+INSERT INTO `Tipos_Escalas` (`id_tipo_escala`, `nombre`, `descripcion`) VALUES
+(1, 'Likert 4 puntos', 'Nunca, A veces, Frecuentemente, Siempre');
 
--- Respuestas por aplicación (separadas para evitar problemas de parsing)
+-- Vinculación de Tipos de Escala con Opciones
+INSERT INTO `TiposEscala_Opciones` (`id_tipo_escala`, `id_opcion`) VALUES
+(1, 1), -- Nunca
+(1, 2), -- A veces
+(1, 3), -- Frecuentemente
+(1, 4); -- Siempre
+
+-- 1.3 Usuarios
+-- Admins
+INSERT INTO `Usuarios` (`nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`) VALUES
+('Ana', 'Admin', 'ADM001', 'admin123', 'Administrador');
+
+-- Docentes
+INSERT INTO `Usuarios` (`id_usuario`, `nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`) VALUES
+(2, 'María', 'López', 'PROF001', 'prof123', 'Docente'),  -- ID 2
+(3, 'Carlos', 'Ruiz', 'PROF002', 'prof123', 'Docente');  -- ID 3
+
+-- Estudiantes (Creamos 10 para la demo)
+INSERT INTO `Usuarios` (`id_usuario`, `nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`, `genero`, `fecha_nacimiento`) VALUES
+(4, 'Juan', 'Pérez', 'EST001', 'est123', 'Estudiante', 'Masculino', '2004-05-10'),
+(5, 'Lucía', 'Gómez', 'EST002', 'est123', 'Estudiante', 'Femenino', '2004-08-22'),
+(6, 'Pedro', 'Díaz', 'EST003', 'est123', 'Estudiante', 'Masculino', '2003-12-01'),
+(7, 'Sofía', 'Mora', 'EST004', 'est123', 'Estudiante', 'Femenino', '2005-01-15'),
+(8, 'Miguel', 'Torres', 'EST005', 'est123', 'Estudiante', 'Masculino', '2004-03-30'),
+(9, 'Elena', 'Vargas', 'EST006', 'est123', 'Estudiante', 'Femenino', '2004-07-07'),
+(10, 'David', 'Rios', 'EST007', 'est123', 'Estudiante', 'Masculino', '2003-09-19'),
+(11, 'Carmen', 'Soto', 'EST008', 'est123', 'Estudiante', 'Femenino', '2005-02-28'),
+(12, 'Raúl', 'Castro', 'EST009', 'est123', 'Estudiante', 'Masculino', '2004-11-11'),
+(13, 'Laura', 'Meza', 'EST010', 'est123', 'Estudiante', 'Femenino', '2004-06-05');
+
+-- 1.4 Tests
+INSERT INTO `Tests` (`id_test`, `nombre`, `descripcion`, `num_items`) VALUES
+(1, 'Test de Estrés Académico', 'Mide el nivel de sobrecarga percibida.', 5), -- 5 items para demo rápida
+(2, 'Test de Ansiedad General', 'Evalúa síntomas psicofisiológicos de ansiedad.', 5);
+
+-- ----------------------------------------------------------------
+-- 2. TABLAS DEPENDIENTES (NIVEL 1)
+-- ----------------------------------------------------------------
+
+-- 2.1 Items (Preguntas de los Tests)
+-- Items Test Estrés (ID 1)
+INSERT INTO `Items` (`id_item`, `id_test`, `texto_item`, `subescala`, `orden`) VALUES
+(1, 1, 'Me siento abrumado por la cantidad de tareas.', 'Sobrecarga', 1),
+(2, 1, 'Tengo dificultades para concentrarme en clase.', 'Cognitivo', 2),
+(3, 1, 'Siento dolores de cabeza frecuentes.', 'Físico', 3),
+(4, 1, 'Me preocupa no cumplir las expectativas.', 'Emocional', 4),
+(5, 1, 'Duermo menos de lo necesario por estudiar.', 'Físico', 5);
+
+-- Items Test Ansiedad (ID 2)
+INSERT INTO `Items` (`id_item`, `id_test`, `texto_item`, `subescala`, `orden`) VALUES
+(6, 2, 'Siento nerviosismo o agitación interior.', 'Emocional', 1),
+(7, 2, 'Tengo miedo a que suceda algo terrible.', 'Cognitivo', 2),
+(8, 2, 'Siento que el corazón me late muy rápido.', 'Físico', 3),
+(9, 2, 'Tengo molestias estomacales antes de exámenes.', 'Físico', 4),
+(10, 2, 'Me cuesta relajarme incluso en tiempo libre.', 'Conductual', 5);
+
+-- 2.2 Cursos (Vinculan Escuela + Profesor)
+INSERT INTO `Cursos` (`id_curso`, `nombre_curso`, `id_escuela`, `id_profesor`) VALUES
+(1, 'Matemáticas I', 1, 2),        -- Prof María (Sistemas)
+(2, 'Programación Web', 1, 2),     -- Prof María (Sistemas)
+(3, 'Psicología General', 2, 3),   -- Prof Carlos (Psicología)
+(4, 'Taller de Liderazgo', 3, 3);  -- Prof Carlos (Comunicaciones)
+
+-- ----------------------------------------------------------------
+-- 3. TABLAS VINCULANTES (NIVEL 2)
+-- ----------------------------------------------------------------
+
+-- 3.1 Usuario_Curso (Inscripciones)
+INSERT INTO `Usuario_Curso` (`id_usuario`, `id_curso`) VALUES
+-- Curso 1 (Matemáticas): Alumnos 4, 5, 6, 7, 8
+(4, 1), (5, 1), (6, 1), (7, 1), (8, 1),
+-- Curso 2 (Prog Web): Alumnos 9, 10, 11, 12, 13
+(9, 2), (10, 2), (11, 2), (12, 2), (13, 2),
+-- Curso 3 (Psicología): Mezcla
+(4, 3), (6, 3), (10, 3), (12, 3);
+
+-- 3.2 Sugerencias (Profesores sugiriendo tests)
+INSERT INTO `Sugerencias` (`id_curso`, `id_test`, `id_profesor`, `estado`, `fecha_sugerencia`) VALUES
+(1, 1, 2, 'pendiente', '2025-11-20 10:00:00'), -- María sugiere Estrés a Mate
+(3, 2, 3, 'visto', '2025-11-19 14:30:00');      -- Carlos sugiere Ansiedad a Psico
+
+-- ----------------------------------------------------------------
+-- 4. SIMULACIÓN DE INTERACCIÓN (APLICACIONES Y RESPUESTAS)
+-- ----------------------------------------------------------------
+
+-- CASO 1: Alumno Juan (ID 4) hace Test Estrés -> Resultado ALTO (Muchos 3)
+INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `puntuacion_total`, `resultado_nivel`) 
+VALUES (1, 4, 1, 'uuid-simulado-001', 14, 'Alto');
+
+-- Detalle de respuestas de Juan (Items 1-5)
 INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
-(1, 1, 4, 4), (1, 2, 3, 3), (1, 3, 4, 4), (1, 4, 3, 3);
+(1, 1, 4, 3), -- Siempre (3 pts)
+(1, 2, 4, 3), -- Siempre (3 pts)
+(1, 3, 3, 2), -- Frecuentemente (2 pts)
+(1, 4, 4, 3), -- Siempre (3 pts)
+(1, 5, 4, 3); -- Siempre (3 pts) -> Total 14
 
-INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
-(2, 11, 2, 2), (2, 12, 1, 1);
 
-INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
-(3, 13, 3, 3), (3, 14, 2, 2), (3, 15, 3, 3), (3, 16, 2, 2);
+-- CASO 2: Alumna Lucía (ID 5) hace Test Estrés -> Resultado BAJO (Muchos 0 y 1)
+INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `puntuacion_total`, `resultado_nivel`) 
+VALUES (2, 5, 1, 'uuid-simulado-002', 3, 'Bajo');
 
+-- Detalle de respuestas de Lucía
 INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
-(4, 1, 4, 4), (4, 2, 4, 4), (4, 3, 4, 4), (4, 4, 4, 4);
+(2, 1, 2, 1), -- A veces
+(2, 2, 1, 0), -- Nunca
+(2, 3, 1, 0), -- Nunca
+(2, 4, 2, 1), -- A veces
+(2, 5, 2, 1); -- A veces -> Total 3
+
+
+-- CASO 3: Alumno Pedro (ID 6) hace Test Estrés -> Resultado MODERADO
+INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `puntuacion_total`, `resultado_nivel`) 
+VALUES (3, 6, 1, 'uuid-simulado-003', 8, 'Moderado');
 
 INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
-(5, 11, 1, 1), (5, 12, 1, 1);
+(3, 1, 3, 2), (3, 2, 2, 1), (3, 3, 3, 2), (3, 4, 2, 1), (3, 5, 3, 2);
+
+
+-- CASO 4: Alumna Elena (ID 9) hace Test Ansiedad (ID 2) -> Resultado ALTO
+INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `puntuacion_total`, `resultado_nivel`) 
+VALUES (4, 9, 2, 'uuid-simulado-004', 15, 'Alto'); -- Máximo posible
 
 INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
-(6, 13, 4, 4), (6, 14, 3, 3), (6, 15, 4, 4), (6, 16, 3, 3);
+(4, 6, 4, 3), -- Items del 6 al 10 corresponden al test 2
+(4, 7, 4, 3),
+(4, 8, 4, 3),
+(4, 9, 4, 3),
+(4, 10, 4, 3);
+
+-- CASO 5: Alumno David (ID 10) hace Test Ansiedad -> Resultado BAJO
+INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `puntuacion_total`, `resultado_nivel`) 
+VALUES (5, 10, 2, 'uuid-simulado-005', 2, 'Bajo');
 
 INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
-(7, 5, 3, 3), (7, 6, 3, 3), (7, 7, 3, 3), (7, 8, 3, 3);
-
-INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
-(8, 11, 3, 3), (8, 12, 3, 3);
-
-INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
-(9, 13, 4, 4), (9, 14, 4, 4), (9, 15, 4, 4), (9, 16, 4, 4);
-
--- ==================================================
--- Seeder demo del profesor (agregado desde scripts/seed_prof_demo.sql)
--- ==================================================
-
--- Seeder SQL para demo del Dashboard de Profesor
--- Inserta un profesor, cursos, alumnos, tests (estres/ansiedad) y aplicaciones con puntuaciones
-USE `db_tests_estres_ansiedad`;
-
--- Profesor
-INSERT INTO `Usuarios` (`nombre`,`apellido`,`codigo_usuario`,`password`,`cargo`) VALUES
-('Carlos','Gonzalez','DOC100','secret','Docente')
-ON DUPLICATE KEY UPDATE nombre=VALUES(nombre);
-
--- Obtener id del profesor (ejecutar en cliente que soporte variables si se desea)
-
--- Escuelas
-INSERT INTO `Escuelas` (`nombre_escuela`,`telefono`) VALUES ('Instituto Demo','000-000')
-ON DUPLICATE KEY UPDATE nombre_escuela=VALUES(nombre_escuela);
-
--- Cursos
-INSERT INTO `Cursos` (`nombre_curso`,`id_escuela`,`id_profesor`) SELECT '2A - Psicología Escolar', e.id_escuela, u.id_usuario
-FROM Escuelas e JOIN Usuarios u ON u.codigo_usuario='DOC100' LIMIT 1
-ON DUPLICATE KEY UPDATE nombre_curso=VALUES(nombre_curso);
-
-INSERT INTO `Cursos` (`nombre_curso`,`id_escuela`,`id_profesor`) SELECT '3B - Taller de Estudio', e.id_escuela, u.id_usuario
-FROM Escuelas e JOIN Usuarios u ON u.codigo_usuario='DOC100' LIMIT 1
-ON DUPLICATE KEY UPDATE nombre_curso=VALUES(nombre_curso);
-
--- Estudiantes demo
-INSERT INTO `Usuarios` (`nombre`,`apellido`,`codigo_usuario`,`password`,`cargo`) VALUES
-('María','Sánchez','STU101','pwd','Estudiante'),
-('Juan','Pérez','STU102','pwd','Estudiante'),
-('Ana','Lopez','STU103','pwd','Estudiante')
-ON DUPLICATE KEY UPDATE nombre=VALUES(nombre);
-
--- Inscripciones (Usuario_Curso)
-INSERT IGNORE INTO Usuario_Curso (id_usuario,id_curso) SELECT u.id_usuario, c.id_curso FROM Usuarios u, Cursos c WHERE u.codigo_usuario='STU101' AND c.nombre_curso='2A - Psicología Escolar';
-INSERT IGNORE INTO Usuario_Curso (id_usuario,id_curso) SELECT u.id_usuario, c.id_curso FROM Usuarios u, Cursos c WHERE u.codigo_usuario='STU102' AND c.nombre_curso='2A - Psicología Escolar';
-INSERT IGNORE INTO Usuario_Curso (id_usuario,id_curso) SELECT u.id_usuario, c.id_curso FROM Usuarios u, Cursos c WHERE u.codigo_usuario='STU103' AND c.nombre_curso='3B - Taller de Estudio';
-
--- Tests de interés
-INSERT INTO Tests (nombre, descripcion, num_items) VALUES
-('Test de Estrés Escolar','Evalúa niveles de estrés en aula',10),
-('Test de Ansiedad Generalizada','Evalúa ansiedad',7)
-ON DUPLICATE KEY UPDATE nombre=VALUES(nombre);
-
--- Aplicaciones (puntuaciones) - varias fechas
--- Para 2A
-INSERT INTO Aplicaciones (id_usuario,id_test,fecha_aplicacion,puntuacion_total,resultado_nivel)
-SELECT uc.id_usuario, t.id_test, DATE_SUB(CURDATE(), INTERVAL 6 DAY), 25, 'Bajo' FROM Usuario_Curso uc JOIN Tests t ON t.nombre='Test de Estrés Escolar' WHERE uc.id_curso = (SELECT id_curso FROM Cursos WHERE nombre_curso='2A - Psicología Escolar') LIMIT 1;
-
-INSERT INTO Aplicaciones (id_usuario,id_test,fecha_aplicacion,puntuacion_total,resultado_nivel)
-SELECT uc.id_usuario, t.id_test, DATE_SUB(CURDATE(), INTERVAL 3 DAY), 45, 'Moderado' FROM Usuario_Curso uc JOIN Tests t ON t.nombre='Test de Estrés Escolar' WHERE uc.id_curso = (SELECT id_curso FROM Cursos WHERE nombre_curso='2A - Psicología Escolar') LIMIT 1;
-
-INSERT INTO Aplicaciones (id_usuario,id_test,fecha_aplicacion,puntuacion_total,resultado_nivel)
-SELECT uc.id_usuario, t.id_test, CURDATE(), 60, 'Moderado' FROM Usuario_Curso uc JOIN Tests t ON t.nombre='Test de Estrés Escolar' WHERE uc.id_curso = (SELECT id_curso FROM Cursos WHERE nombre_curso='2A - Psicología Escolar') LIMIT 1;
-
--- Para 3B (ansiedad)
-INSERT INTO Aplicaciones (id_usuario,id_test,fecha_aplicacion,puntuacion_total,resultado_nivel)
-SELECT uc.id_usuario, t.id_test, DATE_SUB(CURDATE(), INTERVAL 5 DAY), 72, 'Alto' FROM Usuario_Curso uc JOIN Tests t ON t.nombre='Test de Ansiedad Generalizada' WHERE uc.id_curso = (SELECT id_curso FROM Cursos WHERE nombre_curso='3B - Taller de Estudio') LIMIT 1;
-
-INSERT INTO Aplicaciones (id_usuario,id_test,fecha_aplicacion,puntuacion_total,resultado_nivel)
-SELECT uc.id_usuario, t.id_test, DATE_SUB(CURDATE(), INTERVAL 1 DAY), 68, 'Moderado' FROM Usuario_Curso uc JOIN Tests t ON t.nombre='Test de Ansiedad Generalizada' WHERE uc.id_curso = (SELECT id_curso FROM Cursos WHERE nombre_curso='3B - Taller de Estudio') LIMIT 1;
-
--- Nota: este script puede generar duplicados mínimos si se ejecuta varias veces; revisa las filas insertadas.
-
+(5, 6, 1, 0), 
+(5, 7, 1, 0),
+(5, 8, 2, 1),
+(5, 9, 1, 0),
+(5, 10, 2, 1);

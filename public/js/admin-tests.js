@@ -121,7 +121,7 @@ class AdminTestsManager {
     this.tiposEscalas.forEach((tipo) => {
       const option = document.createElement("option");
       option.value = tipo.id_tipo_escala;
-      option.textContent = tipo.nombre_escala;
+        option.textContent = tipo.nombre;
       option.title = tipo.descripcion;
       select.appendChild(option);
     });
@@ -141,26 +141,16 @@ class AdminTestsManager {
       return;
     }
 
-    try {
-      const base = window.UNIMIND_BASE || "";
-      const baseUrl =
-        window.location.origin && window.location.origin !== "null"
-          ? window.location.origin + base
-          : base;
-      const response = await fetch(
-        `${baseUrl}/controllers/TestsController.php?action=getOpcionesByTipoEscala&tipo_escala=${tipoEscalaId}`,
-        { credentials: "include" },
-      );
-      const data = await response.json();
-
-      if (data.success) {
-        this.opcionesDisponibles = data.data;
+      // Buscar las opciones en la estructura de tiposEscalas
+      const tipo = this.tiposEscalas.find(t => String(t.id_tipo_escala) === String(tipoEscalaId));
+      if (tipo && tipo.opciones && tipo.opciones.length > 0) {
+        this.opcionesDisponibles = tipo.opciones;
         this.renderOpciones();
         document.getElementById("opcionesSection").style.display = "block";
+      } else {
+        this.opcionesDisponibles = [];
+        document.getElementById("opcionesSection").style.display = "none";
       }
-    } catch {
-      // Silenciar error
-    }
   }
 
   /**

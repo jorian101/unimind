@@ -102,8 +102,8 @@ class TestsController {
      * Obtener todos los tipos de escalas
      */
     private function getTiposEscalas() {
-        $tipos = $this->model->getTiposEscalas();
-        $this->sendResponse(true, 'Tipos de escalas obtenidos correctamente', $tipos);
+           $escalas = $this->model->getTiposEscalas();
+           $this->sendResponse(true, 'Tipos de escalas obtenidos correctamente', $escalas);
     }
 
     /**

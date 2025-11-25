@@ -91,10 +91,32 @@ class TestsModel {
      */
     public function getTiposEscalas() {
         try {
-            $query = "SELECT * FROM {$this->table_tipos_escalas} ORDER BY id_tipo_escala ASC";
-            $stmt = $this->conn->prepare($query);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $query = "SELECT te.id_tipo_escala, te.nombre, te.descripcion, o.id_opcion, o.texto_opcion, o.valor_puntuacion
+                          FROM Tipos_Escalas te
+                          JOIN TiposEscala_Opciones teo ON te.id_tipo_escala = teo.id_tipo_escala
+                          JOIN Opciones_Respuesta o ON teo.id_opcion = o.id_opcion
+                          ORDER BY te.id_tipo_escala, o.id_opcion";
+                $stmt = $this->conn->prepare($query);
+                $stmt->execute();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $escalas = [];
+                foreach ($result as $row) {
+                    $id = $row['id_tipo_escala'];
+                    if (!isset($escalas[$id])) {
+                        $escalas[$id] = [
+                            'id_tipo_escala' => $row['id_tipo_escala'],
+                            'nombre' => $row['nombre'],
+                            'descripcion' => $row['descripcion'],
+                            'opciones' => []
+                        ];
+                    }
+                    $escalas[$id]['opciones'][] = [
+                        'id_opcion' => $row['id_opcion'],
+                        'texto_opcion' => $row['texto_opcion'],
+                        'valor_puntuacion' => $row['valor_puntuacion']
+                    ];
+                }
+                return array_values($escalas);
         } catch (PDOException $e) {
             error_log("Error al obtener tipos de escalas: " . $e->getMessage());
             return [];
