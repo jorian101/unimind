@@ -92,18 +92,105 @@ class AdminTestsManager {
         window.location.origin && window.location.origin !== "null"
           ? window.location.origin + base
           : base;
-      const response = await fetch(
-        `${baseUrl}/controllers/TestsController.php?action=getTiposEscalas`,
-        { credentials: "include" },
-      );
-      const data = await response.json();
+      const origin = window.location.origin || "";
 
-      if (data.success) {
-        this.tiposEscalas = data.data;
+      const makeCandidates = (action, extra = "") => [
+        `${baseUrl}/controllers/TestsController.php?action=${action}${extra}`,
+        `${origin}/unimind/controllers/TestsController.php?action=${action}${extra}`,
+        `${origin}/controllers/TestsController.php?action=${action}${extra}`,
+      ];
+
+      const tryFetchJson = async (urls) => {
+        for (const url of urls) {
+          try {
+            const resp = await fetch(url, { credentials: "include" });
+            if (resp && resp.ok) {
+              try {
+                return await resp.json();
+              } catch {
+                return null;
+              }
+            }
+          } catch {
+            // continuar al siguiente candidato
+          }
+        }
+        return null;
+      };
+
+      // 1) Intentar obtener tipos+opciones directamente
+      const tiposEscalasResp = await tryFetchJson(
+        makeCandidates("getTiposEscalas"),
+      );
+      if (
+        tiposEscalasResp &&
+        tiposEscalasResp.success &&
+        Array.isArray(tiposEscalasResp.data) &&
+        tiposEscalasResp.data.length > 0
+      ) {
+        this.tiposEscalas = tiposEscalasResp.data;
         this.renderTiposEscalas();
+        return;
+      }
+
+      // 2) Intentar obtener lista de tipos (sin opciones) y luego pedir opciones por tipo
+      const tiposResp = await tryFetchJson(makeCandidates("getTipos"));
+      if (
+        tiposResp &&
+        tiposResp.success &&
+        Array.isArray(tiposResp.data) &&
+        tiposResp.data.length > 0
+      ) {
+        const tipos = tiposResp.data;
+        const assembled = [];
+        for (const tipo of tipos) {
+          const optsResp = await tryFetchJson(
+            makeCandidates(
+              "getOpcionesByTipoEscala",
+              `&tipo_escala=${encodeURIComponent(tipo.id_tipo_escala)}`,
+            ),
+          );
+          const opciones =
+            optsResp && optsResp.success && Array.isArray(optsResp.data)
+              ? optsResp.data
+              : [];
+          assembled.push({
+            id_tipo_escala: tipo.id_tipo_escala,
+            nombre: tipo.nombre,
+            descripcion: tipo.descripcion,
+            opciones: opciones,
+          });
+        }
+        this.tiposEscalas = assembled;
+        this.renderTiposEscalas();
+        return;
+      }
+
+      // 3) Fallback: usar todas las opciones como una escala por defecto
+      const allOptsResp = await tryFetchJson(makeCandidates("getOpciones"));
+      if (
+        allOptsResp &&
+        allOptsResp.success &&
+        Array.isArray(allOptsResp.data) &&
+        allOptsResp.data.length > 0
+      ) {
+        this.tiposEscalas = [
+          {
+            id_tipo_escala: "default",
+            nombre: "Escala por defecto",
+            descripcion: "Opciones cargadas desde opciones generales",
+            opciones: allOptsResp.data.map((o) => ({
+              id_opcion: o.id_opcion,
+              texto_opcion: o.texto_opcion,
+              valor_puntuacion: o.valor_puntuacion,
+            })),
+          },
+        ];
+        this.renderTiposEscalas();
+        return;
       }
     } catch {
-      // Silenciar error en entorno offline
+      // Silenciar error en entorno offline o fallos de red
     }
   }
 
@@ -112,7 +199,8 @@ class AdminTestsManager {
    */
   renderTiposEscalas() {
     const select = document.getElementById("tipoEscala");
-    const currentValue = select.value;
+    if (!select) return;
+    const currentValue = select.value || "";
 
     // Mantener la opción por defecto
     select.innerHTML =
@@ -121,15 +209,13 @@ class AdminTestsManager {
     this.tiposEscalas.forEach((tipo) => {
       const option = document.createElement("option");
       option.value = tipo.id_tipo_escala;
-        option.textContent = tipo.nombre;
-      option.title = tipo.descripcion;
+      option.textContent = tipo.nombre || tipo.id_tipo_escala;
+      option.title = tipo.descripcion || "";
       select.appendChild(option);
     });
 
     // Restaurar valor si existía
-    if (currentValue) {
-      select.value = currentValue;
-    }
+    if (currentValue) select.value = currentValue;
   }
 
   /**
@@ -141,16 +227,18 @@ class AdminTestsManager {
       return;
     }
 
-      // Buscar las opciones en la estructura de tiposEscalas
-      const tipo = this.tiposEscalas.find(t => String(t.id_tipo_escala) === String(tipoEscalaId));
-      if (tipo && tipo.opciones && tipo.opciones.length > 0) {
-        this.opcionesDisponibles = tipo.opciones;
-        this.renderOpciones();
-        document.getElementById("opcionesSection").style.display = "block";
-      } else {
-        this.opcionesDisponibles = [];
-        document.getElementById("opcionesSection").style.display = "none";
-      }
+    // Buscar las opciones en la estructura de tiposEscalas
+    const tipo = this.tiposEscalas.find(
+      (t) => String(t.id_tipo_escala) === String(tipoEscalaId),
+    );
+    if (tipo && tipo.opciones && tipo.opciones.length > 0) {
+      this.opcionesDisponibles = tipo.opciones;
+      this.renderOpciones();
+      document.getElementById("opcionesSection").style.display = "block";
+    } else {
+      this.opcionesDisponibles = [];
+      document.getElementById("opcionesSection").style.display = "none";
+    }
   }
 
   /**
