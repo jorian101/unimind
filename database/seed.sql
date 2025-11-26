@@ -130,17 +130,24 @@ INSERT INTO `Cursos` (`id_curso`, `nombre_curso`, `id_escuela`, `id_profesor`) V
 (4, 'Taller de Liderazgo', 3, 3);  -- Prof Carlos (Comunicaciones)
 
 -- ----------------------------------------------------------------
--- 3. TABLAS VINCULANTES (NIVEL 2)
--- ----------------------------------------------------------------
 
--- 3.1 Usuario_Curso (Inscripciones)
 INSERT INTO `Usuario_Curso` (`id_usuario`, `id_curso`) VALUES
--- Curso 1 (Matemáticas): Alumnos 4, 5, 6, 7, 8
 (4, 1), (5, 1), (6, 1), (7, 1), (8, 1),
--- Curso 2 (Prog Web): Alumnos 9, 10, 11, 12, 13
 (9, 2), (10, 2), (11, 2), (12, 2), (13, 2),
--- Curso 3 (Psicología): Mezcla
 (4, 3), (6, 3), (10, 3), (12, 3);
+
+-- 3.1.1 Usuario_Escuela (Vinculación de estudiantes con escuelas)
+INSERT INTO `Usuario_Escuela` (`id_usuario`, `id_escuela`) VALUES
+(4, 1), -- Juan -> Ingeniería de Sistemas
+(5, 1), -- Lucía -> Ingeniería de Sistemas
+(6, 1), -- Pedro -> Ingeniería de Sistemas
+(7, 1), -- Sofía -> Ingeniería de Sistemas
+(8, 1), -- Miguel -> Ingeniería de Sistemas
+(9, 2), -- Elena -> Psicología
+(10, 2), -- David -> Psicología
+(11, 2), -- Carmen -> Psicología
+(12, 2), -- Raúl -> Psicología
+(13, 3); -- Laura -> Ciencias de la Comunicación
 
 -- 3.2 Sugerencias (Profesores sugiriendo tests)
 INSERT INTO `Sugerencias` (`id_curso`, `id_test`, `id_profesor`, `estado`, `fecha_sugerencia`) VALUES
@@ -148,17 +155,41 @@ INSERT INTO `Sugerencias` (`id_curso`, `id_test`, `id_profesor`, `estado`, `fech
 (3, 2, 3, 'visto', '2025-11-19 14:30:00');      -- Carlos sugiere Ansiedad a Psico
 
 -- ----------------------------------------------------------------
--- 4. SIMULACIÓN DE INTERACCIÓN (APLICACIONES Y RESPUESTAS)
--- ----------------------------------------------------------------
 
--- CASO 1: Alumno Juan (ID 4) hace Test Estrés -> Resultado ALTO (Muchos 3)
 INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `puntuacion_total`, `resultado_nivel`) 
 VALUES (1, 4, 1, 'uuid-simulado-001', 14, 'Alto');
 
--- Detalle de respuestas de Juan (Items 1-5)
 INSERT INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opcion_seleccionada`, `puntuacion_obtenida`) VALUES
 (1, 1, 4, 3), -- Siempre (3 pts)
 (1, 2, 4, 3), -- Siempre (3 pts)
+
+-- Más ejemplos de aplicaciones y vínculos usuario-escuela
+-- Alumno Sofía (ID 7) hace Test Estrés -> Moderado
+INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `puntuacion_total`, `resultado_nivel`) 
+VALUES (6, 7, 1, 'uuid-simulado-006', 9, 'Moderado');
+
+-- Alumno Carmen (ID 11) hace Test Ansiedad -> Alto
+INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `puntuacion_total`, `resultado_nivel`) 
+VALUES (7, 11, 2, 'uuid-simulado-007', 13, 'Alto');
+
+-- Alumno Raúl (ID 12) hace Test Estrés -> Moderado
+INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `puntuacion_total`, `resultado_nivel`) 
+VALUES (8, 12, 1, 'uuid-simulado-008', 7, 'Moderado');
+
+-- Alumna Laura (ID 13) hace Test Ansiedad -> Moderado
+INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `puntuacion_total`, `resultado_nivel`) 
+VALUES (9, 13, 2, 'uuid-simulado-009', 8, 'Moderado');
+
+-- Alumno Pedro (ID 6) hace Test Ansiedad -> Alto
+INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `puntuacion_total`, `resultado_nivel`) 
+VALUES (10, 6, 2, 'uuid-simulado-010', 14, 'Alto');
+
+-- Vinculación extra usuario-escuela para pruebas
+INSERT INTO `Usuario_Escuela` (`id_usuario`, `id_escuela`) VALUES
+(7, 1), -- Sofía -> Ingeniería de Sistemas
+(11, 2), -- Carmen -> Psicología
+(12, 2), -- Raúl -> Psicología
+(13, 3); -- Laura -> Ciencias de la Comunicación
 (1, 3, 3, 2), -- Frecuentemente (2 pts)
 (1, 4, 4, 3), -- Siempre (3 pts)
 (1, 5, 4, 3); -- Siempre (3 pts) -> Total 14

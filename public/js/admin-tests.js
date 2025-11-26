@@ -206,13 +206,13 @@ class AdminTestsManager {
     select.innerHTML =
       '<option value="">Selecciona el tipo de escala...</option>';
 
-    this.tiposEscalas.forEach((tipo) => {
+        this.tiposEscalas.forEach((tipo) => {
       const option = document.createElement("option");
       option.value = tipo.id_tipo_escala;
       option.textContent = tipo.nombre || tipo.id_tipo_escala;
       option.title = tipo.descripcion || "";
       select.appendChild(option);
-    });
+        });
 
     // Restaurar valor si existía
     if (currentValue) select.value = currentValue;

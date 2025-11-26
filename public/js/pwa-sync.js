@@ -299,34 +299,30 @@
     }
   });
 
+
   // Auto-sync cuando se reconecta a internet
   window.addEventListener("online", () => {
-    // Producción: eliminar logs
     Promise.all([
       flushQueue().catch((e) =>
-        console.warn("[PWA-Sync] Error al sincronizar aplicaciones:", e),
+        console.warn("[PWA-Sync] Error al sincronizar aplicaciones:", e)
       ),
       flushTests().catch((e) =>
-        console.warn("[PWA-Sync] Error al sincronizar tests:", e),
+        console.warn("[PWA-Sync] Error al sincronizar tests:", e)
       ),
-    ]).then(() => {
-      // Producción: eliminar logs
-    });
+    ]);
   });
+
 
   // Inicializar IDBWrapper al cargar
   if (window.IDBWrapper) {
     window.IDBWrapper.open()
       .then(() => {
-        // Si ya estamos online al cargar la página (por ejemplo recargaste
-        // después de recuperar la conexión), intentar flush inmediato.
+        // Si ya estamos online al cargar la página, intentar flush inmediato.
         if (navigator.onLine) {
-          flushQueue().catch((e) =>
-            console.warn("[PWA-Sync] Error al sincronizar aplicaciones:", e),
-          );
-          flushTests().catch((e) =>
-            console.warn("[PWA-Sync] Error al sincronizar tests:", e),
-          );
+          Promise.all([
+            flushQueue().catch(() => {}),
+            flushTests().catch(() => {})
+          ]);
         }
       })
       .catch((e) => {
