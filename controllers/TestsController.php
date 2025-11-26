@@ -34,6 +34,10 @@ class TestsController {
                     $this->getTiposEscalas();
                     break;
                 
+                case 'getTipos':
+                    $this->getTipos();
+                    break;
+                
                 case 'getOpcionesByTipoEscala':
                     $this->getOpcionesByTipoEscala();
                     break;
@@ -119,6 +123,14 @@ class TestsController {
 
         $opciones = $this->model->getOpcionesByTipoEscala($tipo_escala);
         $this->sendResponse(true, 'Opciones obtenidas correctamente', $opciones);
+    }
+
+    /**
+     * Obtener lista simple de tipos (sin opciones) - fallback para frontend
+     */
+    private function getTipos() {
+        $tipos = $this->model->getTiposSimple();
+        $this->sendResponse(true, 'Tipos obtenidos correctamente', $tipos);
     }
 
     /**

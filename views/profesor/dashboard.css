@@ -1,4 +1,5 @@
 /* Dashboard Profesor - Replica Visual Exacta */
+
 :root {
   --text-brown: #8d6e63;
   --text-dark: #374151;
@@ -7,8 +8,7 @@
   --card-bg: #ffffff;
   --btn-light: #f3f4f6;
   --btn-text: #881337;
-  --shadow-card:
-    0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 body {
@@ -269,6 +269,7 @@ body {
   }
 }
 
+
 @media (max-width: 600px) {
   .recommendations-cards {
     grid-template-columns: 1fr;
@@ -283,3 +284,22 @@ body {
     justify-content: center;
   }
 }
+
+.chart-card--pie { grid-column: 3 / span 1; }
+.chart-card--bar { grid-column: 1 / -1; }
+.chart-card canvas { width:100% !important; height: 320px !important; }
+
+@media (max-width: 900px) {
+  .charts-grid { grid-template-columns: 1fr; }
+  .chart-card canvas { height: 220px !important; }
+}
+
+/* small tweaks */
+.status.suggested { background:#fff3cd; color:#92400e; padding:.25rem .5rem; border-radius:6px; font-weight:600; }
+.status.pending { background:#e6f4ff; color:#0b5cff; padding:.25rem .5rem; border-radius:6px; font-weight:600; }
+
+/* footer spacing */
+.prof-dashboard-container.loading { opacity:.7; pointer-events:none; }
+
+/* Accessibility */
+@media (hover:none) { .rec-card:hover { transform:none; box-shadow:0 1px 3px rgba(0,0,0,0.04); } }

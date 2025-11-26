@@ -28,9 +28,11 @@ CREATE TABLE `Tests` (
     `nombre` VARCHAR(100) NOT NULL,
     `descripcion` TEXT,
     `num_items` INT NOT NULL,
+    `id_tipo_escala` INT NULL,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id_test`)
+    PRIMARY KEY (`id_test`),
+    FOREIGN KEY (`id_tipo_escala`) REFERENCES `Tipos_Escalas`(`id_tipo_escala`) ON DELETE SET NULL
 );
 
 CREATE TABLE `Opciones_Respuesta` (

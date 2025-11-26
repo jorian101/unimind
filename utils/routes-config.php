@@ -53,6 +53,7 @@ return [
             'title' => 'Configuración del Sistema',
             'breadcrumb' => ['Inicio', 'Configuración'],
         ],
+
     ],
 
     // ========================================

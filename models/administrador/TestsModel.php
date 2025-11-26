@@ -91,34 +91,100 @@ class TestsModel {
      */
     public function getTiposEscalas() {
         try {
-                $query = "SELECT te.id_tipo_escala, te.nombre, te.descripcion, o.id_opcion, o.texto_opcion, o.valor_puntuacion
-                          FROM Tipos_Escalas te
-                          JOIN TiposEscala_Opciones teo ON te.id_tipo_escala = teo.id_tipo_escala
-                          JOIN Opciones_Respuesta o ON teo.id_opcion = o.id_opcion
-                          ORDER BY te.id_tipo_escala, o.id_opcion";
-                $stmt = $this->conn->prepare($query);
-                $stmt->execute();
-                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                $escalas = [];
-                foreach ($result as $row) {
-                    $id = $row['id_tipo_escala'];
-                    if (!isset($escalas[$id])) {
-                        $escalas[$id] = [
-                            'id_tipo_escala' => $row['id_tipo_escala'],
-                            'nombre' => $row['nombre'],
-                            'descripcion' => $row['descripcion'],
-                            'opciones' => []
+                // Intentar usar la tabla de mapeo TiposEscala_Opciones (modelo antiguo)
+                try {
+                    $query = "SELECT te.id_tipo_escala, te.nombre AS nombre, te.descripcion, o.id_opcion, o.texto_opcion, o.valor_puntuacion
+                              FROM Tipos_Escalas te
+                              JOIN TiposEscala_Opciones teo ON te.id_tipo_escala = teo.id_tipo_escala
+                              JOIN Opciones_Respuesta o ON teo.id_opcion = o.id_opcion
+                              ORDER BY te.id_tipo_escala, o.id_opcion";
+                    $stmt = $this->conn->prepare($query);
+                    $stmt->execute();
+                    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    $escalas = [];
+                    foreach ($result as $row) {
+                        $id = $row['id_tipo_escala'];
+                        if (!isset($escalas[$id])) {
+                            $escalas[$id] = [
+                                'id_tipo_escala' => $row['id_tipo_escala'],
+                                'nombre' => $row['nombre'],
+                                'descripcion' => $row['descripcion'],
+                                'opciones' => []
+                            ];
+                        }
+                        $escalas[$id]['opciones'][] = [
+                            'id_opcion' => $row['id_opcion'],
+                            'texto_opcion' => $row['texto_opcion'],
+                            'valor_puntuacion' => $row['valor_puntuacion']
                         ];
                     }
-                    $escalas[$id]['opciones'][] = [
-                        'id_opcion' => $row['id_opcion'],
-                        'texto_opcion' => $row['texto_opcion'],
-                        'valor_puntuacion' => $row['valor_puntuacion']
-                    ];
+                    return array_values($escalas);
+                } catch (PDOException $e) {
+                    // Si no existe la tabla de mapeo, intentar el esquema que guarda 'opciones_ids' en Tipos_Escalas
+                    // Intentar seleccionar 'nombre' y si falla usar 'nombre_escala'
+                    try {
+                        $query = "SELECT id_tipo_escala, nombre AS nombre, descripcion, opciones_ids FROM {$this->table_tipos_escalas} ORDER BY id_tipo_escala";
+                        $stmt = $this->conn->prepare($query);
+                        $stmt->execute();
+                        $tipos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    } catch (PDOException $e) {
+                        $query = "SELECT id_tipo_escala, nombre_escala AS nombre, descripcion, opciones_ids FROM {$this->table_tipos_escalas} ORDER BY id_tipo_escala";
+                        $stmt = $this->conn->prepare($query);
+                        $stmt->execute();
+                        $tipos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    }
+
+                    $escalas = [];
+                    foreach ($tipos as $tipo) {
+                        $opciones = [];
+                        if (!empty($tipo['opciones_ids'])) {
+                            // opciones_ids expected as comma separated ids
+                            $ids = array_filter(array_map('trim', explode(',', $tipo['opciones_ids'])));
+                            if (!empty($ids)) {
+                                $in = implode(',', array_map('intval', $ids));
+                                $q2 = "SELECT id_opcion, texto_opcion, valor_puntuacion FROM {$this->table_opciones} WHERE id_opcion IN ({$in}) ORDER BY valor_puntuacion ASC";
+                                $s2 = $this->conn->prepare($q2);
+                                $s2->execute();
+                                $opciones = $s2->fetchAll(PDO::FETCH_ASSOC);
+                            }
+                        }
+
+                        $escalas[] = [
+                            'id_tipo_escala' => $tipo['id_tipo_escala'],
+                            'nombre' => $tipo['nombre'],
+                            'descripcion' => $tipo['descripcion'],
+                            'opciones' => $opciones,
+                        ];
+                    }
+
+                    return $escalas;
                 }
-                return array_values($escalas);
         } catch (PDOException $e) {
             error_log("Error al obtener tipos de escalas: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Obtener lista simple de tipos de escala (sin opciones)
+     */
+    public function getTiposSimple() {
+        try {
+            // Intentar seleccionar columna 'nombre', si no existe usar 'nombre_escala'
+            try {
+                $query = "SELECT id_tipo_escala, nombre AS nombre, descripcion FROM {$this->table_tipos_escalas} ORDER BY id_tipo_escala ASC";
+                $stmt = $this->conn->prepare($query);
+                $stmt->execute();
+                return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (PDOException $e) {
+                $query = "SELECT id_tipo_escala, nombre_escala AS nombre, descripcion FROM {$this->table_tipos_escalas} ORDER BY id_tipo_escala ASC";
+                $stmt = $this->conn->prepare($query);
+                $stmt->execute();
+                return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+        } catch (PDOException $e) {
+            error_log("Error al obtener tipos simples: " . $e->getMessage());
             return [];
         }
     }

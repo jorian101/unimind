@@ -11,13 +11,13 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/public/icons/icon-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/public/icons/icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
@@ -25,14 +25,14 @@
   ],
   "screenshots": [
     {
-      "src": "/public/icons/icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "label": "UniMind Screenshot - Wide",
       "form_factor": "wide"
     },
     {
-      "src": "/public/icons/icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "label": "UniMind Screenshot - Mobile"
@@ -47,7 +47,7 @@
       "url": "/?role=estudiante&page=tests",
       "icons": [
           {
-          "src": "/public/icons/icon-192.png",
+          "src": "icons/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -59,7 +59,7 @@
       "url": "/?role=estudiante&page=dashboard",
       "icons": [
         {
-          "src": "/public/icons/icon-192.png",
+          "src": "icons/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -71,7 +71,7 @@
       "url": "/?role=estudiante&page=historial",
       "icons": [
         {
-          "src": "/public/icons/icon-192.png",
+          "src": "icons/icon-192.png",
           "sizes": "192x192"
         }
       ]

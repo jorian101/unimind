@@ -74,24 +74,9 @@ if ($currentRole === 'autenticacion' && $currentPage === 'login') {
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Base path global para construcción de URLs -->
+    <!-- Base path global para construcción de URLs (determinista desde PHP) -->
     <script>
-    // Detectar base path desde ubicación actual (funciona offline y online)
-    (function() {
-        var pathname = window.location.pathname;
-        if (pathname.includes('/unimind/')) {
-            window.UNIMIND_BASE = '/unimind';
-        } else if (pathname.startsWith('/unimind')) {
-            window.UNIMIND_BASE = '/unimind';
-        } else {
-            window.UNIMIND_BASE = '';
-        }
-        // Permitir override desde PHP si está disponible
-        var phpBase = '<?php echo $base; ?>';
-        if (phpBase && phpBase !== '<?php echo $base; ?>') {
-            window.UNIMIND_BASE = phpBase;
-        }
-    })();
+        window.UNIMIND_BASE = '<?php echo $base; ?>';
     </script>
     
     <?php require_once __DIR__ . '/utils/asset-version.php'; ?>

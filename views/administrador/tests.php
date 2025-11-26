@@ -200,3 +200,12 @@ window.UNIMIND_BASE = '<?php echo $base; ?>';
 </script>
 <script src="public/js/idb-wrapper.js?v=<?php echo time(); ?>"></script>
 <script src="public/js/admin-tests.js?v=<?php echo time(); ?>"></script>
+<script>
+// Abrir modal automáticamente si la URL contiene ?nuevo=1
+if (window.location.search.includes('nuevo=1')) {
+    window.addEventListener('DOMContentLoaded', function() {
+        var btnNuevoTest = document.getElementById('btnNuevoTest');
+        if (btnNuevoTest) btnNuevoTest.click();
+    });
+}
+</script>

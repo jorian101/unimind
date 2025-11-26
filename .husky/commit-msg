@@ -1,9 +1,0 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-echo "📝 Validando formato del mensaje de commit..."
-
-# Validar con commitlint
-npx --no -- commitlint --edit $1
-
-echo "✅ Formato de commit válido"

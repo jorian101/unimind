@@ -208,14 +208,12 @@ function renderTests(tests) {
             const testId = button.dataset.id;
             const testName = encodeURIComponent(button.dataset.name);
             const questions = button.dataset.questions;
-<<<<<<< HEAD
             const aplicacion = button.dataset.aplicacion || '';
 
             // Redirige al formulario con los parámetros del test seleccionado
             let url = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
             if (aplicacion) url += `&id_aplicacion=${aplicacion}`;
             window.location.href = url;
-=======
             const completado = button.dataset.completado === 'true';
             
             // Si ya está completado, ir al historial; si no, iniciar test
@@ -224,7 +222,6 @@ function renderTests(tests) {
             } else {
                 window.location.href = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
             }
->>>>>>> 971c157eca1e1524143cd3c8f9b1280bbdef7cc3
         });
     });
 }
