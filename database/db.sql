@@ -22,19 +22,6 @@ CREATE TABLE `Usuarios` (
     `fecha_registro` DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id_usuario`)
 );
-
-CREATE TABLE `Tests` (                             
-    `id_test` INT NOT NULL AUTO_INCREMENT,
-    `nombre` VARCHAR(100) NOT NULL,
-    `descripcion` TEXT,
-    `num_items` INT NOT NULL,
-    `id_tipo_escala` INT NULL,
-    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id_test`),
-    FOREIGN KEY (`id_tipo_escala`) REFERENCES `Tipos_Escalas`(`id_tipo_escala`) ON DELETE SET NULL
-);
-
 CREATE TABLE `Opciones_Respuesta` (
     `id_opcion` INT NOT NULL AUTO_INCREMENT,
     `texto_opcion` VARCHAR(100) NOT NULL,
@@ -57,6 +44,19 @@ CREATE TABLE `TiposEscala_Opciones` (
     PRIMARY KEY (`id_tipo_escala`, `id_opcion`),
     FOREIGN KEY (`id_tipo_escala`) REFERENCES `Tipos_Escalas`(`id_tipo_escala`) ON DELETE CASCADE,
     FOREIGN KEY (`id_opcion`) REFERENCES `Opciones_Respuesta`(`id_opcion`) ON DELETE CASCADE
+);
+
+-- Tabla de Tests (moved below Tipos_Escalas to satisfy foreign keys)
+CREATE TABLE `Tests` (                             
+    `id_test` INT NOT NULL AUTO_INCREMENT,
+    `nombre` VARCHAR(100) NOT NULL,
+    `descripcion` TEXT,
+    `num_items` INT NOT NULL,
+    `id_tipo_escala` INT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id_test`),
+    FOREIGN KEY (`id_tipo_escala`) REFERENCES `Tipos_Escalas`(`id_tipo_escala`) ON DELETE SET NULL
 );
 
 -- 2. Tablas Dependientes (Con Foreign Keys)
