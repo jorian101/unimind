@@ -43,6 +43,11 @@ return [
             'title' => 'Gestión de Usuarios',
             'breadcrumb' => ['Inicio', 'Usuarios'],
         ],
+        'cursos_escuelas' => [
+            'path' => 'administrador/cursos_escuelas.php',
+            'title' => 'Gestión de Cursos/Escuelas',
+            'breadcrumb' => ['Inicio', 'Cursos/Escuelas'],
+        ],
         'reportes' => [
             'path' => 'administrador/reportes.php',
             'title' => 'Reportes y Estadísticas',
@@ -61,7 +66,7 @@ return [
     // ========================================
     'docente' => [
         'dashboard-profesor' => [
-            'path' => 'profesor/dashboard-profesor.php',
+            'path' => 'profesor/dashboard.php',
             'title' => 'Dashboard',
             'breadcrumb' => ['Inicio', 'Dashboard'],
         ],

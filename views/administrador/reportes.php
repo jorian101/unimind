@@ -43,41 +43,42 @@ $puntuaciones_mes = $conn->query('
   ORDER BY mes ASC
 ')->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<div style="max-width:900px;margin:40px auto;background:#fff;padding:32px;border-radius:16px;box-shadow:0 2px 8px #0001;font-family:'Inter',sans-serif;">
-  <h2 style="color:#6b1a1a;font-size:1.5rem;font-weight:700;margin-bottom:16px;">Reportes del Sistema</h2>
-  <div style="margin-bottom:24px;">
-      <h3 style="color:#6b1a1a;font-size:1.1rem;margin-bottom:18px;">Resumen General</h3>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;">
-        <div class="card-resumen" style="flex:1 1 180px;min-width:180px;max-width:220px;background:#f6f6f6;border-radius:12px;padding:24px 18px;box-shadow:0 2px 8px #0001;display:flex;flex-direction:column;align-items:center;">
+<link rel="stylesheet" href="reportes.css">
+<div class="reportes-container" style="max-width: 98vw; min-width: 320px; margin: 24px auto 24px auto; background: #fff; padding: 48px 3vw; border-radius: 24px; box-shadow: 0 4px 24px #0002; font-family: 'Inter',sans-serif;">
+  <h2>Reportes del Sistema</h2>
+  <div style="margin-bottom:32px;">
+      <h3>Resumen General</h3>
+      <div style="display:flex;gap:32px;flex-wrap:wrap;justify-content:center;">
+        <div class="card-resumen">
           <div style="font-size:2.2rem;color:#6b1a1a;font-weight:700;margin-bottom:8px;"><i class="fas fa-users" style="margin-right:8px;"></i><?= $usuarios ?></div>
           <div style="font-size:1.1rem;color:#333;font-weight:500;">Usuarios</div>
         </div>
-        <div class="card-resumen" style="flex:1 1 180px;min-width:180px;max-width:220px;background:#f6f6f6;border-radius:12px;padding:24px 18px;box-shadow:0 2px 8px #0001;display:flex;flex-direction:column;align-items:center;">
+        <div class="card-resumen">
           <div style="font-size:2.2rem;color:#6b1a1a;font-weight:700;margin-bottom:8px;"><i class="fas fa-book" style="margin-right:8px;"></i><?= $cursos ?></div>
           <div style="font-size:1.1rem;color:#333;font-weight:500;">Cursos</div>
         </div>
-        <div class="card-resumen" style="flex:1 1 180px;min-width:180px;max-width:220px;background:#f6f6f6;border-radius:12px;padding:24px 18px;box-shadow:0 2px 8px #0001;display:flex;flex-direction:column;align-items:center;">
+        <div class="card-resumen">
           <div style="font-size:2.2rem;color:#6b1a1a;font-weight:700;margin-bottom:8px;"><i class="fas fa-school" style="margin-right:8px;"></i><?= $escuelas ?></div>
           <div style="font-size:1.1rem;color:#333;font-weight:500;">Escuelas</div>
         </div>
-        <div class="card-resumen" style="flex:1 1 180px;min-width:180px;max-width:220px;background:#f6f6f6;border-radius:12px;padding:24px 18px;box-shadow:0 2px 8px #0001;display:flex;flex-direction:column;align-items:center;">
+        <div class="card-resumen">
           <div style="font-size:2.2rem;color:#6b1a1a;font-weight:700;margin-bottom:8px;"><i class="fas fa-clipboard-list" style="margin-right:8px;"></i><?= $tests ?></div>
           <div style="font-size:1.1rem;color:#333;font-weight:500;">Tests</div>
         </div>
       </div>
   </div>
   <!-- Distribución de Niveles de Riesgo -->
-  <div style="margin:32px 0 24px 0;">
-    <h3 style="color:#6b1a1a;font-size:1.1rem;margin-bottom:18px;">Distribución de Niveles de Riesgo</h3>
-    <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:center;justify-content:center;">
-      <div style="flex:1 1 320px;min-width:320px;max-width:400px;">
+  <div style="margin:48px 0 32px 0;">
+    <h3>Distribución de Niveles de Riesgo</h3>
+    <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:center;justify-content:center;">
+      <div class="grafico-container">
         <canvas id="graficoRiesgo" width="320" height="320"></canvas>
       </div>
       <div style="flex:1 1 220px;min-width:220px;max-width:320px;">
-        <ul style="list-style:none;padding:0;margin:0;">
+        <ul class="niveles-list">
           <?php foreach ($niveles as $nivel): ?>
-            <li style="margin-bottom:12px;font-size:1.05rem;color:#333;">
-              <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#<?= ($nivel['resultado_nivel']=='Alto'?'e53e3e':($nivel['resultado_nivel']=='Moderado'?'f59e0b':'10b981')) ?>;margin-right:8px;"></span>
+            <li>
+              <span class="nivel-dot" style="background:#<?= ($nivel['resultado_nivel']=='Alto'?'e53e3e':($nivel['resultado_nivel']=='Moderado'?'f59e0b':'10b981')) ?>;"></span>
               <b><?= htmlspecialchars($nivel['resultado_nivel']) ?>:</b> <?= $nivel['total'] ?> casos
             </li>
           <?php endforeach; ?>
@@ -87,22 +88,22 @@ $puntuaciones_mes = $conn->query('
   </div>
 
   <!-- Escuelas y riesgo -->
-  <div style="margin-bottom:32px;">
-    <h3 style="color:#6b1a1a;font-size:1.1rem;margin-bottom:18px;">Escuelas y Promedio de Puntuación / Casos de Riesgo Alto</h3>
-    <table style="width:100%;border-collapse:collapse;">
+  <div style="margin-bottom:48px;">
+    <h3>Escuelas y Promedio de Puntuación / Casos de Riesgo Alto</h3>
+    <table class="reportes-table" style="border-collapse: separate; border-spacing: 0; width: 100%;">
       <thead>
-        <tr style="background:#f6f6f6;color:#6b1a1a;font-weight:600;">
-          <th style="padding:12px 8px;text-align:left;">Escuela</th>
-          <th style="padding:12px 8px;text-align:left;">Promedio Puntuación</th>
-          <th style="padding:12px 8px;text-align:left;">Casos Riesgo Alto</th>
+        <tr>
+          <th>Escuela</th>
+          <th>Promedio Puntuación</th>
+          <th>Casos Riesgo Alto</th>
         </tr>
       </thead>
       <tbody>
         <?php foreach ($escuelas_riesgo as $row): ?>
-        <tr>
-          <td style="padding:10px 8px;"> <?= htmlspecialchars($row['nombre_escuela']) ?> </td>
-          <td style="padding:10px 8px;"> <?= number_format($row['promedio_puntuacion'],2) ?> </td>
-          <td style="padding:10px 8px;"> <?= $row['casos_alto'] ?> </td>
+        <tr style="border-bottom: 3px solid #bdbdbd;">
+          <td style="border-right: 2px solid #bdbdbd; border-bottom: 2px solid #bdbdbd; padding: 12px 8px;"> <?= htmlspecialchars($row['nombre_escuela']) ?> </td>
+          <td style="border-right: 2px solid #bdbdbd; border-bottom: 2px solid #bdbdbd; padding: 12px 8px;"> <?= number_format($row['promedio_puntuacion'],2) ?> </td>
+          <td style="border-bottom: 2px solid #bdbdbd; padding: 12px 8px;"> <?= $row['casos_alto'] ?> </td>
         </tr>
         <?php endforeach; ?>
       </tbody>
@@ -110,10 +111,10 @@ $puntuaciones_mes = $conn->query('
   </div>
 
     <!-- Línea de tiempo: Promedio de puntuaciones mes a mes -->
-    <div style="margin-bottom:32px;">
-      <h3 style="color:#6b1a1a;font-size:1.1rem;margin-bottom:18px;">Promedio de Puntuaciones a lo largo del tiempo</h3>
-      <div style="width:100%;max-width:700px;margin:0 auto;">
-        <canvas id="graficoLineaTiempo" width="700" height="320"></canvas>
+    <div style="margin-bottom:48px;">
+      <h3>Promedio de Puntuaciones a lo largo del tiempo</h3>
+      <div class="grafico-linea-container" style="max-width: 900px; margin: 0 auto;">
+        <canvas id="graficoLineaTiempo" width="900" height="340"></canvas>
       </div>
     </div>
 </div>
