@@ -1,42 +1,13 @@
-/* Modales */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: #0007;
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-}
-.modal-content {
-    background: #fff;
-    border-radius: 16px;
-    padding: 32px;
-    max-width: 420px;
-    margin: auto;
-    box-shadow: 0 2px 16px #0002;
-    position: relative;
-}
-.close-modal {
-    position: absolute;
-    top: 16px;
-    right: 20px;
-    font-size: 1.5rem;
-    cursor: pointer;
-}
-/* Panel de Usuarios - Estilos */
+/* Configuración general */
 
-.usuarios-dashboard {
+.admin-dashboard {
     background-color: #f6f6f6;
     min-height: 100vh;
     padding: 0;
     font-family: 'Inter', sans-serif;
 }
 
-.usuarios-container {
+.dashboard-container {
     max-width: 98vw;
     margin: 32px auto;
     padding: 0 2vw;
@@ -45,45 +16,30 @@
     box-shadow: 0 4px 24px #0002;
 }
 
-.usuarios-title {
+/* Encabezados */
+.page-title {
     color: #6b1a1a;
-    font-size: 2.2rem;
+    font-size: 2rem;
     font-weight: 700;
     margin-bottom: 8px;
     margin-top: 0;
 }
 
-.usuarios-subtitle {
+.page-subtitle {
     color: #7c7c7c;
     margin-bottom: 32px;
     margin-top: 0;
 }
 
-.usuarios-actions {
-    display: flex;
-    gap: 24px;
-    margin-bottom: 40px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.usuarios-search-form {
+/* Acciones rápidas (Botones) */
+.quick-actions {
     display: flex;
     gap: 16px;
-    align-items: center;
-}
-
-.usuarios-search-input,
-.usuarios-filter-select {
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: 1px solid #bdbdbd;
-    font-size: 1rem;
-    min-width: 220px;
+    margin-bottom: 32px;
 }
 
 .btn {
-    padding: 10px 24px;
+    padding: 12px 24px;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
@@ -107,7 +63,55 @@
     border: 1px solid #6b1a1a;
 }
 
-.usuarios-table-section {
+/* Grid de Tarjetas (Stats) */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    margin-bottom: 48px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 32px;
+    box-shadow: 0 2px 12px #0001;
+    text-align: center;
+}
+
+.stat-card h2 {
+    color: #6b1a1a;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    margin-top: 0;
+}
+
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #6b1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.stat-value i {
+    font-size: 2.2rem;
+    color: #6b1a1a;
+    vertical-align: middle;
+}
+
+.stat-label {
+    color: #7c7c7c;
+    font-size: 0.95rem;
+}
+
+/* Sección de Actividad Reciente (Tabla) */
+
+.activity-section {
     background: #fff;
     border-radius: 18px;
     padding: 32px;
@@ -116,65 +120,68 @@
 
 .section-title {
     color: #6b1a1a;
-    font-size: 1.3rem;
-    margin-bottom: 18px;
+    font-size: 1.2rem;
+    margin-bottom: 16px;
     margin-top: 0;
 }
 
-.usuarios-table {
+
+.activity-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
 }
 
-.usuarios-table thead tr {
+.activity-table thead tr {
     background-color: #f6f6f6;
     color: #6b1a1a;
     font-weight: 600;
 }
 
-.usuarios-table th {
+.activity-table th {
     padding: 12px 8px;
     text-align: left;
     border-right: 2px solid #bdbdbd;
 }
 
-.usuarios-table th:last-child {
+.activity-table th:last-child {
     border-right: none;
 }
 
-.usuarios-table td {
+.activity-table td {
     padding: 12px 8px;
     border-bottom: 2px solid #bdbdbd;
     border-right: 2px solid #bdbdbd;
 }
 
-.usuarios-table td:last-child {
+.activity-table td:last-child {
     border-right: none;
 }
 
-.usuarios-table tr {
+.activity-table tr {
     border-bottom: 3px solid #bdbdbd;
 }
 
+/* Responsividad básica para el Grid */
+
 @media (max-width: 1200px) {
-    .usuarios-container {
+    .dashboard-container {
         max-width: 100vw;
         padding: 0 1vw;
     }
-    .usuarios-table-section {
-        padding: 16px;
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 @media (max-width: 768px) {
-    .usuarios-table-section {
-        padding: 8px;
+    .stats-grid {
+        grid-template-columns: 1fr;
     }
-    .usuarios-actions {
+    .quick-actions {
         flex-direction: column;
         gap: 16px;
     }
-    .usuarios-container {
+    .dashboard-container {
         padding: 0 0.5vw;
     }
 }
