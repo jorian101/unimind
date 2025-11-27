@@ -368,4 +368,54 @@ BEGIN
         i.`orden` ASC;
 END //
 
+-- =============================================
+-- Grupo 7: Gestión de Usuarios (moved from procedures2.sql)
+-- =============================================
+
+CREATE PROCEDURE `sp_crear_usuario`(
+    IN p_nombre VARCHAR(100),
+    IN p_apellido VARCHAR(100),
+    IN p_codigo_usuario VARCHAR(10),
+    IN p_cargo VARCHAR(30),
+    IN p_fecha_nacimiento DATE,
+    IN p_genero VARCHAR(10),
+    IN p_password VARCHAR(255)
+)
+BEGIN
+    INSERT INTO `Usuarios` (nombre, apellido, codigo_usuario, cargo, fecha_nacimiento, genero, password, fecha_registro)
+    VALUES (p_nombre, p_apellido, p_codigo_usuario, p_cargo, p_fecha_nacimiento, p_genero, p_password, NOW());
+    SELECT 'Usuario creado' AS Mensaje, LAST_INSERT_ID() AS Nuevo_ID_Usuario;
+END //
+
+CREATE PROCEDURE `sp_actualizar_usuario`(
+    IN p_id_usuario INT,
+    IN p_nombre VARCHAR(100),
+    IN p_apellido VARCHAR(100),
+    IN p_codigo_usuario VARCHAR(10),
+    IN p_cargo VARCHAR(30),
+    IN p_fecha_nacimiento DATE,
+    IN p_genero VARCHAR(10),
+    IN p_password VARCHAR(255)
+)
+BEGIN
+    UPDATE `Usuarios`
+    SET nombre = p_nombre,
+        apellido = p_apellido,
+        codigo_usuario = p_codigo_usuario,
+        cargo = p_cargo,
+        fecha_nacimiento = p_fecha_nacimiento,
+        genero = p_genero,
+        password = p_password
+    WHERE id_usuario = p_id_usuario;
+    SELECT 'Usuario actualizado' AS Mensaje;
+END //
+
+CREATE PROCEDURE `sp_eliminar_usuario`(
+    IN p_id_usuario INT
+)
+BEGIN
+    DELETE FROM `Usuarios` WHERE id_usuario = p_id_usuario;
+    SELECT 'Usuario eliminado' AS Mensaje;
+END //
+
 DELIMITER ;
