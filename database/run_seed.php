@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 // run_seed.php — Ejecuta el archivo seed.sql para poblar datos en la base de datos
 $host = 'localhost';
 $user = 'root';
@@ -18,6 +21,44 @@ if ($mysqli->connect_errno) {
     exit(1);
 }
 
+// Primero importar procedimientos (si existe)
+$procFile = __DIR__ . '/procedures.sql';
+if (file_exists($procFile)) {
+    echo "Importando procedimientos desde procedures.sql...\n";
+    $procSql = file_get_contents($procFile);
+
+    // Eliminar líneas DELIMITER y convertir delimitadores 'END //' a 'END;'
+    $procSql = preg_replace('/DELIMITER\s+\S+\s*/i', '', $procSql);
+    $procSql = str_replace("END //", "END;", $procSql);
+
+    // Antes de crear, eliminar procedimientos con el mismo nombre para evitar error "already exists"
+    preg_match_all('/CREATE\s+PROCEDURE\s+`?([a-zA-Z0-9_]+)`?/i', $procSql, $matches);
+    if (!empty($matches[1])) {
+        foreach ($matches[1] as $procName) {
+            $dropSql = "DROP PROCEDURE IF EXISTS `" . $procName . "`;";
+            if (!$mysqli->query($dropSql)) {
+                echo "Aviso: no se pudo eliminar procedimiento $procName: " . $mysqli->error . "\n";
+            }
+        }
+    }
+
+    if ($mysqli->multi_query($procSql)) {
+        do {
+            if ($res = $mysqli->store_result()) {
+                $res->free();
+            }
+        } while ($mysqli->more_results() && $mysqli->next_result());
+        echo "procedures.sql importado correctamente.\n";
+    } else {
+        echo "Error al ejecutar procedures.sql: " . $mysqli->error . "\n";
+        // Continuar para intentar ejecutar seed, pero informar el error
+    }
+} else {
+    echo "No se encontró procedures.sql, se omite la importación de procedimientos.\n";
+}
+
+// Ahora ejecutar seed.sql
+echo "Ejecutando seed.sql...\n";
 if ($mysqli->multi_query($sql)) {
     // Consumir todos los resultados
     do {

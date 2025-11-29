@@ -1,5 +1,4 @@
--- 1.1 Escuelas
-(-- Idempotent seed: truncate relational and principal tables to ensure clean state
+-- Idempotent seed: truncate relational and principal tables to ensure clean state
 SET FOREIGN_KEY_CHECKS=0;
 TRUNCATE TABLE `Respuestas_Aplicacion`;
 TRUNCATE TABLE `Aplicaciones`;
@@ -57,7 +56,7 @@ INSERT INTO `Tipos_Escalas` (`id_tipo_escala`, `nombre`, `descripcion`) VALUES
 ON DUPLICATE KEY UPDATE `nombre`=VALUES(`nombre`), `descripcion`=VALUES(`descripcion`);
 -- Vinculación de Tipos de Escala con Opciones
 -- Likert 5 puntos
-(INSERT IGNORE INTO `TiposEscala_Opciones` (`id_tipo_escala`, `id_opcion`) VALUES
+INSERT IGNORE INTO `TiposEscala_Opciones` (`id_tipo_escala`, `id_opcion`) VALUES
 (2, 5),
 (2, 6),
 (2, 7),
@@ -95,17 +94,45 @@ INSERT IGNORE INTO `TiposEscala_Opciones` (`id_tipo_escala`, `id_opcion`) VALUES
 (1, 3), -- Frecuentemente
 (1, 4); -- Siempre
 
--- 1.3 Usuarios
--- Admins
 INSERT INTO `Usuarios` (`nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`) VALUES
-('Ana', 'Admin', 'ADM001', 'admin123', 'Administrador');
+('Ana', 'Admin', 'ADM001', 'admin123', 'Administrador')
 ON DUPLICATE KEY UPDATE `nombre`=VALUES(`nombre`), `apellido`=VALUES(`apellido`), `password`=VALUES(`password`), `cargo`=VALUES(`cargo`);
 
--- Docentes
 INSERT INTO `Usuarios` (`id_usuario`, `nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`) VALUES
 (2, 'María', 'López', 'PROF001', 'prof123', 'Docente'),  -- ID 2
-(3, 'Carlos', 'Ruiz', 'PROF002', 'prof123', 'Docente');  -- ID 3
+(3, 'Carlos', 'Ruiz', 'PROF002', 'prof123', 'Docente')  -- ID 3
 ON DUPLICATE KEY UPDATE `nombre`=VALUES(`nombre`), `apellido`=VALUES(`apellido`), `codigo_usuario`=VALUES(`codigo_usuario`), `password`=VALUES(`password`), `cargo`=VALUES(`cargo`);
+
+-- Estudiantes (Creamos 10 para la demo)
+INSERT INTO `Usuarios` (`id_usuario`, `nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`, `genero`, `fecha_nacimiento`) VALUES
+(4, 'Juan', 'Pérez', 'EST001', 'est123', 'Estudiante', 'Masculino', '2004-05-10'),
+(5, 'Lucía', 'Gómez', 'EST002', 'est123', 'Estudiante', 'Femenino', '2004-08-22'),
+(6, 'Pedro', 'Díaz', 'EST003', 'est123', 'Estudiante', 'Masculino', '2003-12-01'),
+(7, 'Sofía', 'Mora', 'EST004', 'est123', 'Estudiante', 'Femenino', '2005-01-15'),
+(8, 'Miguel', 'Torres', 'EST005', 'est123', 'Estudiante', 'Masculino', '2004-03-30'),
+(9, 'Elena', 'Vargas', 'EST006', 'est123', 'Estudiante', 'Femenino', '2004-07-07'),
+(10, 'David', 'Rios', 'EST007', 'est123', 'Estudiante', 'Masculino', '2003-09-19'),
+(11, 'Carmen', 'Soto', 'EST008', 'est123', 'Estudiante', 'Femenino', '2005-02-28'),
+(12, 'Raúl', 'Castro', 'EST009', 'est123', 'Estudiante', 'Masculino', '2004-11-11'),
+(13, 'Laura', 'Meza', 'EST010', 'est123', 'Estudiante', 'Femenino', '2004-06-05')
+ON DUPLICATE KEY UPDATE `nombre`=VALUES(`nombre`), `apellido`=VALUES(`apellido`), `codigo_usuario`=VALUES(`codigo_usuario`), `password`=VALUES(`password`), `cargo`=VALUES(`cargo`), `genero`=VALUES(`genero`), `fecha_nacimiento`=VALUES(`fecha_nacimiento`);
+
+INSERT INTO `Usuarios` (`nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`) VALUES
+('Jorge', 'SuperAdmin', 'ADM002', 'admin456', 'Administrador'),
+('Lucía', 'Gestora', 'ADM003', 'admin789', 'Administrador')
+ON DUPLICATE KEY UPDATE `nombre`=VALUES(`nombre`), `apellido`=VALUES(`apellido`), `password`=VALUES(`password`), `cargo`=VALUES(`cargo`);
+
+INSERT INTO `Usuarios` (`nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`) VALUES
+('Sofía', 'Martínez', 'PROF003', 'prof456', 'Docente'),
+('Miguel', 'García', 'PROF004', 'prof789', 'Docente')
+ON DUPLICATE KEY UPDATE `nombre`=VALUES(`nombre`), `apellido`=VALUES(`apellido`), `codigo_usuario`=VALUES(`codigo_usuario`), `password`=VALUES(`password`), `cargo`=VALUES(`cargo`);
+
+INSERT INTO `Usuarios` (`nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`, `genero`, `fecha_nacimiento`) VALUES
+('Andrea', 'Ramírez', 'EST011', 'est456', 'Estudiante', 'Femenino', '2005-03-12'),
+('Luis', 'Fernández', 'EST012', 'est789', 'Estudiante', 'Masculino', '2003-10-25'),
+('Valeria', 'Cruz', 'EST013', 'est101', 'Estudiante', 'Femenino', '2004-12-30'),
+('Pablo', 'Santos', 'EST014', 'est202', 'Estudiante', 'Masculino', '2005-06-18')
+ON DUPLICATE KEY UPDATE `nombre`=VALUES(`nombre`), `apellido`=VALUES(`apellido`), `codigo_usuario`=VALUES(`codigo_usuario`), `password`=VALUES(`password`), `cargo`=VALUES(`cargo`), `genero`=VALUES(`genero`), `fecha_nacimiento`=VALUES(`fecha_nacimiento`);
 
 -- Estudiantes (Creamos 10 para la demo)
 INSERT INTO `Usuarios` (`id_usuario`, `nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`, `genero`, `fecha_nacimiento`) VALUES
