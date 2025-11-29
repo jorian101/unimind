@@ -30,6 +30,7 @@ function getSidebarConfig($role, $currentPage = null) {
                 ['icon' => 'fas fa-users', 'label' => 'Usuarios', 'page' => 'usuarios'],
                 ['icon' => 'fas fa-book-open', 'label' => 'Cursos/Escuelas', 'page' => 'cursos_escuelas'],
                 ['icon' => 'fas fa-chart-bar', 'label' => 'Reportes', 'page' => 'reportes'],
+                ['icon' => 'fas fa-calendar-alt', 'label' => 'Citas', 'page' => 'citas'],
                 ['icon' => 'fas fa-cog', 'label' => 'Configuración', 'page' => 'config'],
             ],
         ],

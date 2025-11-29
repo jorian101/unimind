@@ -419,3 +419,40 @@ BEGIN
 END //
 
 DELIMITER ;
+
+-- =============================================
+-- ### Grupo 8: Gestión de Citas
+-- =============================================
+
+-- Agendar una cita (alumno)
+CREATE PROCEDURE sp_agendar_cita(
+    IN p_id_alumno INT,
+    IN p_fecha_cita DATETIME,
+    IN p_motivo VARCHAR(255)
+)
+BEGIN
+    INSERT INTO Citas (id_alumno, fecha_cita, motivo, estado, created_at)
+    VALUES (p_id_alumno, p_fecha_cita, p_motivo, 'pendiente', NOW());
+    SELECT 'Cita agendada correctamente' AS Mensaje, LAST_INSERT_ID() AS id_cita;
+END //
+
+-- Consultar citas de un alumno
+CREATE PROCEDURE sp_obtener_citas_por_alumno(
+    IN p_id_alumno INT
+)
+BEGIN
+    SELECT id_cita, fecha_cita, motivo, estado, created_at
+    FROM Citas
+    WHERE id_alumno = p_id_alumno
+    ORDER BY fecha_cita DESC;
+END //
+
+-- Consultar todas las citas (administrador)
+CREATE PROCEDURE sp_obtener_todas_citas()
+BEGIN
+    SELECT c.id_cita, c.fecha_cita, c.motivo, c.estado, c.created_at,
+           u.id_usuario AS id_alumno, u.nombre, u.apellido, u.codigo_usuario
+    FROM Citas c
+    JOIN Usuarios u ON c.id_alumno = u.id_usuario
+    ORDER BY c.fecha_cita DESC;
+END //

@@ -169,3 +169,15 @@ CREATE TABLE IF NOT EXISTS `sync_logs` (
     PRIMARY KEY (`id`),
     INDEX (`client_uuid`)
 );
+
+-- Tabla para agendar citas de alumnos
+CREATE TABLE IF NOT EXISTS `Citas` (
+    `id_cita` INT NOT NULL AUTO_INCREMENT,
+    `id_alumno` INT NOT NULL,
+    `fecha_cita` DATETIME NOT NULL,
+    `motivo` VARCHAR(255),
+    `estado` ENUM('pendiente', 'confirmada', 'cancelada') DEFAULT 'pendiente',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id_cita`),
+    FOREIGN KEY (`id_alumno`) REFERENCES `Usuarios`(`id_usuario`) ON DELETE CASCADE
+);

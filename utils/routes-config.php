@@ -53,6 +53,11 @@ return [
             'title' => 'Reportes y Estadísticas',
             'breadcrumb' => ['Inicio', 'Reportes'],
         ],
+        'citas' => [
+            'path' => 'administrador/citas.php',
+            'title' => 'Gestión de Citas',
+            'breadcrumb' => ['Inicio', 'Citas'],
+        ],
         'config' => [
             'path' => 'administrador/config.php',
             'title' => 'Configuración del Sistema',

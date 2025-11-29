@@ -298,3 +298,12 @@ INSERT IGNORE INTO `Respuestas_Aplicacion` (`id_aplicacion`, `id_item`, `id_opci
 (5, 8, 2, 1),
 (5, 9, 1, 0),
 (5, 10, 2, 1);
+
+INSERT INTO `Citas` (`id_cita`, `id_alumno`, `fecha_cita`, `hora_cita`, `motivo`, `estado`)
+VALUES
+(1, 4, '2025-11-30', '10:00:00', 'Orientación académica', 'pendiente'),
+(2, 5, '2025-11-30', '12:30:00', 'Problema personal', 'confirmada'),
+(3, 6, '2025-12-01', '09:00:00', 'Revisión de test', 'pendiente'),
+(4, 7, '2025-12-01', '11:00:00', 'Consulta de resultados', 'cancelada'),
+(5, 9, '2025-12-02', '14:00:00', 'Seguimiento académico', 'pendiente'),
+(6, 10, '2025-12-02', '16:00:00', 'Problema familiar', 'confirmada');
