@@ -1,0 +1,878 @@
+/* cursos_escuelas (admin) - same styles as views/cursos_escuelas.css
+   Responsive rules for 374px, 390px, 768px, 1024px and 1440px.
+*/
+
+:root {
+  --container-max: 1200px;
+}
+
+.cursos-escuelas-container {
+  font-family: var(--font, Poppins, sans-serif);
+  color: var(--pri-500);
+  background: var(--bg-100);
+  padding: 1rem;
+  max-width: var(--container-max);
+  margin: 24px auto;
+}
+
+.page-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.page-header .title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--pri-500);
+  margin: 0;
+}
+
+.page-header .subtitle {
+  color: var(--var-700);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  min-width: 180px;
+}
+
+.search-box input {
+  padding: 0.6rem 0.9rem;
+  padding-left: 2.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--bg-500);
+  background: var(--bg-100);
+  font-family: var(--font);
+}
+
+.search-box i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--var-700);
+}
+
+.filters {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filters select,
+.filters button {
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--bg-500);
+  background: var(--bg-100);
+  font-family: var(--font);
+}
+
+/* Grid of course/school cards */
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.card {
+  background: var(--bg-100);
+  border: 1px solid var(--bg-500);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.card .card-title {
+  font-weight: 700;
+  color: var(--pri-500);
+  font-size: 1rem;
+}
+
+.card .card-meta {
+  color: var(--var-700);
+  font-size: 0.9rem;
+}
+
+.card .card-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: var(--pri-500);
+  color: var(--bg-100);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--bg-500);
+  color: var(--var-700);
+}
+
+/* Table view (if applicable) */
+.cursos-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 1rem;
+}
+
+.cursos-table thead tr {
+  background: var(--bg-300);
+  color: var(--pri-500);
+  font-weight: 600;
+}
+
+.cursos-table th,
+.cursos-table td {
+  padding: 0.75rem 0.6rem;
+  border-right: 2px solid var(--bg-500);
+}
+
+.cursos-table th:last-child,
+.cursos-table td:last-child {
+  border-right: none;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--var-700);
+}
+
+/* Responsive breakpoints requested:
+   - 374px (very small)
+   - 390px
+   - 768px
+   - 1024px
+   - 1440px
+   and ranges between them
+*/
+
+/* Base: up to 374px (very small phones) */
+@media (max-width: 374px) {
+  .cursos-escuelas-container { padding: 0.5rem; }
+  .page-header { gap: 0.5rem; }
+  .page-header .title { font-size: 1rem; }
+  .search-box { min-width: 140px; }
+  .cards-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+  .card { padding: 0.75rem; }
+}
+
+/* Small phones: 375px - 390px */
+@media (min-width: 375px) and (max-width: 390px) {
+  .cursos-escuelas-container { padding: 0.75rem; }
+  .page-header .title { font-size: 1.05rem; }
+  .search-box { min-width: 160px; }
+  .cards-grid { grid-template-columns: 1fr; gap: 0.9rem; }
+}
+
+/* Mobile to tablet: 391px - 767px */
+@media (min-width: 391px) and (max-width: 767px) {
+  .cursos-escuelas-container { padding: 1rem; }
+  .page-header { justify-content: space-between; }
+  .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .card { padding: 1rem; }
+  .cursos-table th, .cursos-table td { padding: 0.9rem; }
+}
+
+/* Tablet: 768px - 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cursos-escuelas-container { padding: 1.25rem; }
+  .cards-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .page-header .title { font-size: 1.25rem; }
+}
+
+/* Desktop small: 1024px - 1439px */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .cursos-escuelas-container { padding: 1.5rem; }
+  .cards-grid { grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .card { padding: 1.25rem; }
+}
+
+/* Large desktop: 1440px and above */
+@media (min-width: 1440px) {
+  .cursos-escuelas-container { padding: 2rem; }
+  .cards-grid { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+  .card { padding: 1.5rem; }
+  :root { --container-max: 1400px; }
+}
+
+/* Accessibility / touch devices */
+@media (hover: none) {
+  .card:hover { transform: none; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+  .btn:hover { transform: none; }
+}
+/* ======== Gestión de Cursos y Escuelas - Estilo Unimind ======== */
+
+/* ======== Container Principal ======== */
+.cursos-escuelas-dashboard {
+  font-family: var(--font);
+  color: var(--pri-500);
+  max-width: 1400px;
+  padding: 1.5rem;
+  background: var(--bg-100);
+  min-height: calc(100vh - 80px);
+}
+
+.cursos-escuelas-card {
+  background: var(--bg-100);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--bg-500);
+}
+
+/* ======== Header Section ======== */
+.cursos-escuelas-title {
+  font-size: calc(1.5rem + 0.9vw);
+  font-weight: 700;
+  color: var(--pri-500);
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cursos-escuelas-desc {
+  color: var(--var-700);
+  font-size: calc(0.875rem + 0.075vw);
+  margin: 0 0 2rem 0;
+}
+
+/* ======== Actions Section ======== */
+.cursos-escuelas-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ======== Buttons ======== */
+.cu-btn-primary,
+.cu-btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: calc(0.90375rem + 0.045vw);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+/* Utility */
+.full-width { width: 100%; }
+
+.cu-btn-primary {
+  background: var(--pri-500);
+  color: var(--bg-100);
+  border: none;
+}
+
+.cu-btn-primary:hover {
+  background: var(--pri-600);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(112, 0, 30, 0.3);
+}
+
+.cu-btn-secondary {
+  background: var(--bg-300);
+  color: var(--pri-500);
+  border: 1px solid var(--bg-500);
+}
+
+.cu-btn-secondary:hover {
+  background: var(--bg-400);
+  border-color: var(--pri-500);
+}
+
+/* ======== Columns Layout ======== */
+.cu-columns {
+  display: flex;
+  flex-direction: column; /* apilar: una columna encima de la otra */
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  align-items: stretch;
+}
+
+.cu-column-escuelas {
+  width: 100%;
+}
+
+.cu-column-cursos {
+  width: 100%;
+}
+
+.cu-column-escuelas h2,
+.cu-column-cursos h2 {
+  font-size: calc(1.25rem + 0.5vw);
+  font-weight: 600;
+  color: var(--pri-500);
+  margin: 0 0 1rem 0;
+}
+
+/* ======== Tables ======== */
+table.cu-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(0.85rem + 0.1vw);
+  background: var(--bg-100);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--bg-500);
+}
+
+table.cu-table thead {
+  background: var(--bg-300);
+}
+
+table.cu-table thead tr {
+  border-bottom: 2px solid var(--bg-500);
+}
+
+table.cu-table th {
+  padding: 1rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--var-700);
+}
+
+table.cu-table td {
+  padding: 1rem 0.75rem;
+  border-bottom: 1px solid var(--bg-400);
+  vertical-align: middle;
+  font-weight: 500;
+  color: var(--pri-500);
+}
+
+table.cu-table tbody tr:hover {
+  background-color: var(--bg-300);
+  transition: background-color 0.2s ease;
+}
+
+table.cu-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ======== Action Buttons in Tables ======== */
+.action-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: calc(0.8375rem + 0.045vw);
+  margin-right: 0.75rem; /* más espacio por defecto entre botones */
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.action-btn.primary {
+  background: var(--acc-700);
+  color: var(--bg-100);
+  border: none;
+}
+
+.action-btn.primary:hover {
+  background: var(--acc-900);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 129, 150, 0.3);
+}
+
+.action-btn.secondary {
+  background: transparent;
+  color: var(--pri-500);
+  border: 1px solid var(--pri-500);
+}
+
+.action-btn.secondary:hover {
+  background: var(--pri-100);
+  border-color: var(--pri-600);
+  color: var(--pri-700);
+}
+
+/* Asegurar separación estética cuando hay varios botones seguidos */
+.action-btn + .action-btn {
+  margin-left: 0.5rem;
+}
+
+/* ======== Modal ======== */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  overflow: hidden;
+  padding: 2rem 0;
+}
+
+.modal.active {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: var(--bg-100);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  margin: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+.modal-content h2 {
+  font-size: calc(1.25rem + 0.5vw);
+  font-weight: 600;
+  color: var(--pri-500);
+  margin: 0 0 1.5rem 0;
+  padding: 1.5rem 2rem 0;
+  text-align: center;
+}
+
+.close-modal {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--var-700);
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.close-modal:hover {
+  background: var(--bg-300);
+  color: var(--pri-500);
+}
+
+/* ======== Form Styles ======== */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0 2rem 2rem;
+}
+
+.modal-form label {
+  font-size: calc(0.875rem + 0.075vw);
+  font-weight: 500;
+  color: var(--pri-500);
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.usuarios-search-input,
+.modal-form input[type="text"],
+.modal-form input[type="email"],
+.modal-form input[type="tel"],
+.modal-form textarea,
+.modal-form select {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--bg-500);
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: calc(0.875rem + 0.075vw);
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.usuarios-search-input:focus,
+.modal-form input:focus,
+.modal-form textarea:focus,
+.modal-form select:focus {
+  outline: none;
+  border-color: var(--acc-700);
+  box-shadow: 0 0 0 3px rgba(0, 129, 150, 0.1);
+}
+
+.modal-form button[type="submit"] {
+  margin-top: 0.5rem;
+}
+
+/* ======== Empty States ======== */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--var-700);
+}
+
+.empty-state i {
+  font-size: 4rem;
+  color: var(--acc-700);
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  font-size: calc(1.25rem + 0.5vw);
+  color: var(--pri-500);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  margin-bottom: 1.5rem;
+}
+
+/* ======== Loading States ======== */
+.loading-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--var-700);
+}
+
+.loading-state i {
+  font-size: 4rem;
+  color: var(--acc-700);
+  margin-bottom: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile Small (≤ 374px) */
+@media (max-width: 374px) {
+  .cursos-escuelas-dashboard {
+    padding: 0.75rem;
+  }
+
+  .cursos-escuelas-card {
+    padding: 0.875rem;
+    border-radius: 8px;
+  }
+
+  .cursos-escuelas-title {
+    font-size: 1.25rem;
+  }
+
+  .cursos-escuelas-desc {
+    font-size: 0.8rem;
+  }
+
+  .cursos-escuelas-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .cu-btn-primary,
+  .cu-btn-secondary {
+    width: 100%;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .cu-columns {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cu-column-escuelas h2,
+  .cu-column-cursos h2 {
+    font-size: 1.1rem;
+  }
+
+  table.cu-table {
+    font-size: 0.7rem;
+  }
+
+  table.cu-table th,
+  table.cu-table td {
+    padding: 0.6rem 0.4rem;
+  }
+
+  table.cu-table th.th-counter {
+    width: 40px;
+  }
+
+  .action-btn {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.7rem;
+    margin-right: 0.25rem;
+    display: block;
+    width: 100%;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+
+  .action-btn + .action-btn {
+    margin-left: 0;
+  }
+
+  .modal-content {
+    width: 98%;
+    max-width: none;
+    padding: 0;
+  }
+
+  .modal-content h2 {
+    font-size: 1.15rem;
+    padding: 1rem 1rem 0;
+  }
+
+  .modal-form {
+    padding: 0 1rem 1rem;
+  }
+}
+
+/* Mobile Small (375px - 390px) */
+@media (min-width: 375px) and (max-width: 390px) {
+  .cursos-escuelas-dashboard {
+    padding: 1rem;
+  }
+
+  .cursos-escuelas-card {
+    padding: 1rem;
+  }
+
+  .cursos-escuelas-title {
+    font-size: 1.4rem;
+  }
+
+  .cursos-escuelas-actions {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .cu-btn-primary,
+  .cu-btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cu-columns {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  table.cu-table {
+    font-size: 0.75rem;
+  }
+
+  table.cu-table th,
+  table.cu-table td {
+    padding: 0.7rem 0.5rem;
+  }
+
+  .action-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .modal-content {
+    width: 95%;
+  }
+}
+
+/* Mobile (391px - 767px) */
+@media (min-width: 391px) and (max-width: 767px) {
+  .cursos-escuelas-dashboard {
+    padding: 1.25rem;
+  }
+
+  .cursos-escuelas-card {
+    padding: 1.5rem;
+  }
+
+  .cu-columns {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .cu-column-escuelas,
+  .cu-column-cursos {
+    min-width: auto;
+  }
+
+  table.cu-table {
+    font-size: 0.8rem;
+  }
+
+  table.cu-table th,
+  table.cu-table td {
+    padding: 0.875rem 0.625rem;
+  }
+
+  .action-btn {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cursos-escuelas-dashboard {
+    padding: 1.5rem;
+  }
+
+  .cu-columns {
+    gap: 1.5rem;
+  }
+
+  table.cu-table th,
+  table.cu-table td {
+    padding: 0.875rem 0.625rem;
+  }
+
+  .action-btn {
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* Desktop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .cursos-escuelas-dashboard {
+    padding: 1.75rem;
+  }
+
+  .cursos-escuelas-card {
+    padding: 2rem;
+  }
+
+  .cu-columns {
+    gap: 2rem;
+  }
+}
+
+/* Large Desktop (1440px - 1920px) */
+@media (min-width: 1440px) {
+  .cursos-escuelas-dashboard {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .cursos-escuelas-card {
+    padding: 2.5rem;
+  }
+
+  .cu-columns {
+    gap: 2.5rem;
+  }
+}
+
+/* Extra Large Desktop (> 1920px) */
+@media (min-width: 1921px) {
+  .cursos-escuelas-dashboard {
+    max-width: 1600px;
+  }
+}
+
+/* Touch devices */
+@media (hover: none) {
+  .cu-btn-primary:hover,
+  .cu-btn-secondary:hover,
+  .action-btn:hover {
+    transform: none;
+  }
+
+  table.cu-table tbody tr:hover {
+    background-color: transparent;
+  }
+}
+
+/* Print styles */
+@media print {
+  .cursos-escuelas-dashboard {
+    padding: 0;
+  }
+
+  .cursos-escuelas-card {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+
+  .cursos-escuelas-actions {
+    display: none;
+  }
+
+  .action-btn {
+    display: none;
+  }
+
+  .modal {
+    display: none !important;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .cu-btn-primary,
+  .cu-btn-secondary,
+  .action-btn {
+    transition: none;
+  }
+
+  .loading-state i {
+    animation: none;
+  }
+}
+
+/* ======== Utility Classes ======== */
+.text-center {
+  text-align: center;
+}

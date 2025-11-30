@@ -3,6 +3,9 @@ require_once __DIR__ . '/../../database/Database.php';
 $db = new Database();
 $conn = $db->connect();
 
+require_once dirname(__DIR__) . '/pageHeader.php';
+renderPageHeader();
+
 // Obtener escuelas
 $escuelas = $conn->query('SELECT * FROM Escuelas ORDER BY nombre_escuela')->fetchAll(PDO::FETCH_ASSOC);
 // Obtener cursos con nombre de escuela y profesor
@@ -12,24 +15,24 @@ $sql = "SELECT c.*, e.nombre_escuela, u.nombre AS profesor_nombre, u.apellido AS
         ORDER BY c.nombre_curso";
 $cursos = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<link rel="stylesheet" href="usuarios.css">
-<div class="dashboard-container" style="min-height:100vh; background:#f6f6f6; font-family:'Inter',sans-serif;">
-  <div style="max-width:98vw; margin:32px auto; padding:0 2vw; background:#fff; border-radius:24px; box-shadow:0 4px 24px #0002;">
-    <h1 style="color:#6b1a1a; font-size:2.2rem; font-weight:700; margin-bottom:8px; margin-top:0;">Gestión de Cursos y Escuelas</h1>
-    <p style="color:#7c7c7c; margin-bottom:32px; margin-top:0;">Administra las escuelas y cursos registrados</p>
-    <div style="display:flex; gap:32px; flex-wrap:wrap; justify-content:center; margin-bottom:40px;">
-      <button class="btn btn-primary" id="btnNuevaEscuela" style="padding:10px 24px; border-radius:8px; background:#6b1a1a; color:#fff; border:none; font-weight:600; cursor:pointer;">Nueva Escuela</button>
-      <button class="btn btn-secondary" id="btnNuevoCurso" style="padding:10px 24px; border-radius:8px; background:#fff; color:#6b1a1a; border:1px solid #6b1a1a; font-weight:600; cursor:pointer;">Nuevo Curso</button>
+<link rel="stylesheet" href="cursos_escuelas.css">
+<div class="cursos-escuelas-dashboard">
+  <div class="cursos-escuelas-card">
+    <h1 class="cursos-escuelas-title">Gestión de Cursos y Escuelas</h1>
+    <p class="cursos-escuelas-desc">Administra las escuelas y cursos registrados</p>
+    <div class="cursos-escuelas-actions">
+      <button class="cu-btn-primary" id="btnNuevaEscuela">Nueva Escuela</button>
+      <button class="cu-btn-secondary" id="btnNuevoCurso">Nuevo Curso</button>
     </div>
-    <div style="display:flex; gap:48px; flex-wrap:wrap; justify-content:center;">
-      <div style="flex:1; min-width:340px;">
-        <h2 style="color:#6b1a1a; font-size:1.3rem; margin-bottom:18px; margin-top:0;">Escuelas</h2>
-        <table style="width:100%; border-collapse:separate; border-spacing:0;">
+    <div class="cu-columns">
+      <div class="cu-column-escuelas">
+        <h2>Escuelas</h2>
+        <table class="cu-table">
           <thead>
-            <tr style="background-color:#f6f6f6; color:#6b1a1a; font-weight:600;">
-              <th style="padding:12px 8px; text-align:left;">Nombre</th>
-              <th style="padding:12px 8px; text-align:left;">Teléfono</th>
-              <th style="padding:12px 8px; text-align:left;">Acciones</th>
+            <tr>
+              <th>Nombre</th>
+              <th>Teléfono</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="escuelasTableBody">
@@ -38,23 +41,23 @@ $cursos = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
               <td><?= htmlspecialchars($e['nombre_escuela']) ?></td>
               <td><?= htmlspecialchars($e['telefono']) ?></td>
               <td>
-                <a href="#" class="btn btn-primary editar-escuela" data-id="<?= $e['id_escuela'] ?>" style="padding:6px 14px; border-radius:6px; background:#6b1a1a; color:#fff; border:none; font-size:0.95rem; margin-right:6px;">Editar</a>
-                <a href="#" class="btn btn-secondary eliminar-escuela" data-id="<?= $e['id_escuela'] ?>" style="padding:6px 14px; border-radius:6px; background:#fff; color:#6b1a1a; border:1px solid #6b1a1a; font-size:0.95rem;">Eliminar</a>
+                <a href="#" class="action-btn primary editar-escuela" data-id="<?= $e['id_escuela'] ?>">Editar</a>
+                <a href="#" class="action-btn secondary eliminar-escuela" data-id="<?= $e['id_escuela'] ?>">Eliminar</a>
               </td>
             </tr>
             <?php endforeach; ?>
           </tbody>
         </table>
       </div>
-      <div style="flex:2; min-width:440px;">
-        <h2 style="color:#6b1a1a; font-size:1.3rem; margin-bottom:18px; margin-top:0;">Cursos</h2>
-        <table style="width:100%; border-collapse:separate; border-spacing:0;">
+      <div class="cu-column-cursos">
+        <h2>Cursos</h2>
+        <table class="cu-table">
           <thead>
-            <tr style="background-color:#f6f6f6; color:#6b1a1a; font-weight:600;">
-              <th style="padding:12px 8px; text-align:left;">Nombre</th>
-              <th style="padding:12px 8px; text-align:left;">Escuela</th>
-              <th style="padding:12px 8px; text-align:left;">Profesor</th>
-              <th style="padding:12px 8px; text-align:left;">Acciones</th>
+            <tr>
+              <th>Nombre</th>
+              <th>Escuela</th>
+              <th>Profesor</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="cursosTableBody">
@@ -64,8 +67,8 @@ $cursos = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
               <td><?= htmlspecialchars($c['nombre_escuela']) ?></td>
               <td><?= htmlspecialchars($c['profesor_nombre'] . ' ' . $c['profesor_apellido']) ?></td>
               <td>
-                <a href="#" class="btn btn-primary editar-curso" data-id="<?= $c['id_curso'] ?>" style="padding:6px 14px; border-radius:6px; background:#6b1a1a; color:#fff; border:none; font-size:0.95rem; margin-right:6px;">Editar</a>
-                <a href="#" class="btn btn-secondary eliminar-curso" data-id="<?= $c['id_curso'] ?>" style="padding:6px 14px; border-radius:6px; background:#fff; color:#6b1a1a; border:1px solid #6b1a1a; font-size:0.95rem;">Eliminar</a>
+                <a href="#" class="action-btn primary editar-curso" data-id="<?= $c['id_curso'] ?>">Editar</a>
+                <a href="#" class="action-btn secondary eliminar-curso" data-id="<?= $c['id_curso'] ?>">Eliminar</a>
               </td>
             </tr>
             <?php endforeach; ?>
@@ -75,16 +78,16 @@ $cursos = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     </div>
     <!-- Modales para CRUD -->
     <!-- Modal Nueva Escuela -->
-    <div id="modalNuevaEscuela" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#0007; z-index:9999; align-items:center; justify-content:center;">
-      <div class="modal-content" style="background:linear-gradient(135deg,#fff 80%,#f6f6f6 100%); border-radius:20px; padding:40px 32px 32px 32px; max-width:400px; margin:auto; box-shadow:0 4px 24px #0003; position:relative;">
-        <span class="close-modal" style="position:absolute; top:18px; right:24px; font-size:2rem; color:#6b1a1a; cursor:pointer;">&times;</span>
-        <h2 style="color:#6b1a1a; margin-bottom:24px; font-size:1.3rem; font-weight:700; text-align:center;">Nueva Escuela</h2>
-        <form id="formNuevaEscuela" method="post" style="display:flex; flex-direction:column; gap:18px;">
-          <label style="font-size:0.97rem; color:#6b1a1a; font-weight:500;">Nombre de la escuela</label>
+    <div id="modalNuevaEscuela" class="modal">
+      <div class="modal-content modal-small">
+        <button class="close-modal">&times;</button>
+        <h2>Nueva Escuela</h2>
+        <form id="formNuevaEscuela" method="post" class="modal-form">
+          <label>Nombre de la escuela</label>
           <input type="text" name="nombre_escuela" required class="usuarios-search-input">
-          <label style="font-size:0.97rem; color:#6b1a1a; font-weight:500;">Teléfono</label>
+          <label>Teléfono</label>
           <input type="text" name="telefono" class="usuarios-search-input">
-          <button type="submit" class="btn btn-primary" style="width:100%; font-size:1.08rem; padding:12px 0;">Crear Escuela</button>
+          <button type="submit" class="cu-btn-primary full-width">Crear Escuela</button>
         </form>
       </div>
     </div>
