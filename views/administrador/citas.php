@@ -1,97 +1,17 @@
 <?php
-// views/administrador/citas.php
 require_once __DIR__ . '/../header.php';
+require_once __DIR__ . '/../../utils/asset-version.php';
 ?>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
-<style>
+<link rel="stylesheet" href="views/administrador/citas.css?v=<?php echo asset_version('views/administrador/citas.css'); ?>">
 
-body {
-    background-color: #f6f6f6;
-    font-family: 'Inter', sans-serif;
-}
-.admin-citas-container {
-    max-width: 98vw;
-    margin: 32px auto;
-    padding: 0 2vw;
-    background: #fff;
-    border-radius: 24px;
-    box-shadow: 0 4px 24px #0002;
-}
-.citas-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #6b1a1a;
-    margin-bottom: 8px;
-    margin-top: 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.citas-calendar {
-    background: #f3f4f6;
-    border-radius: 16px;
-    padding: 40px 48px 40px 48px;
-    box-shadow: 0 2px 8px #0001;
-    margin-bottom: 40px;
-    min-height: 600px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.citas-details {
-    background: #f9fafb;
-    border-radius: 16px;
-    padding: 24px 32px;
-    box-shadow: 0 2px 8px #0001;
-}
-.citas-details-title {
-    font-size: 1.3rem;
-    color: #6b1a1a;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-.citas-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px #0001;
-}
-.citas-table th, .citas-table td {
-    padding: 12px 16px;
-    text-align: left;
-}
-.citas-table th {
-    background: #f3f4f6;
-    color: #6b1a1a;
-    font-weight: 600;
-}
-.citas-table tr {
-    border-bottom: 1px solid #e5e7eb;
-}
-.citas-table tr:last-child {
-    border-bottom: none;
-}
-@media (max-width: 800px) {
-    .admin-citas-container { padding: 16px 8px; }
-    .citas-calendar { padding: 8px; }
-    .citas-details { padding: 12px 4px; }
-}
-
-.fc-daygrid-day.fc-day-selected {
-    background: #fde2e2 !important;
-    border-radius: 8px;
-    box-shadow: 0 0 0 2px #6b1a1a33;
-}
-</style>
 <div class="admin-citas-container">
     <div class="citas-title">
         <span>📅</span> Gestión de Citas
     </div>
-    <div style="margin-bottom:24px;display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+    <div class="citas-controls">
         <label>Estado:
-            <select id="filtro-estado" style="padding:6px 12px;border-radius:8px;border:1px solid #ddd;">
+            <select id="filtro-estado">
                 <option value="">Todos</option>
                 <option value="pendiente">Pendiente</option>
                 <option value="confirmada">Confirmada</option>
@@ -99,11 +19,11 @@ body {
             </select>
         </label>
         <label>Alumno:
-            <input type="text" id="filtro-alumno" placeholder="Nombre o apellido" style="padding:6px 12px;border-radius:8px;border:1px solid #ddd;" />
+            <input type="text" id="filtro-alumno" placeholder="Nombre o apellido" class="citas-input" />
         </label>
-        <button id="btn-filtrar" style="padding:7px 18px;border-radius:8px;background:#6b1a1a;color:#fff;border:none;font-weight:600;cursor:pointer;">Filtrar</button>
-        <button id="btn-limpiar" style="padding:7px 18px;border-radius:8px;background:#fff;color:#6b1a1a;border:2px solid #6b1a1a;font-weight:600;cursor:pointer;">Limpiar</button>
-        <button id="btn-hoy" style="padding:7px 18px;border-radius:8px;background:#3b82f6;color:#fff;border:none;font-weight:600;cursor:pointer;">Hoy</button>
+        <button id="btn-filtrar" class="citas-btn primary">Filtrar</button>
+        <button id="btn-limpiar" class="citas-btn ghost">Limpiar</button>
+        <button id="btn-hoy" class="citas-btn info">Hoy</button>
     </div>
     <div class="citas-calendar">
         <div id="calendar"></div>
@@ -217,11 +137,12 @@ function renderCitasFiltradas(citasDia) {
     }
     for (const cita of filtradas) {
         const hora = cita.start.slice(11, 16);
+        const estadoClass = cita.estado === 'pendiente' ? 'estado-pendiente' : (cita.estado === 'confirmada' ? 'estado-confirmada' : 'estado-cancelada');
         citasTableBody.innerHTML += `<tr>
             <td>${hora}</td>
             <td>${cita.title}</td>
             <td>${cita.motivo}</td>
-            <td><span style="color:${cita.estado==='pendiente'?'#6366f1':cita.estado==='confirmada'?'#10b981':'#ef4444'};font-weight:600;">${cita.estado.charAt(0).toUpperCase()+cita.estado.slice(1)}</span></td>
+            <td><span class="estado ${estadoClass}">${cita.estado.charAt(0).toUpperCase()+cita.estado.slice(1)}</span></td>
         </tr>`;
     }
 }

@@ -1,0 +1,173 @@
+/* CSS específico para views/administrador/citas.php */
+@import url("../../public/css/theme.css");
+
+body {
+    background-color: var(--bg-100);
+    font-family: var(--font);
+}
+
+.admin-citas-container {
+    max-width: 98vw;
+    margin: 32px auto;
+    padding: 0 2vw;
+    background: var(--bg-100);
+    border-radius: 24px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+}
+
+.citas-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--pri-500);
+    margin-bottom: 8px;
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.citas-calendar {
+    background: var(--bg-300);
+    border-radius: 16px;
+    padding: 40px 48px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 40px;
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.citas-details {
+    background: var(--bg-100);
+    border-radius: 16px;
+    padding: 24px 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.citas-details-title {
+    font-size: 1.3rem;
+    color: var(--pri-500);
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.citas-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-100);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.citas-table th, .citas-table td {
+    padding: 12px 16px;
+    text-align: left;
+    color: var(--var-700);
+}
+
+.citas-table th {
+    background: var(--bg-300);
+    color: var(--pri-500);
+    font-weight: 600;
+}
+
+.citas-table tr {
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+.citas-table tr:last-child {
+    border-bottom: none;
+}
+
+.citas-controls {
+    margin-bottom: 24px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.citas-controls label { color: var(--var-700); font-weight:500 }
+.citas-controls select,
+.citas-controls input[type="text"] {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--bg-500);
+    background: var(--bg-100);
+}
+
+.citas-btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+.citas-btn.ghost {
+    background: transparent;
+    color: var(--pri-500);
+    border: 2px solid var(--pri-500);
+}
+.citas-btn.primary { background: var(--acc-500); color: var(--bg-100); }
+.citas-btn.info { background: #3b82f6; color: #fff; }
+
+/* Selected day highlight for FullCalendar */
+.fc-daygrid-day.fc-day-selected {
+    background: #fde2e2 !important;
+    border-radius: 8px;
+    box-shadow: 0 0 0 2px rgba(107,26,26,0.2);
+}
+
+/* Responsive breakpoints */
+/* Very small phones <= 374px */
+@media (max-width: 374px) {
+    .admin-citas-container { padding: 16px 8px; margin: 12px auto; }
+    .citas-calendar { padding: 8px; min-height: 360px }
+    .citas-details { padding: 12px 8px }
+    .citas-title { font-size: 1.1rem }
+    .citas-controls { gap: 8px }
+    .citas-controls select, .citas-controls input[type="text"] { padding: 6px 8px }
+}
+
+/* Small phones 375 - 390px */
+@media (min-width: 375px) and (max-width: 390px) {
+    .admin-citas-container { padding: 18px 10px }
+    .citas-calendar { padding: 12px; min-height: 420px }
+    .citas-title { font-size: 1.2rem }
+}
+
+/* Mobile -> tablet 391 - 767px */
+@media (min-width: 391px) and (max-width: 767px) {
+    .admin-citas-container { padding: 20px 16px }
+    .citas-calendar { padding: 16px; min-height: 480px }
+    .citas-controls { gap: 12px }
+}
+
+/* Tablet 768 - 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .admin-citas-container { padding: 24px 20px }
+    .citas-calendar { padding: 28px 36px; min-height: 520px }
+}
+
+/* Desktop small 1024 - 1439px */
+@media (min-width: 1024px) and (max-width: 1439px) {
+    .admin-citas-container { padding: 28px 24px }
+    .citas-calendar { padding: 32px 44px; min-height: 560px }
+}
+
+/* Large desktop >= 1440px */
+@media (min-width: 1440px) {
+    .admin-citas-container { padding: 32px 48px }
+    .citas-calendar { padding: 40px 48px; min-height: 600px }
+}
+
+/* Utility tweaks */
+.citas-table td span.estado { font-weight: 600 }
+/* estado colors */
+.estado-pendiente { color: #6366f1 }
+.estado-confirmada { color: var(--acc-500) }
+.estado-cancelada { color: var(--pri-600) }
+
+.citas-select, .citas-input { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--bg-500); }
