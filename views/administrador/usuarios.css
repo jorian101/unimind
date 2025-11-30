@@ -1,180 +1,181 @@
-/* Modales */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: #0007;
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-}
-.modal-content {
-    background: #fff;
-    border-radius: 16px;
-    padding: 32px;
-    max-width: 420px;
-    margin: auto;
-    box-shadow: 0 2px 16px #0002;
-    position: relative;
-}
-.close-modal {
-    position: absolute;
-    top: 16px;
-    right: 20px;
-    font-size: 1.5rem;
-    cursor: pointer;
-}
-/* Panel de Usuarios - Estilos */
+/* Usuarios - adaptado a variables de theme y estilo tests.css */
 
+/* Base: usar variables del theme */
 .usuarios-dashboard {
-    background-color: #f6f6f6;
-    min-height: 100vh;
-    padding: 0;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font);
+    color: var(--pri-500);
+    background: var(--bg-100);
+    min-height: calc(100vh - 80px);
 }
 
 .usuarios-container {
-    max-width: 98vw;
-    margin: 32px auto;
-    padding: 0 2vw;
-    background: #fff;
-    border-radius: 24px;
-    box-shadow: 0 4px 24px #0002;
+    max-width: 1400px;
+    padding: 1.5rem;
+    margin: 24px auto;
+    background: var(--bg-100);
+}
+
+.usuarios-card {
+    background: var(--bg-100);
+    border: 1px solid var(--bg-500);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}
+
+.usuarios-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
 }
 
 .usuarios-title {
-    color: #6b1a1a;
-    font-size: 2.2rem;
+    font-size: calc(1.25rem + 0.6vw);
     font-weight: 700;
-    margin-bottom: 8px;
-    margin-top: 0;
+    color: var(--pri-500);
+    margin: 0;
 }
 
 .usuarios-subtitle {
-    color: #7c7c7c;
-    margin-bottom: 32px;
-    margin-top: 0;
+    color: var(--var-700);
+    margin: 0;
 }
 
 .usuarios-actions {
     display: flex;
-    gap: 24px;
-    margin-bottom: 40px;
-    justify-content: center;
+    gap: 0.75rem;
+    align-items: center;
     flex-wrap: wrap;
 }
 
-.usuarios-search-form {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-}
+.usuarios-search-form { display:flex; gap:0.75rem; align-items:center; }
 
 .usuarios-search-input,
 .usuarios-filter-select {
-    padding: 10px 16px;
+    padding: 0.6rem 0.9rem;
     border-radius: 8px;
-    border: 1px solid #bdbdbd;
-    font-size: 1rem;
-    min-width: 220px;
+    border: 1px solid var(--bg-500);
+    background: var(--bg-100);
+    font-family: var(--font);
 }
 
+.btn, .btn-primary, .btn-secondary { font-family:var(--font); }
 .btn {
-    padding: 10px 24px;
+    padding: 0.625rem 1.25rem;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    font-size: 1rem;
-    transition: opacity 0.2s;
-}
-
-.btn:hover {
-    opacity: 0.9;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .btn-primary {
-    background-color: #6b1a1a;
-    color: #fff;
+    background: var(--pri-500);
+    color: var(--bg-100);
     border: none;
 }
 
+.btn-primary:hover { background: var(--pri-600); }
+
 .btn-secondary {
-    background-color: #fff;
-    color: #6b1a1a;
-    border: 1px solid #6b1a1a;
+    background: var(--bg-300);
+    color: var(--pri-500);
+    border: 1px solid var(--bg-500);
 }
 
 .usuarios-table-section {
-    background: #fff;
-    border-radius: 18px;
-    padding: 32px;
-    box-shadow: 0 2px 12px #0001;
+    background: var(--bg-100);
+    border-radius: 10px;
+    padding: 1rem;
+    border: 1px solid var(--bg-500);
 }
 
-.section-title {
-    color: #6b1a1a;
-    font-size: 1.3rem;
-    margin-bottom: 18px;
-    margin-top: 0;
-}
+.section-title { color: var(--pri-500); font-weight:600; margin:0 0 0.75rem 0 }
 
 .usuarios-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    width:100%;
+    border-collapse: collapse;
+    background: var(--bg-100);
 }
 
-.usuarios-table thead tr {
-    background-color: #f6f6f6;
-    color: #6b1a1a;
-    font-weight: 600;
+.usuarios-table thead { background: var(--bg-300); }
+.usuarios-table th, .usuarios-table td {
+    padding: 0.75rem 0.6rem;
+    text-align:left;
+    border-bottom:1px solid var(--bg-400);
+    color: var(--pri-500);
 }
 
-.usuarios-table th {
-    padding: 12px 8px;
-    text-align: left;
-    border-right: 2px solid #bdbdbd;
+.usuarios-table th { font-weight:600; color:var(--var-700); }
+
+.usuarios-table tbody tr:hover { background: var(--bg-300); }
+
+/* Modal (re-utiliza la convención de tests.css) */
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; padding:2rem 0; overflow:hidden }
+.modal.active { display:flex; justify-content:center; align-items:flex-start }
+.modal-content { background:var(--bg-100); border-radius:12px; width:90%; max-width:520px; margin:auto; box-shadow:0 10px 40px rgba(0,0,0,0.2); max-height:85vh; display:flex; flex-direction:column; overflow-y:auto }
+.modal-small { max-width:500px }
+.close-modal { position:absolute; top:1rem; right:1.25rem; background:transparent; border:none; font-size:1.25rem; color:var(--var-700); cursor:pointer }
+
+/* Action buttons inside table */
+.action-btn { padding:0.45rem 0.9rem; border-radius:6px; font-weight:600; display:inline-flex; gap:0.4rem; cursor:pointer }
+.action-btn.primary { background:var(--acc-700); color:var(--bg-100); border:none }
+.action-btn.secondary { background:transparent; color:var(--pri-500); border:1px solid var(--pri-500) }
+
+/* Utility */
+.full-width { width:100% }
+
+/* Responsive breakpoints requested */
+/* Very small phones <= 374px */
+@media (max-width: 374px) {
+    .usuarios-container { padding: 0.5rem }
+    .usuarios-header { gap: 0.5rem }
+    .usuarios-title { font-size: 1rem }
+    .usuarios-search-input { min-width: 120px }
+    .usuarios-table th, .usuarios-table td { padding: 0.5rem }
 }
 
-.usuarios-table th:last-child {
-    border-right: none;
+/* Small phones 375 - 390px */
+@media (min-width: 375px) and (max-width: 390px) {
+    .usuarios-container { padding: 0.75rem }
+    .usuarios-title { font-size: 1.05rem }
+    .usuarios-search-input { min-width: 140px }
 }
 
-.usuarios-table td {
-    padding: 12px 8px;
-    border-bottom: 2px solid #bdbdbd;
-    border-right: 2px solid #bdbdbd;
+/* Mobile -> tablet 391 - 767px */
+@media (min-width: 391px) and (max-width: 767px) {
+    .usuarios-container { padding: 1rem }
+    .usuarios-header { justify-content:space-between }
+    .usuarios-actions { gap: 0.5rem }
+    .usuarios-table-section { padding: 0.9rem }
+    .usuarios-table th, .usuarios-table td { font-size: 0.9rem }
 }
 
-.usuarios-table td:last-child {
-    border-right: none;
+/* Tablet 768 - 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .usuarios-container { padding: 1.25rem }
+    .usuarios-card { padding: 1rem }
+    .usuarios-title { font-size: 1.25rem }
 }
 
-.usuarios-table tr {
-    border-bottom: 3px solid #bdbdbd;
+/* Desktop small 1024 - 1439px */
+@media (min-width: 1024px) and (max-width: 1439px) {
+    .usuarios-container { padding: 1.5rem }
+    .usuarios-card { padding: 1.25rem }
 }
 
-@media (max-width: 1200px) {
-    .usuarios-container {
-        max-width: 100vw;
-        padding: 0 1vw;
-    }
-    .usuarios-table-section {
-        padding: 16px;
-    }
+/* Large desktop >= 1440px */
+@media (min-width: 1440px) {
+    .usuarios-container { padding: 2rem }
+    .usuarios-card { padding: 1.5rem }
 }
-@media (max-width: 768px) {
-    .usuarios-table-section {
-        padding: 8px;
-    }
-    .usuarios-actions {
-        flex-direction: column;
-        gap: 16px;
-    }
-    .usuarios-container {
-        padding: 0 0.5vw;
-    }
+
+/* Touch devices */
+@media (hover: none) {
+    .usuarios-card:hover { transform: none; box-shadow: 0 4px 12px rgba(0,0,0,0.03) }
 }
+
