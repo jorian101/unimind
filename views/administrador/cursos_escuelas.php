@@ -1,25 +1,29 @@
 <?php
-require_once __DIR__ . '/../../database/Database.php';
-$db = new Database();
-$conn = $db->connect();
+// Usar modelos en lugar de consultas directas (patrón MVC)
+require_once __DIR__ . '/../../models/administrador/EscuelasModel.php';
+require_once __DIR__ . '/../../models/administrador/CursosModel.php';
+
+$escuelasModel = new EscuelasModel();
+$cursosModel = new CursosModel();
+
+// Obtener datos desde los modelos
+$escuelas = $escuelasModel->getAll();
+$cursos = $cursosModel->getAllWithDetails();
+$profesores = $cursosModel->getProfesores();
 
 require_once dirname(__DIR__) . '/pageHeader.php';
 renderPageHeader();
 
-// Obtener escuelas
-$escuelas = $conn->query('SELECT * FROM Escuelas ORDER BY nombre_escuela')->fetchAll(PDO::FETCH_ASSOC);
-// Obtener cursos con nombre de escuela y profesor
-$sql = "SELECT c.*, e.nombre_escuela, u.nombre AS profesor_nombre, u.apellido AS profesor_apellido FROM Cursos c
-        JOIN Escuelas e ON c.id_escuela = e.id_escuela
-        JOIN Usuarios u ON c.id_profesor = u.id_usuario
-        ORDER BY c.nombre_curso";
-$cursos = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<link rel="stylesheet" href="cursos_escuelas.css">
-<div class="cursos-escuelas-dashboard">
+<?php
+// Construir base URL para enlaces a assets (funciona cuando la app se sirve desde un subdirectorio)
+$baseUrl = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+echo '<link rel="stylesheet" href="' . $baseUrl . '/public/css/theme.css">';
+echo '<link rel="stylesheet" href="' . $baseUrl . '/views/administrador/tests.css">';
+echo '<link rel="stylesheet" href="' . $baseUrl . '/views/administrador/cursos_escuelas.css">';
+?>
+<div class="cursos-escuelas-container cursos-escuelas-dashboard">
   <div class="cursos-escuelas-card">
-    <h1 class="cursos-escuelas-title">Gestión de Cursos y Escuelas</h1>
-    <p class="cursos-escuelas-desc">Administra las escuelas y cursos registrados</p>
     <div class="cursos-escuelas-actions">
       <button class="cu-btn-primary" id="btnNuevaEscuela">Nueva Escuela</button>
       <button class="cu-btn-secondary" id="btnNuevoCurso">Nuevo Curso</button>
@@ -91,6 +95,35 @@ $cursos = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
         </form>
       </div>
     </div>
+    <!-- Modal Nuevo Curso -->
+    <div id="modalNuevoCurso" class="modal">
+      <div class="modal-content modal-small">
+        <button class="close-modal">&times;</button>
+        <h2>Nuevo Curso</h2>
+        <form id="formNuevoCurso" method="post" class="modal-form">
+          <label>Nombre del curso</label>
+          <input type="text" name="nombre_curso" required class="usuarios-search-input">
+          
+          <label>Escuela</label>
+          <select name="id_escuela" required class="usuarios-search-input">
+            <option value="">Selecciona una escuela</option>
+            <?php foreach ($escuelas as $esc): ?>
+            <option value="<?= htmlspecialchars($esc['id_escuela']) ?>"><?= htmlspecialchars($esc['nombre_escuela']) ?></option>
+            <?php endforeach; ?>
+          </select>
+          
+          <label>Profesor</label>
+          <select name="id_profesor" required class="usuarios-search-input">
+            <option value="">Selecciona un profesor</option>
+            <?php foreach ($profesores as $p): ?>
+            <option value="<?= htmlspecialchars($p['id_usuario']) ?>"><?= htmlspecialchars($p['nombre'] . ' ' . $p['apellido']) ?></option>
+            <?php endforeach; ?>
+          </select>
+          
+          <button type="submit" class="cu-btn-primary full-width">Crear Curso</button>
+        </form>
+      </div>
+    </div>
     <!-- Modal Editar/Eliminar Escuela, Modal Nuevo/Editar/Eliminar Curso -->
     <!-- ...similar estructura, se agregan según funcionalidad... -->
   </div>
@@ -117,5 +150,50 @@ formNuevaEscuela.onsubmit = function(e) {
     location.reload();
   });
 };
+
+// Abrir modal nuevo curso
+const btnNuevoCurso = document.getElementById('btnNuevoCurso');
+const modalNuevoCurso = document.getElementById('modalNuevoCurso');
+if (btnNuevoCurso && modalNuevoCurso) {
+  btnNuevoCurso.onclick = () => { modalNuevoCurso.style.display = 'flex'; };
+}
+
+// Enviar nuevo curso
+const formNuevoCurso = document.getElementById('formNuevoCurso');
+if (formNuevoCurso) {
+  formNuevoCurso.onsubmit = function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    formData.append('crear_curso', '1');
+    fetch('api/cursos.php', {
+      method: 'POST',
+      body: formData
+    }).then(res => res.json()).then(data => {
+      alert(data.Mensaje || 'Curso creado');
+      location.reload();
+    }).catch(err => {
+      console.error(err);
+      alert('Error al crear el curso');
+    });
+  };
+}
+
+// Cerrar modal al hacer clic fuera del contenido (overlay) y con Escape
+document.querySelectorAll('.modal').forEach(modal => {
+  // Cerrar si se hace clic directamente sobre el overlay (fuera de .modal-content)
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+});
+
+// Cerrar con tecla Esc
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' || e.key === 'Esc') {
+    document.querySelectorAll('.modal').forEach(m => { m.style.display = 'none'; });
+  }
+});
+
 // ...similar para cursos y edición/eliminación...
 </script>
