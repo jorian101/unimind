@@ -883,7 +883,7 @@
   border-color: var(--acc-700);
   box-shadow: 0 0 0 3px rgba(0, 129, 150, 0.1);
 }
-/* Mostrar visualmente que el campo de valor no es editable */
+
 .opcion-scale-field input[readonly] {
   background: var(--bg-200);
   cursor: default;
@@ -916,7 +916,6 @@
   font-weight: 600;
 }
 
-/* ======== Form Actions ======== */
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -926,7 +925,6 @@
   border-top: 1px solid var(--bg-500);
 }
 
-/* ======== Warning Text ======== */
 .warning-text {
   color: var(--pri-500);
   font-weight: 500;
@@ -943,23 +941,23 @@
   margin-top: 1rem;
 }
 
-/* Ajustes específicos para el modal de eliminación: botones juntos, mismo tamaño, alineados a la derecha */
 #deleteModal .form-actions {
-  justify-content: flex-end; /* alinear a la derecha */
+  justify-content: flex-end;
   gap: 0.75rem;
-  padding: 1rem 2rem 1.5rem; /* padding consistente */
-  border-top: none; /* quitar línea superior en modal de confirmación */
-  margin-top: auto; /* empujar acciones hacia la parte inferior del modal */
+  padding: 1rem 2rem 1.5rem;
+  border-top: none;
+  margin-top: auto;
 }
 
 #deleteModal .form-actions .btn-secondary,
 #deleteModal .form-actions .btn-danger {
-  width: 140px; /* botones del mismo tamaño */
+  width: 140px;
 }
 
-/* ======== Responsive Breakpoints ======== */
+#scaleModal .form-actions {
+  padding: 2rem;
+}
 
-/* Mobile Small (≤ 390px) */
 @media (max-width: 390px) {
   .admin-tests-container {
     padding: 1rem;
@@ -1000,7 +998,6 @@
     width: 100%;
   }
 
-  /* Mantener botones del modal de eliminación juntos y del mismo tamaño en tablet pequeño */
   #deleteModal .form-actions {
     flex-direction: row;
     justify-content: flex-end;
@@ -1012,7 +1009,6 @@
     width: 100px;
   }
 
-  /* Mantener botones del modal de eliminación juntos y del mismo tamaño en móvil */
   #deleteModal .form-actions {
     flex-direction: row !important;
     justify-content: flex-end !important;
@@ -1024,7 +1020,6 @@
     width: 120px !important;
   }
 
-  /* Eficiencia: mantener contador visible en móvil */
   .section-title-group {
     flex-direction: column;
     align-items: flex-start;
@@ -1035,7 +1030,6 @@
     font-size: calc(0.8125rem + 0.045vw);
   }
 
-  /* Visibilidad: botón agregar item stack en móvil */
   .section-header {
     flex-direction: column;
     align-items: stretch;
@@ -1048,7 +1042,6 @@
   }
 }
 
-/* Mobile (391px - 767px) */
 @media (min-width: 391px) and (max-width: 767px) {
   .tests-grid {
     grid-template-columns: 1fr;
@@ -1066,7 +1059,6 @@
     width: 100%;
   }
 
-  /* Mantener botones del modal de eliminación juntos y del mismo tamaño en móvil */
   #deleteModal .form-actions {
     flex-direction: row !important;
     justify-content: flex-end !important;
@@ -1079,21 +1071,18 @@
   }
 }
 
-/* Tablet (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
   .tests-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* Desktop (≥ 1024px) */
 @media (min-width: 1024px) {
   .tests-grid {
     grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   }
 }
 
-/* Touch devices */
 @media (hover: none) {
   .test-card:hover,
   .btn-primary:hover,
@@ -1102,7 +1091,6 @@
   }
 }
 
-/* Print styles */
 @media print {
   .modal,
   .page-header button,

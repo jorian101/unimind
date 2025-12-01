@@ -207,15 +207,6 @@ renderPageHeader();
                     <small class="form-hint">Mínimo 3 caracteres, máximo 100</small>
                 </div>
 
-                <div class="form-group">
-                    <label for="descripcionEscala">
-                        <i class="fas fa-align-left"></i> Descripción
-                    </label>
-                    <textarea id="descripcionEscala" name="descripcion" rows="2"
-                              placeholder="Ejemplo: Escala de 1 a 5 para medir acuerdo"
-                              maxlength="255"></textarea>
-                    <small class="form-hint">Opcional, máximo 255 caracteres</small>
-                </div>
 
                 <!-- Opciones de respuesta -->
                 <div class="form-section" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--bg-500);">

@@ -1378,9 +1378,7 @@ class AdminTestsManager {
    */
   async saveScale() {
     const nombre = document.getElementById("nombreEscala").value.trim();
-    const descripcion = document
-      .getElementById("descripcionEscala")
-      .value.trim();
+    const descripcion = "";
 
     // Recopilar opciones
     const opciones = this.collectOpcionesScale();
