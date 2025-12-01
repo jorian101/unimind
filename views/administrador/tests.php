@@ -97,14 +97,23 @@ renderPageHeader();
                           <option value="">Selecciona el tipo de escala...</option>
                           <!-- Se cargan dinámicamente desde la BD -->
                       </select>
-                      <button type="button" id="btnOpenScaleModal" class="btn-add-item btn-sm" title="Agregar nueva escala">
-                        <i class="fas fa-plus"></i>
-                      </button>
+                                            <button type="button" id="btnOpenScaleModal" class="btn-add-item btn-sm" title="Crear nueva escala">
+                                                <i class="fas fa-plus"></i> <span style="margin-left:6px;">Crear Escala</span>
+                                            </button>
                     </div>
                     <small class="form-hint">Define qué opciones verán los estudiantes al responder cada pregunta</small>
+                    <!-- Contenedor de opciones (se muestra/oculta desde JS) -->
+                    <div id="opcionesSection" class="form-section" style="display: none; padding: 0; border: none;">
+                        <div id="opcionesDisponibles" class="opciones-grid">
+                            <!-- Se cargan dinámicamente según el tipo de escala -->
+                        </div>
+                    </div>
                 </div>
 
             </div>
+
+            <!-- Ítems del test -->
+            <!-- (Opciones moved above, under the select) -->
 
             <!-- Ítems del test -->
             <div class="form-section">
@@ -135,18 +144,6 @@ renderPageHeader();
                     <i class="fas fa-inbox"></i>
                     <p class="empty-title">No hay ítems agregados aún</p>
                     <p class="empty-hint">Haz clic en <strong>"Agregar Ítem"</strong> para crear tu primera pregunta</p>
-                </div>
-            </div>
-
-            <!-- Opciones de respuesta según escala seleccionada -->
-            <div class="form-section" id="opcionesSection" style="display: none;">
-                <h3><i class="fas fa-check-square"></i> Opciones de Respuesta para este Test</h3>
-                <div class="info-box">
-                    <i class="fas fa-info-circle"></i>
-                    <p>Los estudiantes verán estas opciones al responder cada pregunta del test.</p>
-                </div>
-                <div id="opcionesDisponibles" class="opciones-grid">
-                    <!-- Se cargan dinámicamente según el tipo de escala -->
                 </div>
             </div>
 
