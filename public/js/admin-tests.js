@@ -9,6 +9,7 @@ class AdminTestsManager {
     this.opcionesDisponibles = [];
     this.tiposEscalas = [];
     this.itemCount = 0;
+    this.opcionScaleCount = 0;
 
     this.init();
   }
@@ -58,8 +59,22 @@ class AdminTestsManager {
 
     // Cambio de tipo de escala
     document.getElementById("tipoEscala").addEventListener("change", (e) => {
-      this.onTipoEscalaChange(e.target.value);
+      if (e.target.value === "add_new") {
+        this.openScaleModal();
+      } else {
+        // Guardar el valor anterior para poder restaurarlo
+        e.target.dataset.previousValue = e.target.value;
+        this.onTipoEscalaChange(e.target.value);
+      }
     });
+
+    // Botón junto al select para abrir modal de nueva escala
+    const btnOpenScale = document.getElementById("btnOpenScaleModal");
+    if (btnOpenScale) {
+      btnOpenScale.addEventListener("click", () => {
+        this.openScaleModal();
+      });
+    }
 
     // Cerrar modal al hacer clic fuera
     document.getElementById("testModal").addEventListener("click", (e) => {
@@ -80,6 +95,35 @@ class AdminTestsManager {
       .addEventListener("click", () => {
         this.confirmDelete();
       });
+
+    // Modal de nueva escala
+    document.getElementById("closeScaleModal").addEventListener("click", () => {
+      this.closeScaleModal();
+    });
+
+    document
+      .getElementById("btnCancelarScale")
+      .addEventListener("click", () => {
+        this.closeScaleModal();
+      });
+
+    document
+      .getElementById("btnAgregarOpcion")
+      .addEventListener("click", () => {
+        this.addOpcionScale();
+      });
+
+    document.getElementById("scaleForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      this.saveScale();
+    });
+
+    // Cerrar modal de escala al hacer clic fuera
+    document.getElementById("scaleModal").addEventListener("click", (e) => {
+      if (e.target.id === "scaleModal") {
+        this.closeScaleModal();
+      }
+    });
   }
 
   /**
@@ -206,16 +250,24 @@ class AdminTestsManager {
     select.innerHTML =
       '<option value="">Selecciona el tipo de escala...</option>';
 
-        this.tiposEscalas.forEach((tipo) => {
+    this.tiposEscalas.forEach((tipo) => {
       const option = document.createElement("option");
       option.value = tipo.id_tipo_escala;
       option.textContent = tipo.nombre || tipo.id_tipo_escala;
       option.title = tipo.descripcion || "";
       select.appendChild(option);
-        });
+    });
+
+    // Agregar opción para crear nueva escala
+    const addOption = document.createElement("option");
+    addOption.value = "add_new";
+    addOption.textContent = "+ Agregar nueva escala";
+    addOption.style.fontWeight = "600";
+    addOption.style.color = "var(--acc-700)";
+    select.appendChild(addOption);
 
     // Restaurar valor si existía
-    if (currentValue) select.value = currentValue;
+    if (currentValue && currentValue !== "add_new") select.value = currentValue;
   }
 
   /**
@@ -1183,6 +1235,324 @@ class AdminTestsManager {
   closeDeleteModal() {
     document.getElementById("deleteModal").classList.remove("active");
     this.currentTestId = null;
+  }
+
+  /**
+   * Abrir modal para crear nueva escala
+   */
+  openScaleModal() {
+    // Resetear el select de tipo de escala al valor anterior
+    const select = document.getElementById("tipoEscala");
+    const previousValue = select.dataset.previousValue || "";
+    select.value = previousValue;
+
+    // Limpiar formulario
+    document.getElementById("scaleForm").reset();
+    this.opcionScaleCount = 0;
+    document.getElementById("opcionesScaleContainer").innerHTML = "";
+    document.getElementById("emptyOpciones").style.display = "block";
+
+    // Resetear estado del formulario
+    const statusDiv = document.getElementById("scaleFormStatus");
+    if (statusDiv) statusDiv.style.display = "none";
+    this.setScaleSaveButtonLoading(false);
+
+    // Abrir modal
+    document.getElementById("scaleModal").classList.add("active");
+  }
+
+  /**
+   * Cerrar modal de escala
+   */
+  closeScaleModal() {
+    document.getElementById("scaleModal").classList.remove("active");
+
+    // Resetear el select de tipo de escala
+    const select = document.getElementById("tipoEscala");
+    const previousValue = select.dataset.previousValue || "";
+    select.value = previousValue;
+  }
+
+  /**
+   * Agregar opción a la escala
+   */
+  addOpcionScale() {
+    this.opcionScaleCount++;
+    const container = document.getElementById("opcionesScaleContainer");
+    const emptyOpciones = document.getElementById("emptyOpciones");
+
+    emptyOpciones.style.display = "none";
+
+    // asignar valor automáticamente: primer item = 0, segundo = 1, ...
+    const defaultValor = this.opcionScaleCount - 1;
+    const opcionDiv = this.createOpcionScaleCard(
+      this.opcionScaleCount,
+      "",
+      defaultValor,
+    );
+    container.appendChild(opcionDiv);
+  }
+
+  /**
+   * Crear tarjeta de opción para la escala
+   */
+  createOpcionScaleCard(orden, textoOpcion = "", valorPuntuacion = "") {
+    const opcionDiv = document.createElement("div");
+    opcionDiv.className = "opcion-scale-item";
+    opcionDiv.dataset.orden = orden;
+
+    const textoId = `opcion-texto-${orden}`;
+    const valorId = `opcion-valor-${orden}`;
+
+    opcionDiv.innerHTML = `
+      <div class="opcion-scale-header">
+        <span class="opcion-scale-number">
+          <i class="fas fa-check-circle"></i> Opción ${orden}
+        </span>
+        <button type="button" class="btn-remove-opcion" onclick="adminTests.removeOpcionScale(this)" title="Eliminar esta opción">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </div>
+      <div class="opcion-scale-fields">
+        <div class="opcion-scale-field">
+          <label for="${textoId}">Texto *</label>
+          <input type="text" id="${textoId}" name="opciones[${orden}][texto]" 
+                 placeholder="Ej: Totalmente de acuerdo" 
+                 required minlength="1" maxlength="100" value="${textoOpcion}">
+        </div>
+        <div class="opcion-scale-field">
+          <label for="${valorId}">Valor *</label>
+          <input type="number" id="${valorId}" name="opciones[${orden}][valor]" 
+                 placeholder="0-100" 
+                 required min="0" max="100" value="${valorPuntuacion}" readonly>
+        </div>
+      </div>
+    `;
+
+    return opcionDiv;
+  }
+
+  /**
+   * Eliminar opción de escala
+   */
+  removeOpcionScale(button) {
+    const opcionCard = button.closest(".opcion-scale-item");
+    opcionCard.remove();
+
+    // Actualizar numeración
+    this.updateOpcionScaleNumbers();
+
+    // Mostrar mensaje vacío si no hay opciones
+    const container = document.getElementById("opcionesScaleContainer");
+    const emptyOpciones = document.getElementById("emptyOpciones");
+
+    if (container.children.length === 0) {
+      emptyOpciones.style.display = "block";
+      this.opcionScaleCount = 0;
+    }
+  }
+
+  /**
+   * Actualizar numeración de opciones
+   */
+  updateOpcionScaleNumbers() {
+    const opciones = document.querySelectorAll(".opcion-scale-item");
+    opciones.forEach((opcion, index) => {
+      const orden = index + 1;
+      opcion.dataset.orden = orden;
+      opcion.querySelector(".opcion-scale-number").innerHTML = `
+        <i class="fas fa-check-circle"></i> Opción ${orden}
+      `;
+
+      // actualizar valor automáticamente para mantener 0..n-1
+      const valorInput = opcion.querySelector('input[name*="[valor]"]');
+      if (valorInput) {
+        valorInput.value = index;
+      }
+    });
+    this.opcionScaleCount = opciones.length;
+  }
+
+  /**
+   * Guardar nueva escala
+   */
+  async saveScale() {
+    const nombre = document.getElementById("nombreEscala").value.trim();
+    const descripcion = document
+      .getElementById("descripcionEscala")
+      .value.trim();
+
+    // Recopilar opciones
+    const opciones = this.collectOpcionesScale();
+
+    // Validar
+    if (!nombre) {
+      this.showScaleFormStatus(
+        "Por favor ingresa un nombre para la escala",
+        "warning",
+      );
+      return;
+    }
+
+    if (opciones.length < 2) {
+      this.showScaleFormStatus(
+        "Debes agregar al menos 2 opciones de respuesta",
+        "warning",
+      );
+      return;
+    }
+
+    // Preparar datos
+    const formData = new FormData();
+    formData.append("action", "createTipoEscala");
+    formData.append("nombre", nombre);
+    formData.append("descripcion", descripcion);
+    formData.append("opciones", JSON.stringify(opciones));
+
+    this.setScaleSaveButtonLoading(true);
+    this.showScaleFormStatus("Guardando escala...", "info");
+
+    try {
+      const base = window.UNIMIND_BASE || "";
+      const baseUrl =
+        window.location.origin && window.location.origin !== "null"
+          ? window.location.origin + base
+          : base;
+
+      const response = await fetch(
+        `${baseUrl}/controllers/TestsController.php`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        },
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        this.showScaleFormStatus(
+          data.message || "Escala creada exitosamente",
+          "success",
+        );
+
+        // Agregar la nueva escala a la lista
+        const nuevaEscala = {
+          id_tipo_escala: data.id_tipo_escala,
+          nombre: nombre,
+          descripcion: descripcion,
+          opciones: opciones.map((op, idx) => ({
+            id_opcion: data.opciones_ids ? data.opciones_ids[idx] : null,
+            texto_opcion: op.texto_opcion,
+            valor_puntuacion: op.valor_puntuacion,
+          })),
+        };
+
+        this.tiposEscalas.push(nuevaEscala);
+        this.renderTiposEscalas();
+
+        // Seleccionar automáticamente la nueva escala
+        document.getElementById("tipoEscala").value = data.id_tipo_escala;
+        document.getElementById("tipoEscala").dataset.previousValue =
+          data.id_tipo_escala;
+        this.onTipoEscalaChange(data.id_tipo_escala);
+
+        // Cerrar modal después de un breve delay
+        setTimeout(() => {
+          this.closeScaleModal();
+          this.showNotification(
+            "Escala creada y seleccionada exitosamente",
+            "success",
+          );
+        }, 1000);
+      } else {
+        this.showScaleFormStatus(
+          data.message || "Error al crear la escala",
+          "error",
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      this.showScaleFormStatus("Error al conectar con el servidor", "error");
+    } finally {
+      this.setScaleSaveButtonLoading(false);
+    }
+  }
+
+  /**
+   * Recopilar opciones de la escala
+   */
+  collectOpcionesScale() {
+    const opciones = [];
+    const opcionCards = document.querySelectorAll(".opcion-scale-item");
+
+    opcionCards.forEach((card) => {
+      const textoInput = card.querySelector('input[name*="[texto]"]');
+      const valorInput = card.querySelector('input[name*="[valor]"]');
+
+      const texto = textoInput ? textoInput.value.trim() : "";
+      const valor = valorInput ? parseInt(valorInput.value) : 0;
+
+      if (texto) {
+        opciones.push({
+          texto_opcion: texto,
+          valor_puntuacion: valor,
+        });
+      }
+    });
+
+    return opciones;
+  }
+
+  /**
+   * Controlar estado de carga del botón guardar escala
+   */
+  setScaleSaveButtonLoading(isLoading) {
+    const btn = document.getElementById("btnGuardarScale");
+    const btnIcon = btn.querySelector(".fa-save");
+    const btnLoading = btn.querySelector(".btn-loading");
+
+    if (isLoading) {
+      btn.classList.add("is-loading");
+      btn.disabled = true;
+      if (btnIcon) btnIcon.style.display = "none";
+      if (btnLoading) btnLoading.style.display = "inline-flex";
+    } else {
+      btn.classList.remove("is-loading");
+      btn.disabled = false;
+      if (btnIcon) btnIcon.style.display = "inline";
+      if (btnLoading) btnLoading.style.display = "none";
+    }
+  }
+
+  /**
+   * Mostrar estado en el formulario de escala
+   */
+  showScaleFormStatus(message, type = "info") {
+    const statusDiv = document.getElementById("scaleFormStatus");
+    if (!statusDiv) return;
+
+    statusDiv.className = "form-status status-" + type;
+    statusDiv.innerHTML = `
+      <i class="fas fa-${
+        type === "success"
+          ? "check-circle"
+          : type === "error"
+            ? "exclamation-circle"
+            : type === "warning"
+              ? "exclamation-triangle"
+              : "info-circle"
+      }"></i>
+      <span>${message}</span>
+    `;
+    statusDiv.style.display = "flex";
+
+    // Auto-ocultar después de 5 segundos si es success
+    if (type === "success") {
+      setTimeout(() => {
+        statusDiv.style.display = "none";
+      }, 5000);
+    }
   }
 
   /**

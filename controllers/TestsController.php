@@ -58,6 +58,10 @@ class TestsController {
                     $this->searchTests();
                     break;
                 
+                case 'createTipoEscala':
+                    $this->createTipoEscala();
+                    break;
+                
                 default:
                     $this->sendResponse(false, 'Acción no válida');
             }
@@ -306,6 +310,81 @@ class TestsController {
 
         $tests = $this->model->searchTests($searchTerm);
         $this->sendResponse(true, 'Búsqueda completada', $tests);
+    }
+
+    /**
+     * Crear un nuevo tipo de escala con sus opciones
+     */
+    private function createTipoEscala() {
+        $nombre = $_POST['nombre'] ?? null;
+        $descripcion = $_POST['descripcion'] ?? '';
+        $opciones = json_decode($_POST['opciones'] ?? '[]', true);
+
+        // Validar datos requeridos
+        if (!$nombre) {
+            $this->sendResponse(false, 'El nombre de la escala es requerido');
+            return;
+        }
+
+        if (!is_array($opciones) || count($opciones) < 2) {
+            $this->sendResponse(false, 'Debes proporcionar al menos 2 opciones de respuesta');
+            return;
+        }
+
+        // Validar que cada opción tenga texto y valor
+        foreach ($opciones as $opcion) {
+            if (empty($opcion['texto_opcion']) || !isset($opcion['valor_puntuacion'])) {
+                $this->sendResponse(false, 'Cada opción debe tener texto y valor de puntuación');
+                return;
+            }
+        }
+
+        // Crear el tipo de escala
+        $id_tipo_escala = $this->model->createTipoEscala($nombre, $descripcion);
+        
+        if (!$id_tipo_escala) {
+            $this->sendResponse(false, 'Error al crear el tipo de escala');
+            return;
+        }
+
+        // Crear las opciones de respuesta y vincularlas con la escala
+        $opciones_ids = [];
+        $errores = [];
+
+        foreach ($opciones as $opcion) {
+            $texto = $opcion['texto_opcion'];
+            $valor = $opcion['valor_puntuacion'];
+
+            // Crear la opción de respuesta
+            $id_opcion = $this->model->createOpcionRespuesta($texto, $valor);
+            
+            if (!$id_opcion) {
+                $errores[] = "Error al crear opción: {$texto}";
+                continue;
+            }
+
+            $opciones_ids[] = $id_opcion;
+
+            // Vincular la opción con el tipo de escala
+            $vinculado = $this->model->vincularOpcionConEscala($id_tipo_escala, $id_opcion);
+            
+            if (!$vinculado) {
+                $errores[] = "Error al vincular opción: {$texto}";
+            }
+        }
+
+        if (!empty($errores)) {
+            $this->sendResponse(false, 'Escala creada pero con errores en algunas opciones', [
+                'id_tipo_escala' => $id_tipo_escala,
+                'opciones_ids' => $opciones_ids,
+                'errores' => $errores
+            ]);
+        } else {
+            $this->sendResponse(true, 'Escala creada exitosamente', [
+                'id_tipo_escala' => $id_tipo_escala,
+                'opciones_ids' => $opciones_ids
+            ]);
+        }
     }
 
     /**

@@ -92,10 +92,15 @@ renderPageHeader();
                     <label for="tipoEscala">
                         <i class="fas fa-list-check"></i> Tipo de Escala de Respuesta *
                     </label>
-                    <select id="tipoEscala" name="tipo_escala" required>
-                        <option value="">Selecciona el tipo de escala...</option>
-                        <!-- Se cargan dinámicamente desde la BD -->
-                    </select>
+                    <div style="display:flex;gap:0.5rem;align-items:center;">
+                      <select id="tipoEscala" name="tipo_escala" required style="flex:1;">
+                          <option value="">Selecciona el tipo de escala...</option>
+                          <!-- Se cargan dinámicamente desde la BD -->
+                      </select>
+                      <button type="button" id="btnOpenScaleModal" class="btn-add-item btn-sm" title="Agregar nueva escala">
+                        <i class="fas fa-plus"></i>
+                      </button>
+                    </div>
                     <small class="form-hint">Define qué opciones verán los estudiantes al responder cada pregunta</small>
                 </div>
 
@@ -181,6 +186,77 @@ renderPageHeader();
                 <i class="fas fa-trash"></i> Eliminar
             </button>
         </div>
+    </div>
+</div>
+
+<!-- Modal anidado para crear nueva escala -->
+<div class="modal" id="scaleModal">
+    <div class="modal-content modal-small" style="max-width: 600px;">
+        <div class="modal-header">
+            <h2><i class="fas fa-sliders-h"></i> Nueva Escala de Respuesta</h2>
+            <button class="modal-close" id="closeScaleModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="scaleForm">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="nombreEscala">
+                        <i class="fas fa-tag"></i> Nombre de la Escala *
+                    </label>
+                    <input type="text" id="nombreEscala" name="nombre" required
+                           placeholder="Ejemplo: Likert 5 puntos"
+                           minlength="3" maxlength="100">
+                    <small class="form-hint">Mínimo 3 caracteres, máximo 100</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcionEscala">
+                        <i class="fas fa-align-left"></i> Descripción
+                    </label>
+                    <textarea id="descripcionEscala" name="descripcion" rows="2"
+                              placeholder="Ejemplo: Escala de 1 a 5 para medir acuerdo"
+                              maxlength="255"></textarea>
+                    <small class="form-hint">Opcional, máximo 255 caracteres</small>
+                </div>
+
+                <!-- Opciones de respuesta -->
+                <div class="form-section" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--bg-500);">
+                    <div class="section-header" style="margin-bottom: 1rem;">
+                        <h3 style="font-size: 1rem; margin: 0;"><i class="fas fa-list"></i> Opciones de Respuesta</h3>
+                        <button type="button" class="btn-add-item btn-sm" id="btnAgregarOpcion">
+                            <i class="fas fa-plus"></i> Agregar Opción
+                        </button>
+                    </div>
+                    <div class="info-box info-box-compact">
+                        <i class="fas fa-lightbulb"></i>
+                        <p>Define las opciones que verán los estudiantes. Agrega al menos 2 opciones.</p>
+                    </div>
+                    <div id="opcionesScaleContainer">
+                        <!-- Opciones se agregan dinámicamente -->
+                    </div>
+                    <div class="empty-items" id="emptyOpciones" style="padding: 2rem 1rem;">
+                        <i class="fas fa-inbox"></i>
+                        <p class="empty-title" style="font-size: 0.95rem;">No hay opciones agregadas</p>
+                        <p class="empty-hint" style="font-size: 0.85rem;">Haz clic en <strong>"Agregar Opción"</strong> para crear una opción</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción del modal de escala -->
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" id="btnCancelarScale">
+                    <i class="fas fa-times-circle"></i> Cancelar
+                </button>
+                <button type="submit" class="btn-primary" id="btnGuardarScale">
+                    <i class="fas fa-save"></i> Guardar Escala
+                    <span class="btn-loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Guardando...
+                    </span>
+                </button>
+            </div>
+            <div class="form-status" id="scaleFormStatus" style="display: none;"></div>
+        </form>
     </div>
 </div>
 

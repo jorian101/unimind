@@ -420,5 +420,68 @@ class TestsModel {
             return false;
         }
     }
+
+    /**
+     * Crear un nuevo tipo de escala
+     */
+    public function createTipoEscala($nombre, $descripcion = '') {
+        try {
+            $query = "INSERT INTO {$this->table_tipos_escalas} (nombre, descripcion) 
+                     VALUES (:nombre, :descripcion)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':nombre', $nombre);
+            $stmt->bindParam(':descripcion', $descripcion);
+            
+            if ($stmt->execute()) {
+                return $this->conn->lastInsertId();
+            }
+            return false;
+        } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
+            error_log("Error al crear tipo de escala: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Crear una nueva opción de respuesta
+     */
+    public function createOpcionRespuesta($texto_opcion, $valor_puntuacion) {
+        try {
+            $query = "INSERT INTO {$this->table_opciones} (texto_opcion, valor_puntuacion) 
+                     VALUES (:texto_opcion, :valor_puntuacion)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':texto_opcion', $texto_opcion);
+            $stmt->bindParam(':valor_puntuacion', $valor_puntuacion, PDO::PARAM_INT);
+            
+            if ($stmt->execute()) {
+                return $this->conn->lastInsertId();
+            }
+            return false;
+        } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
+            error_log("Error al crear opción de respuesta: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Vincular una opción de respuesta con un tipo de escala
+     */
+    public function vincularOpcionConEscala($id_tipo_escala, $id_opcion) {
+        try {
+            $query = "INSERT INTO TiposEscala_Opciones (id_tipo_escala, id_opcion) 
+                     VALUES (:id_tipo_escala, :id_opcion)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':id_tipo_escala', $id_tipo_escala, PDO::PARAM_INT);
+            $stmt->bindParam(':id_opcion', $id_opcion, PDO::PARAM_INT);
+            
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
+            error_log("Error al vincular opción con escala: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 ?>
