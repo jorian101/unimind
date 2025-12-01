@@ -223,7 +223,11 @@ class TestsModel {
      */
     public function createTest($nombre, $descripcion, $num_items, $tipo_escala = 1) {
         try {
-            $query = "INSERT INTO {$this->table_tests} (nombre, descripcion, num_items, tipo_escala, created_at, updated_at) 
+            // Some installations have the column named `id_tipo_escala` (schema),
+            // others use `tipo_escala` (newer migrations). Use the existing
+            // column name in the DB by inserting into `id_tipo_escala` which
+            // is the column defined in `database/db.sql`.
+            $query = "INSERT INTO {$this->table_tests} (nombre, descripcion, num_items, id_tipo_escala, created_at, updated_at) 
                      VALUES (:nombre, :descripcion, :num_items, :tipo_escala, NOW(), NOW())";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':nombre', $nombre);
@@ -247,11 +251,12 @@ class TestsModel {
      */
     public function updateTest($id_test, $nombre, $descripcion, $num_items, $tipo_escala = 1) {
         try {
+            // Similar compatibility change for UPDATE: write into `id_tipo_escala`.
             $query = "UPDATE {$this->table_tests} 
                      SET nombre = :nombre, 
                          descripcion = :descripcion, 
                          num_items = :num_items,
-                         tipo_escala = :tipo_escala,
+                         id_tipo_escala = :tipo_escala,
                          updated_at = NOW() 
                      WHERE id_test = :id_test";
             $stmt = $this->conn->prepare($query);
