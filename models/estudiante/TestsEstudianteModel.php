@@ -1,8 +1,13 @@
 <?php
 require_once __DIR__ . '/../../database/Database.php';
 
+
 class TestsEstudianteModel {
     private $conn;
+
+    public function getConn() {
+        return $this->conn;
+    }
 
     public function __construct() {
         $database = new Database();
