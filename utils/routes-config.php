@@ -75,6 +75,11 @@ return [
             'title' => 'Dashboard',
             'breadcrumb' => ['Inicio', 'Dashboard'],
         ],
+        'tests-profesor' => [
+            'path' => 'profesor/tests.php',
+            'title' => 'Gestión de Tests',
+            'breadcrumb' => ['Inicio', 'Tests'],
+        ],
     ],
 
     // ========================================

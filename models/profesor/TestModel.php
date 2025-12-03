@@ -1,83 +1,12 @@
 <?php
-class DashboardModel {
+require_once __DIR__ . '/../../database/Database.php';
+
+class TestModel {
     private $conn;
 
     public function __construct($db) {
+        // Se espera que $db sea una conexión PDO (Database->connect())
         $this->conn = $db;
-    }
-
-    // --- Funciones de Reportes (Ahora por CURSO) ---
-
-    public function getConteoNivelesAltosPorCurso($id_curso) {
-        $stmt = $this->conn->prepare("CALL sp_contar_niveles_altos_por_curso(:p_id_curso)");
-        $stmt->bindParam(':p_id_curso', $id_curso, PDO::PARAM_INT);
-        $stmt->execute();
-        $resultado = $stmt->fetch();
-        $stmt->closeCursor();
-        return $resultado ? $resultado['conteo_niveles_altos'] : 0;
-    }
-
-    public function getEvolucionTemporalPorCurso($id_curso) {
-        $stmt = $this->conn->prepare("CALL sp_obtener_evolucion_temporal_por_curso(:p_id_curso)");
-        $stmt->bindParam(':p_id_curso', $id_curso, PDO::PARAM_INT);
-        $stmt->execute();
-        $resultados = $stmt->fetchAll();
-        $stmt->closeCursor();
-        return $resultados;
-    }
-
-    public function getDistribucionRiesgoPorCurso($id_curso) {
-        $stmt = $this->conn->prepare("CALL sp_obtener_distribucion_riesgo_por_curso(:p_id_curso)");
-        $stmt->bindParam(':p_id_curso', $id_curso, PDO::PARAM_INT);
-        $stmt->execute();
-        $resultados = $stmt->fetchAll();
-        $stmt->closeCursor();
-        return $resultados;
-    }
-    
-    public function sugerirTestACurso($id_curso, $id_test) {
-        try {
-            $stmt = $this->conn->prepare("CALL sp_sugerir_test_a_curso(:p_id_curso, :p_id_test)");
-            $stmt->bindParam(':p_id_curso', $id_curso, PDO::PARAM_INT);
-            $stmt->bindParam(':p_id_test', $id_test, PDO::PARAM_INT);
-            $stmt->execute();
-            $stmt->closeCursor();
-            return true;
-        } catch(PDOException $e) {
-            // Manejar error (ej. log)
-            return false;
-        }
-    }
-
-    public function getCursosPorProfesor($id_profesor) {
-        $stmt = $this->conn->prepare("CALL sp_obtener_cursos_por_profesor(:p_id_profesor)");
-        $stmt->bindParam(':p_id_profesor', $id_profesor, PDO::PARAM_INT);
-        $stmt->execute();
-        $resultados = $stmt->fetchAll();
-        $stmt->closeCursor();
-        return $resultados;
-    }
-    
-    public function getComparativaEscuelas() {
-        // Esta función (y su SP) no cambian, es un reporte global
-        $stmt = $this->conn->prepare("CALL sp_obtener_comparativa_escuelas()");
-        $stmt->execute();
-        $resultados = $stmt->fetchAll();
-        $stmt->closeCursor();
-        return $resultados;
-    }
-
-    public function getTestsDisponibles() {
-        // Asumimos que quieres sugerir los tests principales, 1 y 2
-        $stmt = $this->conn->prepare(
-            "SELECT id_test, nombre, descripcion, num_items 
-             FROM Tests 
-             WHERE id_test IN (1, 2) AND estado_test = 'activo'"
-        );
-        $stmt->execute();
-        $resultados = $stmt->fetchAll();
-        $stmt->closeCursor();
-        return $resultados;
     }
 
     /**
@@ -100,15 +29,15 @@ class DashboardModel {
                       FROM Tests t
                       LEFT JOIN Tipos_Escalas te ON COALESCE(t.id_tipo_escala, t.tipo_escala) = te.id_tipo_escala
                       ORDER BY t.nombre ASC";
-            
+
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
             $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             // Para cada test, obtener las opciones de su tipo de escala
             foreach ($tests as &$test) {
                 $test['opciones'] = [];
-                
+
                 if ($test['id_tipo_escala']) {
                     try {
                         // Intentar obtener opciones usando la tabla de mapeo TiposEscala_Opciones
@@ -120,12 +49,12 @@ class DashboardModel {
                                           INNER JOIN TiposEscala_Opciones teo ON o.id_opcion = teo.id_opcion
                                           WHERE teo.id_tipo_escala = :id_tipo_escala
                                           ORDER BY o.valor_puntuacion ASC";
-                        
+
                         $stmtOpciones = $this->conn->prepare($queryOpciones);
                         $stmtOpciones->bindParam(':id_tipo_escala', $test['id_tipo_escala'], PDO::PARAM_INT);
                         $stmtOpciones->execute();
                         $opciones = $stmtOpciones->fetchAll(PDO::FETCH_ASSOC);
-                        
+
                         if ($opciones && count($opciones) > 0) {
                             $test['opciones'] = $opciones;
                         }
@@ -137,7 +66,7 @@ class DashboardModel {
                             $stmtIds->bindParam(':id_tipo_escala', $test['id_tipo_escala'], PDO::PARAM_INT);
                             $stmtIds->execute();
                             $result = $stmtIds->fetch(PDO::FETCH_ASSOC);
-                            
+
                             if ($result && !empty($result['opciones_ids'])) {
                                 $ids = array_filter(array_map('trim', explode(',', $result['opciones_ids'])));
                                 if (!empty($ids)) {
@@ -158,7 +87,7 @@ class DashboardModel {
                     }
                 }
             }
-            
+
             return $tests;
         } catch (PDOException $e) {
             error_log("Error al obtener tests con detalles: " . $e->getMessage());

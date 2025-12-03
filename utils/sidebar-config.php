@@ -42,6 +42,7 @@ function getSidebarConfig($role, $currentPage = null) {
             'title' => 'UniMind Docente',
             'menu' => [
                 ['icon' => 'fas fa-chart-line', 'label' => 'Dashboard', 'page' => 'dashboard-profesor'],
+                ['icon' => 'fas fa-clipboard-list', 'label' => 'Tests Disponibles', 'page' => 'tests-profesor'],
             ],
         ],
 
