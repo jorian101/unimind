@@ -59,6 +59,52 @@ body { background-color: var(--bg-300); font-family: var(--font); }
 /* Ensure calendar container occupies all available space so JS can compute height correctly */
 #calendar { width:100%; height:100%; }
 
+/* Calendar visual improvements */
+.citas-calendar .fc { width: 100%; }
+.citas-calendar .fc-toolbar { display:flex; flex-wrap:wrap; justify-content:space-between; gap:0.5rem; align-items:center; margin-bottom:0.5rem }
+.citas-calendar .fc .fc-button { border-radius:8px; border:1px solid var(--bg-500); background:var(--bg-100); color:var(--pri-500); padding:6px 10px; box-shadow:none }
+.citas-calendar .fc .fc-button:hover { background:var(--bg-300) }
+.citas-calendar .fc .fc-button-primary { background: var(--acc-500); color: var(--bg-100); border-color: var(--acc-500) }
+.citas-calendar .fc .fc-button-primary:hover { background: var(--acc-700) }
+.citas-calendar .fc .fc-toolbar-title { font-weight:700; color:var(--pri-500); font-size:1.05rem }
+.citas-calendar .fc .fc-daygrid-day-number { font-weight:600; color:var(--pri-500) }
+.citas-calendar .fc .fc-daygrid-event { border-radius:8px; padding:4px 6px; font-size:0.92rem }
+.citas-calendar .fc .fc-daygrid-event:hover { filter:brightness(0.98) }
+.citas-calendar .fc .fc-daygrid-event-dot { display:none }
+
+/* Ensure events overflow handling and ellipsis */
+.citas-calendar .fc .fc-daygrid-day-events { max-height: 4.4rem; overflow: hidden }
+.citas-calendar .fc .fc-daygrid-event-main { white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+
+/* Responsive adjustments for toolbar and font sizes at specific breakpoints */
+@media (max-width: 374px) {
+    .citas-calendar .fc .fc-toolbar-title { font-size:0.95rem }
+    .citas-calendar .fc .fc-button { padding:6px 8px; font-size:0.82rem }
+}
+@media (min-width:375px) and (max-width:390px) {
+    .citas-calendar .fc .fc-toolbar-title { font-size:1rem }
+}
+@media (min-width:391px) and (max-width:767px) {
+    .citas-calendar .fc .fc-toolbar-title { font-size:1.05rem }
+}
+@media (min-width:768px) and (max-width:1023px) {
+    .citas-calendar .fc .fc-toolbar-title { font-size:1.1rem }
+    .citas-calendar .fc .fc-button { padding:7px 10px }
+}
+@media (min-width:1024px) and (max-width:1439px) {
+    .citas-calendar .fc .fc-toolbar-title { font-size:1.15rem }
+}
+@media (min-width:1440px) {
+    .citas-calendar .fc .fc-toolbar-title { font-size:1.2rem }
+    .citas-calendar .fc .fc-button { padding:8px 12px }
+}
+
+/* Slightly larger event badges on very large screens */
+@media (min-width:1600px) {
+    .citas-calendar .fc .fc-daygrid-event { font-size:1rem; padding:6px 8px }
+}
+
+
 /* Responsive breakpoints requested and large screens */
 @media (max-width: 374px) {
     .admin-citas-container { padding: 12px; margin:12px auto }

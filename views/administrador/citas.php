@@ -92,13 +92,42 @@ function getCalendarHeight() {
     if (w >= 375) return 420;
     return 360;
 }
+function getToolbarConfig() {
+    const w = window.innerWidth;
+    if (w <= 374) return { left: 'prev,next', center: 'title', right: 'dayGridMonth' };
+    if (w <= 390) return { left: 'prev,next', center: 'title', right: 'dayGridMonth' };
+    if (w < 768) return { left: 'prev,next', center: 'title', right: 'dayGridMonth,listWeek' };
+    if (w < 1024) return { left: 'prev', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' };
+    return { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' };
+}
+
+function getAspectRatio() {
+    const w = window.innerWidth;
+    if (w >= 1920) return 2.3;
+    if (w >= 1600) return 2.1;
+    if (w >= 1440) return 1.9;
+    if (w >= 1024) return 1.6;
+    if (w >= 768) return 1.4;
+    return 1.2;
+}
+
+function getDayMaxEventRows() {
+    const w = window.innerWidth;
+    if (w >= 1600) return 6;
+    if (w >= 1440) return 5;
+    if (w >= 1024) return 4;
+    if (w >= 768) return 3;
+    return 2;
+}
 
 const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     locale: 'es',
     height: getCalendarHeight(),
     contentHeight: getCalendarHeight(),
-    aspectRatio: 1.7,
+    aspectRatio: getAspectRatio(),
+    headerToolbar: getToolbarConfig(),
+    dayMaxEventRows: getDayMaxEventRows(),
     events: function(fetchInfo, successCallback, failureCallback) {
         fetch('api/citas-admin.php?fecha=' + fetchInfo.startStr)
             .then(res => res.json())
@@ -134,6 +163,10 @@ window.addEventListener('resize', function() {
     try {
         calendar.setOption('height', h);
         calendar.setOption('contentHeight', h);
+        // update toolbar and layout responsively
+        calendar.setOption('headerToolbar', getToolbarConfig());
+        calendar.setOption('aspectRatio', getAspectRatio());
+        calendar.setOption('dayMaxEventRows', getDayMaxEventRows());
     } catch (e) {
         // ignore if calendar not ready
     }

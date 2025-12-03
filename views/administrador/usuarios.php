@@ -112,6 +112,18 @@ $cargos = ['Estudiante','Docente','Administrador'];
             <option value="Administrador">Administrador</option>
           </select>
         </div>
+        <div class="escuela-field hidden">
+          <label for="nuevo_escuela">Escuela</label>
+          <select name="nuevo_escuela" id="nuevo_escuela" class="usuarios-filter-select">
+            <option value="">Seleccione una escuela</option>
+          </select>
+        </div>
+        <div class="curso-field hidden">
+          <label for="nuevo_curso">Curso</label>
+          <select name="nuevo_curso" id="nuevo_curso" class="usuarios-filter-select">
+            <option value="">Seleccione un curso</option>
+          </select>
+        </div>
         <div>
           <label for="nuevo_fecha_nacimiento">Fecha de Nacimiento</label>
           <input type="date" name="nuevo_fecha_nacimiento" id="nuevo_fecha_nacimiento" class="usuarios-search-input">
@@ -249,6 +261,8 @@ function buscarUsuariosAjax() {
 // Abrir modal nuevo usuario
 document.getElementById('btnNuevoUsuario') && document.getElementById('btnNuevoUsuario').addEventListener('click', function() {
   document.getElementById('modalNuevoUsuario').classList.add('active');
+  // Ensure selects are loaded and visibility set when opening
+  ensureEscuelasYCursosLoaded();
 });
 // Cerrar modal
 document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', function() { this.closest('.modal').classList.remove('active'); }));
@@ -269,6 +283,60 @@ document.getElementById('formNuevoUsuario') && document.getElementById('formNuev
     .then(data => { alert(data.Mensaje || 'Usuario creado'); buscarUsuariosAjax(); document.getElementById('modalNuevoUsuario').classList.remove('active'); })
     .catch(err => { console.error(err); alert('Error al crear usuario'); });
 });
+
+// --- New: load escuelas and cursos and show selects when cargo requires them ---
+let escuelasCache = null;
+let cursosCache = null;
+
+function populateSelect(selectEl, items, valueKey = 'id', labelKey = 'nombre') {
+  if (!selectEl) return;
+  selectEl.innerHTML = '<option value="">Seleccione</option>';
+  items.forEach(it => {
+    const opt = document.createElement('option');
+    opt.value = it[valueKey];
+    opt.textContent = it[labelKey];
+    selectEl.appendChild(opt);
+  });
+}
+
+function ensureEscuelasYCursosLoaded() {
+  const cargoEl = document.getElementById('nuevo_cargo');
+  const escuelaEl = document.getElementById('nuevo_escuela');
+  const cursoEl = document.getElementById('nuevo_curso');
+
+  // Show/hide fields based on cargo
+  function toggleFields() {
+    const val = cargoEl.value;
+    const needExtra = (val === 'Docente' || val === 'Administrador');
+    document.querySelectorAll('.escuela-field, .curso-field').forEach(el => {
+      if (needExtra) el.classList.remove('hidden'); else el.classList.add('hidden');
+    });
+  }
+
+  // Load escuelas if needed
+  if (!escuelasCache) {
+    fetch('api/escuelas.php')
+      .then(r => r.json())
+      .then(data => { escuelasCache = Array.isArray(data) ? data : []; populateSelect(escuelaEl, escuelasCache, 'id_escuela', 'nombre_escuela'); })
+      .catch(() => { escuelasCache = []; });
+  } else {
+    populateSelect(escuelaEl, escuelasCache, 'id_escuela', 'nombre_escuela');
+  }
+
+  // Load cursos if needed
+  if (!cursosCache) {
+    fetch('api/cursos.php')
+      .then(r => r.json())
+      .then(data => { cursosCache = Array.isArray(data) ? data : []; populateSelect(cursoEl, cursosCache, 'id_curso', 'nombre'); })
+      .catch(() => { cursosCache = []; });
+  } else {
+    populateSelect(cursoEl, cursosCache, 'id_curso', 'nombre');
+  }
+
+  // Set initial visibility and attach change handler
+  toggleFields();
+  cargoEl.addEventListener('change', toggleFields);
+}
 
 // Cargar inicialmente
 document.addEventListener('DOMContentLoaded', function() { buscarUsuariosAjax(); });

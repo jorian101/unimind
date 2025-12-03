@@ -221,6 +221,9 @@
     overflow-y: auto;
 }
 
+/* Utility hidden class used to toggle fields in modals */
+.hidden { display: none !important; }
+
 /* Responsive breakpoints requested */
 /* Very small phones <= 374px */
 @media (max-width: 374px) {
