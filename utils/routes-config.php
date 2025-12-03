@@ -58,12 +58,6 @@ return [
             'title' => 'Gestión de Citas',
             'breadcrumb' => ['Inicio', 'Citas'],
         ],
-        'config' => [
-            'path' => 'administrador/config.php',
-            'title' => 'Configuración del Sistema',
-            'breadcrumb' => ['Inicio', 'Configuración'],
-        ],
-
     ],
 
     // ========================================
@@ -79,6 +73,11 @@ return [
             'path' => 'profesor/tests.php',
             'title' => 'Gestión de Tests',
             'breadcrumb' => ['Inicio', 'Tests'],
+        ],
+        'sugerencias-profesor' => [
+            'path' => 'profesor/sugerencias-profesor.php',
+            'title' => 'Mis Sugerencias',
+            'breadcrumb' => ['Inicio', 'Sugerencias'],
         ],
     ],
 

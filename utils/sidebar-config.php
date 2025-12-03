@@ -31,7 +31,6 @@ function getSidebarConfig($role, $currentPage = null) {
                 ['icon' => 'fas fa-book-open', 'label' => 'Cursos/Escuelas', 'page' => 'cursos_escuelas'],
                 ['icon' => 'fas fa-chart-bar', 'label' => 'Reportes', 'page' => 'reportes'],
                 ['icon' => 'fas fa-calendar-alt', 'label' => 'Citas', 'page' => 'citas'],
-                ['icon' => 'fas fa-cog', 'label' => 'Configuración', 'page' => 'config'],
             ],
         ],
 
@@ -43,6 +42,7 @@ function getSidebarConfig($role, $currentPage = null) {
             'menu' => [
                 ['icon' => 'fas fa-chart-line', 'label' => 'Dashboard', 'page' => 'dashboard-profesor'],
                 ['icon' => 'fas fa-clipboard-list', 'label' => 'Tests Disponibles', 'page' => 'tests-profesor'],
+                ['icon' => 'fas fa-paper-plane', 'label' => 'Mis Sugerencias', 'page' => 'sugerencias-profesor'],
             ],
         ],
 
