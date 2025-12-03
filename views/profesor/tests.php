@@ -328,7 +328,7 @@ function cerrarModalSugerir() {
 /**
  * Confirmar sugerencia de test
  */
-function confirmarSugerencia() {
+async function confirmarSugerencia() {
     const cursoId = document.getElementById('selectCurso').value;
     
     if (!cursoId) {
@@ -341,11 +341,36 @@ function confirmarSugerencia() {
         return;
     }
     
-    // Aquí iría la lógica para sugerir el test
-    console.log(`Sugiriendo test ${testSeleccionado} al curso ${cursoId}`);
-    alert('Funcionalidad de sugerencia en desarrollo');
-    
-    cerrarModalSugerir();
+    try {
+        const base = window.UNIMIND_BASE || '';
+        const baseUrl = window.location.origin && window.location.origin !== 'null'
+            ? window.location.origin + base
+            : base;
+        
+        const response = await fetch(`${baseUrl}/api/suggest_test.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                id_test: testSeleccionado,
+                id_curso: parseInt(cursoId)
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Test sugerido correctamente a los estudiantes del curso');
+            cerrarModalSugerir();
+        } else {
+            alert('❌ Error: ' + (result.message || 'No se pudo sugerir el test'));
+        }
+    } catch (error) {
+        console.error('Error al sugerir test:', error);
+        alert('❌ Error de conexión al sugerir el test');
+    }
 }
 
 /**

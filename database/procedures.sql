@@ -458,3 +458,217 @@ BEGIN
     JOIN Usuarios u ON c.id_alumno = u.id_usuario
     ORDER BY c.fecha_cita DESC;
 END //
+
+-- =============================================
+-- ### Grupo 9: Gestión de Sugerencias de Tests
+-- =============================================
+
+-- Sugerir un test a un curso (profesor)
+-- Ahora crea sugerencias individuales por cada estudiante del curso
+-- Si ya existe la sugerencia Y está dentro de 2 meses, agrega profesor/curso a los arrays JSON
+-- Si pasaron más de 2 meses, crea una nueva sugerencia (reinicia el ciclo)
+CREATE PROCEDURE sp_sugerir_test(
+    IN p_id_curso INT,
+    IN p_id_test INT,
+    IN p_id_profesor INT
+)
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE v_id_estudiante INT;
+    DECLARE v_estudiantes_afectados INT DEFAULT 0;
+    DECLARE v_estudiantes_reusados INT DEFAULT 0;
+    DECLARE v_fecha_sugerencia_anterior DATETIME;
+    DECLARE v_meses_transcurridos INT;
+    DECLARE cur CURSOR FOR 
+        SELECT id_usuario 
+        FROM Usuario_Curso 
+        WHERE id_curso = p_id_curso;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+    
+    read_loop: LOOP
+        FETCH cur INTO v_id_estudiante;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        
+        -- Verificar si ya existe una sugerencia para este estudiante y test
+        SET v_fecha_sugerencia_anterior = NULL;
+        SELECT fecha_sugerencia INTO v_fecha_sugerencia_anterior
+        FROM Sugerencias
+        WHERE id_estudiante = v_id_estudiante AND id_test = p_id_test
+        LIMIT 1;
+        
+        IF v_fecha_sugerencia_anterior IS NOT NULL THEN
+            -- Calcular meses transcurridos desde la primera sugerencia
+            SET v_meses_transcurridos = TIMESTAMPDIFF(MONTH, v_fecha_sugerencia_anterior, NOW());
+            
+            IF v_meses_transcurridos < 2 THEN
+                -- Dentro del intervalo de 2 meses: REUTILIZAR sugerencia existente
+                -- Agregar el nuevo profesor y curso a los arrays JSON
+                UPDATE Sugerencias
+                SET profesores_ids = JSON_MERGE_PRESERVE(profesores_ids, JSON_ARRAY(p_id_profesor)),
+                    cursos_ids = JSON_MERGE_PRESERVE(cursos_ids, JSON_ARRAY(p_id_curso)),
+                    fecha_ultima_sugerencia = NOW(),
+                    estado = 'pendiente'
+                WHERE id_estudiante = v_id_estudiante AND id_test = p_id_test;
+                
+                SET v_estudiantes_reusados = v_estudiantes_reusados + 1;
+            ELSE
+                -- Pasaron 2+ meses: RENOVAR sugerencia (reiniciar ciclo)
+                -- Eliminar la sugerencia antigua y crear una nueva
+                DELETE FROM Sugerencias 
+                WHERE id_estudiante = v_id_estudiante AND id_test = p_id_test;
+                
+                INSERT INTO Sugerencias (id_estudiante, id_test, profesores_ids, cursos_ids, fecha_sugerencia, estado)
+                VALUES (v_id_estudiante, p_id_test, JSON_ARRAY(p_id_profesor), JSON_ARRAY(p_id_curso), NOW(), 'pendiente');
+                
+                SET v_estudiantes_afectados = v_estudiantes_afectados + 1;
+            END IF;
+        ELSE
+            -- No existe sugerencia previa: CREAR NUEVA
+            INSERT INTO Sugerencias (id_estudiante, id_test, profesores_ids, cursos_ids, fecha_sugerencia, estado)
+            VALUES (v_id_estudiante, p_id_test, JSON_ARRAY(p_id_profesor), JSON_ARRAY(p_id_curso), NOW(), 'pendiente');
+            
+            SET v_estudiantes_afectados = v_estudiantes_afectados + 1;
+        END IF;
+        
+    END LOOP;
+    
+    CLOSE cur;
+    
+    SELECT 
+        'Test sugerido correctamente' AS Mensaje, 
+        (v_estudiantes_afectados + v_estudiantes_reusados) AS estudiantes_afectados,
+        v_estudiantes_afectados AS estudiantes_nuevos,
+        v_estudiantes_reusados AS estudiantes_reusados;
+END //
+
+-- Obtener tests sugeridos para un estudiante
+-- Ahora es más simple: solo buscar por id_estudiante
+-- Extrae nombres de profesores y cursos desde los JSON arrays
+CREATE PROCEDURE sp_obtener_tests_sugeridos_estudiante(
+    IN p_id_usuario INT
+)
+BEGIN
+    SELECT 
+        t.id_test,
+        t.nombre,
+        t.descripcion,
+        t.num_items,
+        t.tipo_test,
+        t.created_at,
+        t.updated_at,
+        s.id_sugerencia,
+        s.fecha_sugerencia,
+        s.fecha_ultima_sugerencia,
+        s.estado,
+        s.profesores_ids,
+        s.cursos_ids,
+        -- Obtener nombres de los profesores (primer profesor del array para simplificar)
+        (SELECT CONCAT(u.nombre, ' ', u.apellido) 
+         FROM Usuarios u 
+         WHERE u.id_usuario = JSON_UNQUOTE(JSON_EXTRACT(s.profesores_ids, '$[0]'))
+         LIMIT 1) AS nombre_profesor,
+        -- Obtener nombre del curso (primer curso del array)
+        (SELECT c.nombre_curso 
+         FROM Cursos c 
+         WHERE c.id_curso = JSON_UNQUOTE(JSON_EXTRACT(s.cursos_ids, '$[0]'))
+         LIMIT 1) AS nombre_curso,
+        -- Verificar si el estudiante ya completó este test
+        CASE 
+            WHEN EXISTS (
+                SELECT 1 FROM Aplicaciones a 
+                WHERE a.id_usuario = p_id_usuario 
+                AND a.id_test = t.id_test 
+                AND a.puntuacion_total IS NOT NULL
+            ) THEN 1
+            ELSE 0
+        END AS completado
+    FROM Sugerencias s
+    INNER JOIN Tests t ON s.id_test = t.id_test
+    WHERE s.id_estudiante = p_id_usuario
+        AND t.estado_test = 'activo'
+    ORDER BY s.fecha_ultima_sugerencia DESC;
+END //
+
+-- Obtener todos los tests disponibles incluyendo sugeridos
+-- Simplificado: busca sugerencias directamente por id_estudiante
+CREATE PROCEDURE sp_obtener_todos_tests_estudiante(
+    IN p_id_usuario INT
+)
+BEGIN
+    -- Tests sugeridos por profesores
+    SELECT 
+        t.id_test,
+        t.nombre,
+        t.descripcion,
+        t.num_items,
+        t.tipo_test,
+        t.created_at,
+        t.updated_at,
+        1 AS es_sugerido,
+        s.id_sugerencia,
+        s.fecha_sugerencia,
+        s.fecha_ultima_sugerencia,
+        -- Obtener nombres de los profesores (primer profesor del array)
+        (SELECT CONCAT(u.nombre, ' ', u.apellido) 
+         FROM Usuarios u 
+         WHERE u.id_usuario = JSON_UNQUOTE(JSON_EXTRACT(s.profesores_ids, '$[0]'))
+         LIMIT 1) AS nombre_profesor,
+        -- Obtener nombre del curso (primer curso del array)
+        (SELECT c.nombre_curso 
+         FROM Cursos c 
+         WHERE c.id_curso = JSON_UNQUOTE(JSON_EXTRACT(s.cursos_ids, '$[0]'))
+         LIMIT 1) AS nombre_curso,
+        CASE 
+            WHEN EXISTS (
+                SELECT 1 FROM Aplicaciones a 
+                WHERE a.id_usuario = p_id_usuario 
+                AND a.id_test = t.id_test 
+                AND a.puntuacion_total IS NOT NULL
+            ) THEN 1
+            ELSE 0
+        END AS completado
+    FROM Sugerencias s
+    INNER JOIN Tests t ON s.id_test = t.id_test
+    WHERE s.id_estudiante = p_id_usuario
+        AND t.estado_test = 'activo'
+    
+    UNION
+    
+    -- Tests generales disponibles (no sugeridos para este estudiante)
+    SELECT 
+        t.id_test,
+        t.nombre,
+        t.descripcion,
+        t.num_items,
+        t.tipo_test,
+        t.created_at,
+        t.updated_at,
+        0 AS es_sugerido,
+        NULL AS id_sugerencia,
+        NULL AS fecha_sugerencia,
+        NULL AS fecha_ultima_sugerencia,
+        NULL AS nombre_profesor,
+        NULL AS nombre_curso,
+        CASE 
+            WHEN EXISTS (
+                SELECT 1 FROM Aplicaciones a 
+                WHERE a.id_usuario = p_id_usuario 
+                AND a.id_test = t.id_test 
+                AND a.puntuacion_total IS NOT NULL
+            ) THEN 1
+            ELSE 0
+        END AS completado
+    FROM Tests t
+    WHERE t.estado_test = 'activo'
+        AND NOT EXISTS (
+            SELECT 1 FROM Sugerencias s
+            WHERE s.id_estudiante = p_id_usuario
+                AND s.id_test = t.id_test
+        )
+    
+    ORDER BY es_sugerido DESC, fecha_ultima_sugerencia DESC, nombre ASC;
+END //

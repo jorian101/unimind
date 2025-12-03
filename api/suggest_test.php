@@ -76,47 +76,33 @@ try {
         }
     }
 
-    // Obtener lista de alumnos del curso
-    $stmt = $conn->prepare('SELECT id_usuario FROM Usuario_Curso WHERE id_curso = :id_curso');
-    $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
-    $stmt->execute();
-    $students = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-    if (!$students) {
-        $response['message'] = 'No hay alumnos en el curso';
+    // Verificar que el test existe y está activo
+    $stmt = $conn->prepare('SELECT COUNT(*) FROM Tests WHERE id_test = :id_test AND estado_test = "activo"');
+    $stmt->execute([':id_test' => $id_test]);
+    if ((int)$stmt->fetchColumn() === 0) {
+        http_response_code(400);
+        $response['message'] = 'El test no existe o no está activo';
         echo json_encode($response);
         exit;
     }
 
-    // Insertar una Aplicacion pendiente (sin puntuacion) para cada alumno
-    $conn->beginTransaction();
-    try {
-        $stmtIns = $conn->prepare('SELECT id_aplicacion FROM Aplicaciones WHERE id_usuario = :id_usuario AND id_test = :id_test AND resultado_nivel IS NULL LIMIT 1');
-        $stmtCreate = $conn->prepare('INSERT INTO Aplicaciones (id_usuario, id_test, fecha_aplicacion, sugerido_por, origen) VALUES (:id_usuario, :id_test, NOW(), :sugerido_por, :origen)');
-        $stmtNotif = $conn->prepare('INSERT INTO Notificaciones (id_usuario_destino, mensaje, metadata, leido, creado_en) VALUES (:id_usuario_destino, :mensaje, :metadata, 0, NOW())');
-        $count = 0;
-        foreach ($students as $stu) {
-            // evitar duplicados: si ya existe aplicación pendiente, saltar
-            $stmtIns->execute([':id_usuario' => $stu, ':id_test' => $id_test]);
-            $exists = $stmtIns->fetch(PDO::FETCH_ASSOC);
-            if ($exists) continue;
+    // Usar el procedimiento almacenado para sugerir el test
+    // El nuevo sp_sugerir_test ahora crea sugerencias individuales por estudiante
+    $stmt = $conn->prepare('CALL sp_sugerir_test(:id_curso, :id_test, :id_profesor)');
+    $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
+    $stmt->bindParam(':id_test', $id_test, PDO::PARAM_INT);
+    $stmt->bindParam(':id_profesor', $profesorId, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
 
-            $stmtCreate->execute([':id_usuario' => $stu, ':id_test' => $id_test, ':sugerido_por' => $profesorId, ':origen' => 'profesor_sugerencia']);
-            $count += $stmtCreate->rowCount();
-
-            // Crear notificación in-app para el alumno
-            $mensaje = 'Tu profesor te ha sugerido un test: ' . ($test_name ?: 'Test sugerido');
-            $meta = json_encode(['id_test' => $id_test, 'id_curso' => $id_curso, 'sugerido_por' => $profesorId]);
-            $stmtNotif->execute([':id_usuario_destino' => $stu, ':mensaje' => $mensaje, ':metadata' => $meta]);
-        }
-        $conn->commit();
-    } catch (PDOException $e) {
-        $conn->rollBack();
-        throw $e;
-    }
+    $count = isset($result['estudiantes_afectados']) ? (int)$result['estudiantes_afectados'] : 0;
 
     $response['success'] = true;
-    $response['message'] = "Sugerencia enviada a $count alumnos";
+    $response['message'] = "Test sugerido correctamente a $count estudiantes del curso.";
+    $response['data'] = [
+        'estudiantes_afectados' => $count
+    ];
     echo json_encode($response);
     exit;
 

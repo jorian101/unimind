@@ -15,32 +15,45 @@ class TestsEstudianteModel {
     }
 
     /**
-     * Obtener todos los tests disponibles
+     * Obtener todos los tests disponibles (incluyendo sugeridos por profesores)
      */
     public function getTestsDisponibles($id_usuario = null) {
         try {
-            // Si se proporciona un usuario, devolver las aplicaciones pendientes asignadas a ese usuario
             if ($id_usuario) {
-                $sql = "SELECT a.id_aplicacion, t.id_test, t.nombre, t.descripcion, t.num_items, a.fecha_aplicacion
-                        FROM Aplicaciones a
-                        JOIN Tests t ON a.id_test = t.id_test
-                        WHERE a.id_usuario = :id_usuario AND a.puntuacion_total IS NULL AND t.estado_test = 'activo'
-                        ORDER BY a.fecha_aplicacion DESC";
-                $stmt = $this->conn->prepare($sql);
+                // Usar el nuevo procedimiento que incluye tests sugeridos y generales
+                $stmt = $this->conn->prepare("CALL sp_obtener_todos_tests_estudiante(:id_usuario)");
                 $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
                 $stmt->execute();
-                $tests = $stmt->fetchAll();
+                $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
                 return $tests;
             }
 
-            // Fallback: lista todos los tests (procedimiento heredado)
+            // Fallback: lista todos los tests activos
             $stmt = $this->conn->prepare("CALL sp_obtener_tests_disponibles()");
             $stmt->execute();
-            $tests = $stmt->fetchAll();
+            $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
             return $tests;
         } catch (PDOException $e) {
             error_log("Error en getTestsDisponibles: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Obtener solo los tests sugeridos por profesores para un estudiante
+     */
+    public function getTestsSugeridos($id_usuario) {
+        try {
+            $stmt = $this->conn->prepare("CALL sp_obtener_tests_sugeridos_estudiante(:id_usuario)");
+            $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+            $stmt->execute();
+            $tests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            return $tests;
+        } catch (PDOException $e) {
+            error_log("Error en getTestsSugeridos: " . $e->getMessage());
             return [];
         }
     }

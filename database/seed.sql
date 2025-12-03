@@ -360,11 +360,42 @@ INSERT INTO `Aplicaciones` (`id_usuario`, `id_test`, `client_uuid`, `fecha_aplic
 (50, 2, 'uuid-sim-083', '2021-01-20', 12, 'Alto')
 ON DUPLICATE KEY UPDATE `client_uuid`=VALUES(`client_uuid`), `fecha_aplicacion`=VALUES(`fecha_aplicacion`), `puntuacion_total`=VALUES(`puntuacion_total`), `resultado_nivel`=VALUES(`resultado_nivel`);
 
--- 3.2 Sugerencias (Profesores sugiriendo tests)
-INSERT INTO `Sugerencias` (`id_curso`, `id_test`, `id_profesor`, `estado`, `fecha_sugerencia`) VALUES
-(1, 1, 2, 'pendiente', '2025-11-20 10:00:00'), -- María sugiere Estrés a Mate
-(3, 2, 3, 'visto', '2025-11-19 14:30:00')      -- Carlos sugiere Ansiedad a Psico
-ON DUPLICATE KEY UPDATE `estado`=VALUES(`estado`), `fecha_sugerencia`=VALUES(`fecha_sugerencia`);
+-- 3.2 Sugerencias (Profesores sugiriendo tests a estudiantes)
+-- Nuevo diseño: cada sugerencia es por estudiante individual
+-- profesores_ids y cursos_ids son arrays JSON para rastrear múltiples orígenes
+
+-- Test 1 sugerido por Profesor 2 en Curso 1 (estudiantes: 4,5,6,7,8,18,19,20,21,22)
+INSERT INTO `Sugerencias` (`id_estudiante`, `id_test`, `profesores_ids`, `cursos_ids`, `estado`, `fecha_sugerencia`) VALUES
+(4, 1, '[2]', '[1]', 'pendiente', '2025-11-20 10:00:00'),
+(5, 1, '[2]', '[1]', 'pendiente', '2025-11-20 10:00:00'),
+(6, 1, '[2]', '[1]', 'pendiente', '2025-11-20 10:00:00'),
+(7, 1, '[2]', '[1]', 'pendiente', '2025-11-20 10:00:00'),
+(8, 1, '[2]', '[1]', 'pendiente', '2025-11-20 10:00:00'),
+(18, 1, '[2]', '[1]', 'pendiente', '2025-11-20 10:00:00'),
+(19, 1, '[2]', '[1]', 'pendiente', '2025-11-20 10:00:00'),
+(20, 1, '[2]', '[1]', 'pendiente', '2025-11-20 10:00:00'),
+(21, 1, '[2]', '[1]', 'pendiente', '2025-11-20 10:00:00'),
+(22, 1, '[2]', '[1]', 'pendiente', '2025-11-20 10:00:00'),
+
+-- Test 2 sugerido por Profesor 2 en Curso 1 (mismos estudiantes)
+(4, 2, '[2]', '[1]', 'pendiente', '2025-11-21 09:00:00'),
+(5, 2, '[2]', '[1]', 'pendiente', '2025-11-21 09:00:00'),
+(6, 2, '[2]', '[1]', 'pendiente', '2025-11-21 09:00:00'),
+(7, 2, '[2]', '[1]', 'pendiente', '2025-11-21 09:00:00'),
+(8, 2, '[2]', '[1]', 'pendiente', '2025-11-21 09:00:00'),
+
+-- Test 1 sugerido por Profesor 2 en Curso 2 (estudiantes: 9,10,11,12,13,23,24,25,26,27)
+(9, 1, '[2]', '[2]', 'pendiente', '2025-11-19 15:00:00'),
+(10, 1, '[2]', '[2]', 'pendiente', '2025-11-19 15:00:00'),
+(11, 1, '[2]', '[2]', 'pendiente', '2025-11-19 15:00:00'),
+(12, 1, '[2]', '[2]', 'pendiente', '2025-11-19 15:00:00'),
+(13, 1, '[2]', '[2]', 'pendiente', '2025-11-19 15:00:00')
+
+ON DUPLICATE KEY UPDATE 
+    `profesores_ids` = VALUES(`profesores_ids`),
+    `cursos_ids` = VALUES(`cursos_ids`),
+    `estado` = VALUES(`estado`),
+    `fecha_ultima_sugerencia` = VALUES(`fecha_sugerencia`);
 
 -- ----------------------------------------------------------------
 

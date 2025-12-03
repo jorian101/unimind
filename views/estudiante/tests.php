@@ -75,14 +75,6 @@ renderPageHeader();
 <?php endforeach; ?>
             </div>
         </div>
-        <div class="modal-actions-success">
-            <button class="btn-primary" onclick="cerrarModalYVerHistorial()">
-                <i class="fas fa-history"></i> Ver Historial
-            </button>
-            <button class="btn-secondary" onclick="cerrarModal()">
-                <i class="fas fa-list"></i> Ver Más Tests
-            </button>
-        </div>
     </div>
 </div>
 
@@ -167,20 +159,49 @@ function renderTests(tests) {
         
         // Determinar si está completado
         const completado = test.completado === true || test.completado === 1;
+        const esSugerido = test.es_sugerido === true || test.es_sugerido === 1;
         const completadoClass = completado ? 'test-completado' : '';
-        const statusText = completado ? 'Completado' : 'Disponible';
-        const statusClass = completado ? 'completed' : 'pending';
+        const sugeridoClass = esSugerido ? 'test-sugerido' : '';
+        
+        // Definir el estado del test
+        let statusText = 'Disponible';
+        let statusClass = 'pending';
+        
+        if (completado) {
+            statusText = 'Completado';
+            statusClass = 'completed';
+        } else if (esSugerido) {
+            statusText = 'Sugerido por profesor';
+            statusClass = 'suggested';
+        }
+        
         const buttonText = completado ? 'Ver Historial' : 'Iniciar Test';
         const buttonIcon = completado ? 'fa-history' : 'fa-play';
         
+        // Información adicional de sugerencia (sin mensaje personalizado)
+        let infoSugerencia = '';
+        if (esSugerido && !completado) {
+            infoSugerencia = `
+                <div class="suggestion-info">
+                    <div class="suggestion-header">
+                        <i class="fas fa-user-tie"></i>
+                        <strong>Sugerido por: ${escapeHtml(test.nombre_profesor || 'Profesor')}</strong>
+                    </div>
+                    ${test.nombre_curso ? `<div class="suggestion-course"><i class="fas fa-book"></i> ${escapeHtml(test.nombre_curso)}</div>` : ''}
+                    ${test.fecha_sugerencia ? `<div class="suggestion-date"><i class="fas fa-calendar-alt"></i> ${formatearFecha(test.fecha_sugerencia)}</div>` : ''}
+                </div>
+            `;
+        }
+        
         return `
-            <div class="test-item ${completadoClass}">
+            <div class="test-item ${completadoClass} ${sugeridoClass}">
                 <div class="test-header">
                     <h3><i class="fas ${icon}"></i> ${escapeHtml(test.nombre)}</h3>
                     <span class="status ${statusClass}">${statusText}</span>
                 </div>
                 <div class="test-description">
                     <p>${escapeHtml(test.descripcion || 'Test de evaluación psicológica')}</p>
+                    ${infoSugerencia}
                     <div class="test-details">
                         <span class="detail"><i class="fas fa-list"></i> ${test.num_items} ítems</span>
                         <span class="detail"><i class="fas fa-clock"></i> ~${tiempoEstimado} min</span>

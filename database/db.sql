@@ -146,16 +146,20 @@ CREATE TABLE `Respuestas_Aplicacion` (
 
 
 -- Tabla para registrar sugerencias de tests por el profesor
+-- Cambio de diseño: cada sugerencia es por estudiante, no por curso
+-- Se rastrean múltiples profesores/cursos mediante campos agregados
 CREATE TABLE IF NOT EXISTS `Sugerencias` (
     `id_sugerencia` INT AUTO_INCREMENT PRIMARY KEY,
-    `id_curso` INT NOT NULL,
+    `id_estudiante` INT NOT NULL,
     `id_test` INT NOT NULL,
-    `id_profesor` INT NOT NULL,
+    `profesores_ids` TEXT NULL COMMENT 'JSON array de IDs de profesores que sugirieron',
+    `cursos_ids` TEXT NULL COMMENT 'JSON array de IDs de cursos desde donde se sugirió',
     `fecha_sugerencia` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `fecha_ultima_sugerencia` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `estado` ENUM('pendiente', 'visto') DEFAULT 'pendiente',
-    FOREIGN KEY (`id_curso`) REFERENCES `Cursos`(`id_curso`) ON DELETE CASCADE,
+    FOREIGN KEY (`id_estudiante`) REFERENCES `Usuarios`(`id_usuario`) ON DELETE CASCADE,
     FOREIGN KEY (`id_test`) REFERENCES `Tests`(`id_test`) ON DELETE CASCADE,
-    FOREIGN KEY (`id_profesor`) REFERENCES `Usuarios`(`id_usuario`) ON DELETE RESTRICT
+    UNIQUE KEY `uk_estudiante_test` (`id_estudiante`, `id_test`)
 );
 
 -- Tabla para registrar intentos de sincronización desde PWA
