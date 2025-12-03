@@ -177,7 +177,6 @@ CREATE TABLE IF NOT EXISTS `Citas` (
     `id_cita` INT NOT NULL AUTO_INCREMENT,
     `id_alumno` INT NOT NULL,
     `fecha_cita` DATETIME NOT NULL,
-    `hora_cita` TIME NULL,
     `motivo` VARCHAR(255),
     `estado` ENUM('pendiente', 'confirmada', 'cancelada') DEFAULT 'pendiente',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
