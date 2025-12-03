@@ -154,17 +154,6 @@ function renderPageHeader($title = null, $breadcrumb = null) {
             </div>
         </div>
         <div class="page-header__actions" id="page-header-actions">
-            <div id="notif-root" class="notif-root">
-                <button id="notif-bell" class="notif-bell" aria-label="Notificaciones" title="Notificaciones">
-                    <!-- Bell SVG icon -->
-                    <svg id="notif-bell-svg" class="notif-bell-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M12 22c1.1 0 1.99-.9 1.99-2H10c0 1.1.9 2 2 2z" fill="#444"/>
-                        <path d="M18.29 16.29L18 16V11c0-3.07-1.63-5.64-4.5-6.32V4a1.5 1.5 0 10-3 0v.68C7.63 5.36 6 7.92 6 11v5l-.29.29A1 1 0 006 18h12a1 1 0 00.29-1.71z" fill="#444"/>
-                    </svg>
-                    <span id="notif-count" class="notif-count" style="display:none">0</span>
-                </button>
-                <div id="notif-dropdown" class="notif-dropdown" style="display:none"></div>
-            </div>
         </div>
     </header>
     <script src="/public/js/notifications.js"></script>
