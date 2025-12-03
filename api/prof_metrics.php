@@ -6,6 +6,64 @@ require_once __DIR__ . '/../database/Database.php';
 
 $response = ['success' => false, 'message' => '', 'courses' => []];
 
+// If requesting top courses for high levels modal
+if (isset($_GET['top_courses'])) {
+    try {
+        $db = new Database();
+        $conn = $db->connect();
+        // Get all courses for this professor
+        $stmt = $conn->prepare('SELECT id_curso, nombre_curso FROM Cursos WHERE id_profesor = :id_profesor');
+        $stmt->bindParam(':id_profesor', $profesorId, PDO::PARAM_INT);
+        $stmt->execute();
+        $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $top = [];
+        foreach ($cursos as $curso) {
+            $id_curso = (int) $curso['id_curso'];
+            // Promedio estrés
+            $sqlEstres = "SELECT AVG(a.puntuacion_total) as avg_score FROM Aplicaciones a\n"
+                . "JOIN Tests t ON a.id_test = t.id_test\n"
+                . "JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario\n"
+                . "WHERE uc.id_curso = :id_curso AND LOWER(t.nombre) LIKE '%estres%'";
+            $stmt2 = $conn->prepare($sqlEstres);
+            $stmt2->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
+            $stmt2->execute();
+            $avgEstres = $stmt2->fetchColumn();
+            $avgEstres = $avgEstres !== null ? round((float)$avgEstres, 1) : null;
+            // Promedio ansiedad
+            $sqlAns = "SELECT AVG(a.puntuacion_total) as avg_score FROM Aplicaciones a\n"
+                . "JOIN Tests t ON a.id_test = t.id_test\n"
+                . "JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario\n"
+                . "WHERE uc.id_curso = :id_curso AND LOWER(t.nombre) LIKE '%ansiedad%'";
+            $stmt2 = $conn->prepare($sqlAns);
+            $stmt2->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
+            $stmt2->execute();
+            $avgAns = $stmt2->fetchColumn();
+            $avgAns = $avgAns !== null ? round((float)$avgAns, 1) : null;
+            $top[] = [
+                'id_curso' => $id_curso,
+                'nombre_curso' => $curso['nombre_curso'],
+                'promedio_estres' => $avgEstres,
+                'promedio_ansiedad' => $avgAns
+            ];
+        }
+        // Sort by highest average (estres or ansiedad)
+        usort($top, function($a, $b) {
+            $maxA = max($a['promedio_estres'] ?? 0, $a['promedio_ansiedad'] ?? 0);
+            $maxB = max($b['promedio_estres'] ?? 0, $b['promedio_ansiedad'] ?? 0);
+            return $maxB <=> $maxA;
+        });
+        $response['top_courses'] = $top;
+        $response['success'] = true;
+        echo json_encode($response);
+        exit;
+    } catch (PDOException $e) {
+        http_response_code(500);
+        $response['message'] = 'Error de servidor: ' . $e->getMessage();
+        echo json_encode($response);
+        exit;
+    }
+}
+
 // Verificar autenticación y rol
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
     http_response_code(401);

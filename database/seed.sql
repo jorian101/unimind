@@ -307,3 +307,50 @@ VALUES
 (4, 7, '2025-12-01', '11:00:00', 'Consulta de resultados', 'cancelada'),
 (5, 9, '2025-12-02', '14:00:00', 'Seguimiento académico', 'pendiente'),
 (6, 10, '2025-12-02', '16:00:00', 'Problema familiar', 'confirmada');
+
+-- ----------------------------------------------------------------
+-- Additional seed: more Aplicaciones across dates to produce richer charts
+-- ----------------------------------------------------------------
+-- We'll add applications for test 1 (Estrés) in Curso 1 and test 2 (Ansiedad) in Curso 2
+-- Dates span 2025-11-21 .. 2025-12-02 to create time series
+
+INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `fecha_aplicacion`, `puntuacion_total`, `resultado_nivel`) VALUES
+-- 2025-11-21
+(11, 4, 1, 'uuid-011', '2025-11-21 09:10:00', 5, 'Bajo'),
+(12, 9, 2, 'uuid-012', '2025-11-21 10:30:00', 11, 'Moderado'),
+-- 2025-11-22
+(13, 5, 1, 'uuid-013', '2025-11-22 08:45:00', 8, 'Moderado'),
+(14, 10, 2, 'uuid-014', '2025-11-22 11:20:00', 4, 'Bajo'),
+-- 2025-11-23
+(15, 6, 1, 'uuid-015', '2025-11-23 13:05:00', 12, 'Alto'),
+(16, 11, 2, 'uuid-016', '2025-11-23 14:40:00', 9, 'Moderado'),
+-- 2025-11-24
+(17, 7, 1, 'uuid-017', '2025-11-24 09:50:00', 7, 'Moderado'),
+(18, 12, 2, 'uuid-018', '2025-11-24 10:15:00', 2, 'Bajo'),
+-- 2025-11-25
+(19, 8, 1, 'uuid-019', '2025-11-25 15:30:00', 14, 'Alto'),
+(20, 13, 2, 'uuid-020', '2025-11-25 16:45:00', 13, 'Alto'),
+-- 2025-11-26
+(21, 4, 1, 'uuid-021', '2025-11-26 09:05:00', 6, 'Bajo'),
+(22, 9, 2, 'uuid-022', '2025-11-26 11:10:00', 10, 'Moderado'),
+-- 2025-11-27
+(23, 5, 1, 'uuid-023', '2025-11-27 08:30:00', 9, 'Moderado'),
+(24, 10, 2, 'uuid-024', '2025-11-27 12:00:00', 5, 'Bajo'),
+-- 2025-11-28
+(25, 6, 1, 'uuid-025', '2025-11-28 14:20:00', 11, 'Alto'),
+(26, 11, 2, 'uuid-026', '2025-11-28 15:55:00', 7, 'Moderado'),
+-- 2025-11-29
+(27, 7, 1, 'uuid-027', '2025-11-29 09:40:00', 4, 'Bajo'),
+(28, 12, 2, 'uuid-028', '2025-11-29 10:50:00', 3, 'Bajo'),
+-- 2025-11-30
+(29, 8, 1, 'uuid-029', '2025-11-30 16:10:00', 13, 'Alto'),
+(30, 13, 2, 'uuid-030', '2025-11-30 17:25:00', 12, 'Alto'),
+-- 2025-12-01
+(31, 4, 1, 'uuid-031', '2025-12-01 09:00:00', 8, 'Moderado'),
+(32, 9, 2, 'uuid-032', '2025-12-01 11:30:00', 6, 'Moderado'),
+-- 2025-12-02
+(33, 5, 1, 'uuid-033', '2025-12-02 08:15:00', 10, 'Moderado'),
+(34, 10, 2, 'uuid-034', '2025-12-02 12:45:00', 2, 'Bajo')
+ON DUPLICATE KEY UPDATE client_uuid=VALUES(client_uuid), puntuacion_total=VALUES(puntuacion_total), resultado_nivel=VALUES(resultado_nivel), fecha_aplicacion=VALUES(fecha_aplicacion);
+
+-- End of additional seed data
