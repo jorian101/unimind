@@ -56,8 +56,8 @@ try {
     // Si no se proporcionó id_test, tratar de crear uno si viene metadata válida
     if (!$id_test) {
         if ($test_name && $num_items > 0) {
-            // Verificar si ya existe un Test con ese nombre
-            $chk = $conn->prepare('SELECT id_test FROM Tests WHERE nombre = :nombre LIMIT 1');
+            // Verificar si ya existe un Test con ese nombre y que esté activo
+            $chk = $conn->prepare('SELECT id_test FROM Tests WHERE nombre = :nombre AND estado_test = "activo" LIMIT 1');
             $chk->execute([':nombre' => $test_name]);
             $found = $chk->fetch(PDO::FETCH_ASSOC);
             if ($found && isset($found['id_test'])) {

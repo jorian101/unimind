@@ -47,11 +47,13 @@ CREATE TABLE `TiposEscala_Opciones` (
 );
 
 -- Tabla de Tests (moved below Tipos_Escalas to satisfy foreign keys)
-CREATE TABLE `Tests` (                             
+CREATE TABLE `Tests` (
     `id_test` INT NOT NULL AUTO_INCREMENT,
     `nombre` VARCHAR(100) NOT NULL,
     `descripcion` TEXT,
     `num_items` INT NOT NULL,
+    `tipo_test` ENUM('estres','ansiedad') NOT NULL DEFAULT 'estres',
+    `estado_test` ENUM('activo','inactivo') NOT NULL DEFAULT 'activo',
     `id_tipo_escala` INT NULL,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

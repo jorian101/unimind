@@ -21,16 +21,15 @@ if (!isset($prof_courses)) {
             } catch (Throwable $e) {
                 // Some drivers may not support nextRowset; ignore silently
             }
-            // try to find test ids for 'estres' and 'ansiedad' by name
+            // Buscar los ids de test por tipo_test
             $test_ids = ['estres' => 0, 'ansiedad' => 0];
             try {
-                $q = $conn->prepare("SELECT id_test, LOWER(nombre) AS nombre FROM Tests WHERE LOWER(nombre) LIKE :p1 OR LOWER(nombre) LIKE :p2");
-                $q->execute([':p1' => '%estres%', ':p2' => '%ansiedad%']);
+                $q = $conn->prepare("SELECT id_test, tipo_test FROM Tests WHERE tipo_test IN ('estres','ansiedad') AND estado_test = 'activo'");
+                $q->execute();
                 $all = $q->fetchAll(PDO::FETCH_ASSOC);
                 foreach ($all as $r) {
-                    $n = $r['nombre'];
-                    if (strpos($n, 'estres') !== false || strpos($n, 'estrés') !== false) $test_ids['estres'] = (int)$r['id_test'];
-                    if (strpos($n, 'ansiedad') !== false) $test_ids['ansiedad'] = (int)$r['id_test'];
+                    if ($r['tipo_test'] === 'estres') $test_ids['estres'] = (int)$r['id_test'];
+                    if ($r['tipo_test'] === 'ansiedad') $test_ids['ansiedad'] = (int)$r['id_test'];
                 }
             } catch (Throwable $e) { /* ignore */ }
         } catch (Exception $e) {

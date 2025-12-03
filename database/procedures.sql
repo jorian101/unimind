@@ -177,11 +177,13 @@ CREATE PROCEDURE `sp_crear_test`(
     IN p_nombre VARCHAR(100),
     IN p_descripcion TEXT,
     IN p_num_items INT,
+    IN p_tipo_test ENUM('estres','ansiedad'),
+    IN p_estado_test ENUM('activo','inactivo'),
     IN p_id_tipo_escala INT
 )
 BEGIN
-    INSERT INTO `Tests` (`nombre`, `descripcion`, `num_items`, `id_tipo_escala`, `created_at`, `updated_at`)
-    VALUES (p_nombre, p_descripcion, p_num_items, p_id_tipo_escala, NOW(), NOW());
+    INSERT INTO `Tests` (`nombre`, `descripcion`, `num_items`, `tipo_test`, `estado_test`, `id_tipo_escala`, `created_at`, `updated_at`)
+    VALUES (p_nombre, p_descripcion, p_num_items, p_tipo_test, p_estado_test, p_id_tipo_escala, NOW(), NOW());
     SELECT 'Test creado con éxito' AS Mensaje, LAST_INSERT_ID() AS Nuevo_ID_Test;
 END //
 

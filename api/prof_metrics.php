@@ -102,9 +102,9 @@ try {
 
         // Promedio y distribución para tests que mencionen 'estres' o 'ansiedad'
         $sqlAvg = "SELECT AVG(a.puntuacion_total) as avg_score FROM Aplicaciones a
-                   JOIN Tests t ON a.id_test = t.id_test
-                   JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
-                   WHERE uc.id_curso = :id_curso AND (LOWER(t.nombre) LIKE '%estres%' OR LOWER(t.nombre) LIKE '%ansiedad%')";
+               JOIN Tests t ON a.id_test = t.id_test
+               JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+               WHERE uc.id_curso = :id_curso AND t.tipo_test IN ('estres','ansiedad') AND t.estado_test = 'activo'";
         $stmt = $conn->prepare($sqlAvg);
         $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
         $stmt->execute();
@@ -113,10 +113,10 @@ try {
 
         // Distribución por nivel basada en resultado_nivel si existe
         $sqlDist = "SELECT a.resultado_nivel as nivel, COUNT(*) as cnt FROM Aplicaciones a
-                    JOIN Tests t ON a.id_test = t.id_test
-                    JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
-                    WHERE uc.id_curso = :id_curso AND (LOWER(t.nombre) LIKE '%estres%' OR LOWER(t.nombre) LIKE '%ansiedad%')
-                    GROUP BY a.resultado_nivel";
+                JOIN Tests t ON a.id_test = t.id_test
+                JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+                WHERE uc.id_curso = :id_curso AND t.tipo_test IN ('estres','ansiedad') AND t.estado_test = 'activo'
+                GROUP BY a.resultado_nivel";
         $stmt = $conn->prepare($sqlDist);
         $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
         $stmt->execute();
@@ -140,7 +140,7 @@ try {
             $sqlScoreDist = "SELECT a.puntuacion_total as score FROM Aplicaciones a
                               JOIN Tests t ON a.id_test = t.id_test
                               JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
-                              WHERE uc.id_curso = :id_curso AND (LOWER(t.nombre) LIKE '%estres%' OR LOWER(t.nombre) LIKE '%ansiedad%')";
+                              WHERE uc.id_curso = :id_curso AND t.tipo_test IN ('estres','ansiedad') AND t.estado_test = 'activo'";
             $stmt = $conn->prepare($sqlScoreDist);
             $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
             $stmt->execute();
@@ -155,12 +155,12 @@ try {
 
         // Series temporal (últimos 8 días) promedio por fecha
         $sqlSeries = "SELECT DATE(a.fecha_aplicacion) as fecha, AVG(a.puntuacion_total) as avg_score FROM Aplicaciones a
-                      JOIN Tests t ON a.id_test = t.id_test
-                      JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
-                      WHERE uc.id_curso = :id_curso AND (LOWER(t.nombre) LIKE '%estres%' OR LOWER(t.nombre) LIKE '%ansiedad%')
-                      GROUP BY DATE(a.fecha_aplicacion)
-                      ORDER BY DATE(a.fecha_aplicacion) ASC
-                      LIMIT 12";
+                  JOIN Tests t ON a.id_test = t.id_test
+                  JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+                  WHERE uc.id_curso = :id_curso AND t.tipo_test IN ('estres','ansiedad') AND t.estado_test = 'activo'
+                  GROUP BY DATE(a.fecha_aplicacion)
+                  ORDER BY DATE(a.fecha_aplicacion) ASC
+                  LIMIT 12";
         $stmt = $conn->prepare($sqlSeries);
         $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
         $stmt->execute();
@@ -195,10 +195,10 @@ try {
 
         // Promedio de puntuación para tests de estrés en la facultad
         $sqlFacEst = "SELECT AVG(a.puntuacion_total) as avg_score, COUNT(*) as cnt FROM Aplicaciones a
-                   JOIN Tests t ON a.id_test = t.id_test
-                   JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
-                   JOIN Cursos c ON uc.id_curso = c.id_curso
-                   WHERE c.id_escuela = :id_esc AND LOWER(t.nombre) LIKE '%estres%'";
+               JOIN Tests t ON a.id_test = t.id_test
+               JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+               JOIN Cursos c ON uc.id_curso = c.id_curso
+               WHERE c.id_escuela = :id_esc AND t.tipo_test = 'estres' AND t.estado_test = 'activo'";
         $stmt = $conn->prepare($sqlFacEst);
         $stmt->bindParam(':id_esc', $id_esc, PDO::PARAM_INT);
         $stmt->execute();
@@ -206,10 +206,67 @@ try {
 
         // Promedio de puntuación para tests de ansiedad en la facultad
         $sqlFacAns = "SELECT AVG(a.puntuacion_total) as avg_score, COUNT(*) as cnt FROM Aplicaciones a
-                   JOIN Tests t ON a.id_test = t.id_test
-                   JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
-                   JOIN Cursos c ON uc.id_curso = c.id_curso
-                   WHERE c.id_escuela = :id_esc AND LOWER(t.nombre) LIKE '%ansiedad%'";
+               JOIN Tests t ON a.id_test = t.id_test
+               JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+               JOIN Cursos c ON uc.id_curso = c.id_curso
+               WHERE c.id_escuela = :id_esc AND t.tipo_test = 'ansiedad' AND t.estado_test = 'activo'";
+            // Si se solicita top_courses, también usar tipo_test
+            if (isset($_GET['top_courses'])) {
+                try {
+                    $db = new Database();
+                    $conn = $db->connect();
+                    // Get all courses for this professor
+                    $stmt = $conn->prepare('SELECT id_curso, nombre_curso FROM Cursos WHERE id_profesor = :id_profesor');
+                    $stmt->bindParam(':id_profesor', $profesorId, PDO::PARAM_INT);
+                    $stmt->execute();
+                    $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    $top = [];
+                    foreach ($cursos as $curso) {
+                        $id_curso = (int) $curso['id_curso'];
+                        // Promedio estrés
+                        $sqlEstres = "SELECT AVG(a.puntuacion_total) as avg_score FROM Aplicaciones a\n"
+                            . "JOIN Tests t ON a.id_test = t.id_test\n"
+                            . "JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario\n"
+                            . "WHERE uc.id_curso = :id_curso AND t.tipo_test = 'estres' AND t.estado_test = 'activo'";
+                        $stmt2 = $conn->prepare($sqlEstres);
+                        $stmt2->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
+                        $stmt2->execute();
+                        $avgEstres = $stmt2->fetchColumn();
+                        $avgEstres = $avgEstres !== null ? round((float)$avgEstres, 1) : null;
+                        // Promedio ansiedad
+                        $sqlAns = "SELECT AVG(a.puntuacion_total) as avg_score FROM Aplicaciones a\n"
+                            . "JOIN Tests t ON a.id_test = t.id_test\n"
+                            . "JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario\n"
+                            . "WHERE uc.id_curso = :id_curso AND t.tipo_test = 'ansiedad' AND t.estado_test = 'activo'";
+                        $stmt2 = $conn->prepare($sqlAns);
+                        $stmt2->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
+                        $stmt2->execute();
+                        $avgAns = $stmt2->fetchColumn();
+                        $avgAns = $avgAns !== null ? round((float)$avgAns, 1) : null;
+                        $top[] = [
+                            'id_curso' => $id_curso,
+                            'nombre_curso' => $curso['nombre_curso'],
+                            'promedio_estres' => $avgEstres,
+                            'promedio_ansiedad' => $avgAns
+                        ];
+                    }
+                    // Sort by highest average (estres or ansiedad)
+                    usort($top, function($a, $b) {
+                        $maxA = max($a['promedio_estres'] ?? 0, $a['promedio_ansiedad'] ?? 0);
+                        $maxB = max($b['promedio_estres'] ?? 0, $b['promedio_ansiedad'] ?? 0);
+                        return $maxB <=> $maxA;
+                    });
+                    $response['top_courses'] = $top;
+                    $response['success'] = true;
+                    echo json_encode($response);
+                    exit;
+                } catch (PDOException $e) {
+                    http_response_code(500);
+                    $response['message'] = 'Error de servidor: ' . $e->getMessage();
+                    echo json_encode($response);
+                    exit;
+                }
+            }
         $stmt = $conn->prepare($sqlFacAns);
         $stmt->bindParam(':id_esc', $id_esc, PDO::PARAM_INT);
         $stmt->execute();

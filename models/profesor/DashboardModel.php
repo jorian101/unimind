@@ -72,7 +72,7 @@ class DashboardModel {
         $stmt = $this->conn->prepare(
             "SELECT id_test, nombre, descripcion, num_items 
              FROM Tests 
-             WHERE id_test IN (1, 2)"
+             WHERE id_test IN (1, 2) AND estado_test = 'activo'"
         );
         $stmt->execute();
         $resultados = $stmt->fetchAll();
