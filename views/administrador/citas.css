@@ -1,173 +1,130 @@
 /* CSS específico para views/administrador/citas.php */
 @import url("../../public/css/theme.css");
 
-body {
-    background-color: var(--bg-100);
-    font-family: var(--font);
-}
-
+.Base layout similar to tests */
+/* Use a subtle page background so the white cards stand out */
+body { background-color: var(--bg-300); font-family: var(--font); }
 .admin-citas-container {
-    max-width: 98vw;
-    margin: 32px auto;
-    padding: 0 2vw;
-    background: var(--bg-100);
-    border-radius: 24px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-}
-
-.citas-title {
-    font-size: 2rem;
-    font-weight: 700;
+    /* Match tests container: no rounded card, full-width center, same background */
     color: var(--pri-500);
-    margin-bottom: 8px;
-    margin-top: 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.citas-calendar {
-    background: var(--bg-300);
-    border-radius: 16px;
-    padding: 40px 48px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    margin-bottom: 40px;
-    min-height: 600px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.citas-details {
+    width: calc(100% - 48px);
+    max-width: 1400px;
+    margin: 24px auto;
+    padding: 1.5rem;
     background: var(--bg-100);
-    border-radius: 16px;
-    padding: 24px 32px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    min-height: calc(100vh - 80px);
 }
 
-.citas-details-title {
-    font-size: 1.3rem;
-    color: var(--pri-500);
-    font-weight: 600;
-    margin-bottom: 12px;
-}
+/* Header */
+.page-header { display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap }
+.header-content h1 { font-size: calc(1.25rem + 0.9vw); margin:0; color:var(--pri-500); font-weight:700 }
+.subtitle { color: var(--var-700); margin:0 }
 
-.citas-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: var(--bg-100);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+/* Filters area similar to tests' filters-section */
+.filters-section {
+    display:flex; gap:1rem; flex-wrap:wrap; align-items:center; padding:0.9rem; border-radius:10px; border:1px solid var(--bg-500); background:var(--bg-100); margin-bottom:1rem;
 }
+.filters-section label { color: var(--var-700); font-weight:500 }
+.filters-section select, .filters-section input[type="text"] { padding: 8px 12px; border-radius:8px; border:1px solid var(--bg-500); background:var(--bg-100) }
+.citas-btn { padding:8px 16px; border-radius:8px; font-weight:600; cursor:pointer }
+.citas-btn.primary { background: var(--acc-500); color: var(--bg-100); border: none }
+.citas-btn.ghost { background: transparent; color: var(--pri-500); border: 2px solid var(--pri-500) }
 
-.citas-table th, .citas-table td {
-    padding: 12px 16px;
-    text-align: left;
-    color: var(--var-700);
-}
+/* Two-column layout on wide screens: calendar left, details right */
+.citas-main-grid { display:grid; grid-template-columns: 1fr; gap:1rem }
+.citas-calendar { background: var(--bg-300); border-radius:12px; padding:1rem; box-shadow:0 6px 18px rgba(0,0,0,0.04); min-height:420px; display:flex; align-items:center; justify-content:center }
+.citas-details { background: var(--bg-100); border-radius:12px; padding:1rem; box-shadow:0 6px 18px rgba(0,0,0,0.04) }
+.citas-details-title { font-size:1.1rem; color:var(--pri-500); font-weight:600; margin-bottom:0.75rem }
 
-.citas-table th {
-    background: var(--bg-300);
-    color: var(--pri-500);
-    font-weight: 600;
-}
+/* Appointments grid (card view) */
+.appointments-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:1rem }
+.cita-card { background: var(--bg-100); border:1px solid var(--bg-500); border-radius:12px; padding:12px; box-shadow:0 6px 18px rgba(0,0,0,0.04); display:flex; flex-direction:column; gap:8px }
+.cita-card-header { display:flex; justify-content:space-between; align-items:center }
+.cita-time { font-weight:700; color:var(--pri-500) }
+.cita-title { font-weight:600; color:var(--pri-500) }
+.cita-motivo { color:var(--var-700); font-size:0.95rem }
+.cita-estado { font-weight:700; padding:6px 8px; border-radius:8px; display:inline-block }
+.cita-estado.estado-pendiente { background:#eef2ff; color:#4f46e5 }
+.cita-estado.estado-confirmada { background:#ecfdf5; color:#065f46 }
+.cita-estado.estado-cancelada { background:#fff1f2; color:#991b1b }
 
-.citas-table tr {
-    border-bottom: 1px solid rgba(0,0,0,0.04);
-}
+/* Table fallback for small screens */
+.citas-table { width:100%; border-collapse:collapse; display:none }
+.citas-table th, .citas-table td { padding:12px 16px; text-align:left; color:var(--var-700) }
+.citas-table th { background:var(--bg-300); color:var(--pri-500); font-weight:600 }
 
-.citas-table tr:last-child {
-    border-bottom: none;
-}
+/* FullCalendar selected day */
+.fc-daygrid-day.fc-day-selected { background: #fde2e2 !important; border-radius:8px; box-shadow: 0 0 0 2px rgba(107,26,26,0.12) }
 
-.citas-controls {
-    margin-bottom: 24px;
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    align-items: center;
-}
+/* Ensure calendar container occupies all available space so JS can compute height correctly */
+#calendar { width:100%; height:100%; }
 
-.citas-controls label { color: var(--var-700); font-weight:500 }
-.citas-controls select,
-.citas-controls input[type="text"] {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--bg-500);
-    background: var(--bg-100);
-}
-
-.citas-btn {
-    padding: 8px 18px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-}
-.citas-btn.ghost {
-    background: transparent;
-    color: var(--pri-500);
-    border: 2px solid var(--pri-500);
-}
-.citas-btn.primary { background: var(--acc-500); color: var(--bg-100); }
-.citas-btn.info { background: #3b82f6; color: #fff; }
-
-/* Selected day highlight for FullCalendar */
-.fc-daygrid-day.fc-day-selected {
-    background: #fde2e2 !important;
-    border-radius: 8px;
-    box-shadow: 0 0 0 2px rgba(107,26,26,0.2);
-}
-
-/* Responsive breakpoints */
-/* Very small phones <= 374px */
+/* Responsive breakpoints requested and large screens */
 @media (max-width: 374px) {
-    .admin-citas-container { padding: 16px 8px; margin: 12px auto; }
-    .citas-calendar { padding: 8px; min-height: 360px }
-    .citas-details { padding: 12px 8px }
-    .citas-title { font-size: 1.1rem }
-    .citas-controls { gap: 8px }
-    .citas-controls select, .citas-controls input[type="text"] { padding: 6px 8px }
+    .admin-citas-container { padding: 12px; margin:12px auto }
+    .header-content h1 { font-size: 1.05rem }
+    .citas-main-grid { grid-template-columns: 1fr }
+    .citas-calendar { min-height:360px; padding:0.6rem }
+    .appointments-grid { grid-template-columns: 1fr }
+    .citas-table { display:table }
+    .appointments-grid { display:none }
 }
 
-/* Small phones 375 - 390px */
-@media (min-width: 375px) and (max-width: 390px) {
-    .admin-citas-container { padding: 18px 10px }
-    .citas-calendar { padding: 12px; min-height: 420px }
-    .citas-title { font-size: 1.2rem }
+@media (min-width:375px) and (max-width:390px) {
+    .admin-citas-container { padding: 14px }
+    .citas-calendar { min-height:420px }
+    .citas-table { display:table }
+    .appointments-grid { display:none }
 }
 
-/* Mobile -> tablet 391 - 767px */
-@media (min-width: 391px) and (max-width: 767px) {
-    .admin-citas-container { padding: 20px 16px }
-    .citas-calendar { padding: 16px; min-height: 480px }
-    .citas-controls { gap: 12px }
+@media (min-width:391px) and (max-width:767px) {
+    .admin-citas-container { padding: 16px }
+    .citas-calendar { min-height:480px }
+    .citas-table { display:table }
+    .appointments-grid { display:none }
 }
 
-/* Tablet 768 - 1023px */
-@media (min-width: 768px) and (max-width: 1023px) {
-    .admin-citas-container { padding: 24px 20px }
-    .citas-calendar { padding: 28px 36px; min-height: 520px }
+@media (min-width:768px) and (max-width:1023px) {
+    .admin-citas-container { padding: 20px }
+    /* Give the calendar more room: 2fr vs 420px sidebar */
+    .citas-main-grid { grid-template-columns: 2fr 420px }
+    .citas-calendar { min-height:560px }
+    .appointments-grid { display:grid }
+    .citas-table { display:none }
 }
 
-/* Desktop small 1024 - 1439px */
-@media (min-width: 1024px) and (max-width: 1439px) {
-    .admin-citas-container { padding: 28px 24px }
-    .citas-calendar { padding: 32px 44px; min-height: 560px }
+@media (min-width:1024px) and (max-width:1439px) {
+    .admin-citas-container { padding: 24px }
+    /* Wider calendar column on desktop */
+    .citas-main-grid { grid-template-columns: 3fr 520px }
+    .citas-calendar { min-height:640px }
+    .appointments-grid { grid-template-columns: repeat(2, 1fr) }
 }
 
-/* Large desktop >= 1440px */
-@media (min-width: 1440px) {
-    .admin-citas-container { padding: 32px 48px }
-    .citas-calendar { padding: 40px 48px; min-height: 600px }
+@media (min-width:1440px) {
+    .admin-citas-container { padding: 28px }
+    .citas-main-grid { grid-template-columns: 3fr 600px }
+    .citas-calendar { min-height:720px }
+    .appointments-grid { grid-template-columns: repeat(3, 1fr) }
 }
 
-/* Utility tweaks */
-.citas-table td span.estado { font-weight: 600 }
-/* estado colors */
+@media (min-width:1600px) {
+    .admin-citas-container { padding: 32px }
+    .citas-main-grid { grid-template-columns: 3fr 720px }
+    .appointments-grid { grid-template-columns: repeat(3, minmax(300px, 1fr)); gap:1.25rem }
+}
+
+@media (min-width:1920px) {
+    .admin-citas-container { padding: 36px }
+    .citas-main-grid { grid-template-columns: 4fr 820px }
+    .appointments-grid { grid-template-columns: repeat(4, minmax(300px, 1fr)); gap:1.5rem }
+}
+
+/* Utility */
+.citas-table td span.estado { font-weight:600 }
 .estado-pendiente { color: #6366f1 }
 .estado-confirmada { color: var(--acc-500) }
 .estado-cancelada { color: var(--pri-600) }
 
-.citas-select, .citas-input { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--bg-500); }
+.citas-select, .citas-input { padding:8px 12px; border-radius:8px; border:1px solid var(--bg-500) }
+

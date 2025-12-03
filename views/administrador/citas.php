@@ -1,4 +1,8 @@
 <?php
+
+require_once dirname(__DIR__) . '/pageHeader.php';
+renderPageHeader();
+
 require_once __DIR__ . '/../header.php';
 require_once __DIR__ . '/../../utils/asset-version.php';
 ?>
@@ -6,10 +10,14 @@ require_once __DIR__ . '/../../utils/asset-version.php';
 <link rel="stylesheet" href="views/administrador/citas.css?v=<?php echo asset_version('views/administrador/citas.css'); ?>">
 
 <div class="admin-citas-container">
-    <div class="citas-title">
-        <span>📅</span> Gestión de Citas
+    <div class="page-header">
+        <div class="header-content">
+            <h1><span>📅</span> Gestión de Citas</h1>
+            <p class="subtitle">Calendario y detalles — vista tipo tarjetas</p>
+        </div>
     </div>
-    <div class="citas-controls">
+
+    <div class="filters-section">
         <label>Estado:
             <select id="filtro-estado">
                 <option value="">Todos</option>
@@ -25,30 +33,40 @@ require_once __DIR__ . '/../../utils/asset-version.php';
         <button id="btn-limpiar" class="citas-btn ghost">Limpiar</button>
         <button id="btn-hoy" class="citas-btn info">Hoy</button>
     </div>
-    <div class="citas-calendar">
-        <div id="calendar"></div>
-    </div>
-    <div class="citas-details" id="citas-details">
-        <div class="citas-details-title">Detalles de las citas del día</div>
-        <table class="citas-table" id="citas-table">
-            <thead>
-                <tr>
-                    <th>Hora</th>
-                    <th>Alumno</th>
-                    <th>Motivo</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Las filas se llenan dinámicamente -->
-            </tbody>
-        </table>
+
+    <div class="citas-main-grid">
+        <div class="citas-calendar">
+            <div id="calendar"></div>
+        </div>
+
+        <div class="citas-details" id="citas-details">
+            <div class="citas-details-title">Detalles de las citas del día</div>
+
+            <!-- Grid de tarjetas para pantallas medianas/grandes -->
+            <div class="appointments-grid" id="appointments-grid"></div>
+
+            <!-- Tabla como fallback en móviles -->
+            <table class="citas-table" id="citas-table">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Alumno</th>
+                        <th>Motivo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Las filas se llenan dinámicamente -->
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <script>
 const calendarEl = document.getElementById('calendar');
 const citasTableBody = document.querySelector('#citas-table tbody');
+const appointmentsGrid = document.getElementById('appointments-grid');
 
 let eventosCitas = [];
 let diaSeleccionado = null;
@@ -63,11 +81,23 @@ const datosPrueba = [
     { id: 6, title: 'David Rios', start: '2025-12-02T16:00:00', motivo: 'Problema familiar', estado: 'confirmada' }
 ];
 
+function getCalendarHeight() {
+    const w = window.innerWidth;
+    // Larger heights on bigger screens
+    if (w >= 1920) return 900;
+    if (w >= 1600) return 820;
+    if (w >= 1440) return 720;
+    if (w >= 1024) return 640;
+    if (w >= 768) return 520;
+    if (w >= 375) return 420;
+    return 360;
+}
+
 const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     locale: 'es',
-    height: 600,
-    contentHeight: 600,
+    height: getCalendarHeight(),
+    contentHeight: getCalendarHeight(),
     aspectRatio: 1.7,
     events: function(fetchInfo, successCallback, failureCallback) {
         fetch('api/citas-admin.php?fecha=' + fetchInfo.startStr)
@@ -97,6 +127,17 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     },
 });
 calendar.render();
+
+// Update calendar height on resize to keep it large on wide screens
+window.addEventListener('resize', function() {
+    const h = getCalendarHeight();
+    try {
+        calendar.setOption('height', h);
+        calendar.setOption('contentHeight', h);
+    } catch (e) {
+        // ignore if calendar not ready
+    }
+});
 
 function resaltarDia(fecha) {
     diaSeleccionado = fecha.toISOString().slice(0, 10);
@@ -130,21 +171,38 @@ function renderCitasFiltradas(citasDia) {
     let filtradas = citasDia;
     if (estado) filtradas = filtradas.filter(c => c.estado === estado);
     if (alumno) filtradas = filtradas.filter(c => c.title.toLowerCase().includes(alumno));
+    // Render table rows (mobile) and cards (desktop) simultaneously; CSS will show/hide.
     citasTableBody.innerHTML = '';
-    if (filtradas.length === 0) {
+    appointmentsGrid.innerHTML = '';
+    if (!Array.isArray(filtradas) || filtradas.length === 0) {
         citasTableBody.innerHTML = '<tr><td colspan="4">No hay citas para este filtro.</td></tr>';
+        appointmentsGrid.innerHTML = '<div class="empty-state">No hay citas para este filtro.</div>';
         return;
     }
+
+    let cardsHtml = '';
     for (const cita of filtradas) {
         const hora = cita.start.slice(11, 16);
         const estadoClass = cita.estado === 'pendiente' ? 'estado-pendiente' : (cita.estado === 'confirmada' ? 'estado-confirmada' : 'estado-cancelada');
+        // Table row
         citasTableBody.innerHTML += `<tr>
             <td>${hora}</td>
             <td>${cita.title}</td>
             <td>${cita.motivo}</td>
             <td><span class="estado ${estadoClass}">${cita.estado.charAt(0).toUpperCase()+cita.estado.slice(1)}</span></td>
         </tr>`;
+        // Card markup
+        cardsHtml += `<div class="cita-card">
+            <div class="cita-card-header">
+                <div class="cita-time">${hora}</div>
+                <div class="cita-title">${cita.title}</div>
+            </div>
+            <div class="cita-motivo">${cita.motivo}</div>
+            <div class="cita-estado ${estadoClass}">${cita.estado.charAt(0).toUpperCase()+cita.estado.slice(1)}</div>
+        </div>`;
     }
+
+    appointmentsGrid.innerHTML = cardsHtml;
 }
 
 document.getElementById('btn-filtrar').onclick = function() {
