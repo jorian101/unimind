@@ -1,49 +1,167 @@
 /* views/administrador/reportes.css */
-.card-resumen {
-  flex:1 1 180px;min-width:180px;max-width:220px;background:#f6f6f6;border-radius:12px;padding:24px 18px;box-shadow:0 2px 8px #0001;display:flex;flex-direction:column;align-items:center;
-}
+/* reportes.css — adaptado para aprovechar todo el ancho y puntos responsive */
 
-/* ... Puedes seguir agregando aquí el resto de los estilos inline que están en reportes.php ... */
-
-/* Ejemplo de estilos para el contenedor principal */
 .reportes-container {
-  max-width:900px;margin:40px auto;background:#fff;padding:32px;border-radius:16px;box-shadow:0 2px 8px #0001;font-family:'Inter',sans-serif;
+  font-family: var(--font);
+  color: var(--pri-500);
+  box-sizing: border-box;
+  /* Use the full viewport width minus small gutters by default so large screens expand */
+  width: calc(100% - 48px);
+  max-width: none;
+  margin: 24px auto;
+  padding: 1.25rem;
+  background: var(--bg-100);
+  min-height: calc(100vh - 80px);
 }
 
-/* Ejemplo de estilos para los títulos */
-.reportes-container h2 {
-  color:#6b1a1a;font-size:1.5rem;font-weight:700;margin-bottom:16px;
-}
-.reportes-container h3 {
-  color:#6b1a1a;font-size:1.1rem;margin-bottom:18px;
-}
-
-/* Ejemplo de estilos para tablas */
-.reportes-table {
-  width:100%;border-collapse:collapse;
-}
-.reportes-table th {
-  background:#f6f6f6;color:#6b1a1a;font-weight:600;padding:12px 8px;text-align:left;
-}
-.reportes-table td {
-  padding:10px 8px;
+/* On wide screens leave space for sidebar using CSS var; otherwise full width */
+@media (min-width: 1024px) {
+  .reportes-container {
+    /* Keep space for sidebar but center the content within the remaining area */
+    width: calc(100% - var(--sidebar-width, 260px) - 48px);
+    max-width: calc(100% - var(--sidebar-width, 260px) - 48px);
+    margin: 24px auto;
+  }
 }
 
-/* Ejemplo de estilos para listas de riesgo */
-.niveles-list {
-  list-style:none;padding:0;margin:0;
-}
-.niveles-list li {
-  margin-bottom:12px;font-size:1.05rem;color:#333;
-}
-.nivel-dot {
-  display:inline-block;width:18px;height:18px;border-radius:50%;margin-right:8px;
-}
+.page-header { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.25rem; flex-wrap:wrap }
+.header-content h1 { font-size: clamp(1.2rem, 1.3rem + 1vw, 2rem); margin:0; color:var(--pri-500); }
+.subtitle { color: var(--var-700); margin:0 }
 
-/* Ejemplo de estilos para gráficos */
+.summary-section .section-title,
+.riesgo-section .section-title,
+.escuelas-section .section-title,
+.evolucion-section .section-title { color:var(--pri-500); font-weight:600; margin-bottom:0.75rem }
+
+/* Use a responsive grid that fills available width */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  width:100%;
+}
+.card-resumen {
+  background:var(--bg-100);
+  border:1px solid var(--bg-500);
+  border-radius:12px;
+  padding:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.04);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.card-value { font-size:1.6rem; color:var(--pri-500); font-weight:700; display:flex; gap:0.6rem; align-items:center }
+.card-value i { color:var(--acc-700); font-size:1.1rem }
+.card-label { color:var(--var-700); margin-top:6px }
+
+.riesgo-grid { display:flex; gap:1.5rem; align-items:flex-start; flex-wrap:wrap }
+.riesgo-section .section-title { margin-bottom: 1.25rem; }
 .grafico-container {
-  flex:1 1 320px;min-width:320px;max-width:400px;
+  flex: 1 1 60%;
+  min-width: 280px;
+  height:420px;
+  position:relative;
+  padding:14px;
+  box-sizing:border-box;
+  background:var(--bg-100);
+  border:1px solid var(--bg-500);
+  border-radius:12px;
+  box-shadow: 0 10px 28px rgba(16,24,40,0.06);
 }
-.grafico-linea-container {
-  width:100%;max-width:700px;margin:0 auto;
+.grafico-container canvas { width:100% !important; height:100% !important; display:block }
+.niveles-aside {
+  flex: 1 1 35%;
+  min-width:220px;
+  padding:12px;
+  box-sizing:border-box;
+  background:var(--bg-100);
+  border:1px solid var(--bg-500);
+  border-radius:12px;
+  box-shadow: 0 8px 22px rgba(16,24,40,0.04);
 }
+.niveles-list { list-style:none; padding:0; margin:0 }
+.niveles-list li { margin-bottom:10px; color:var(--var-700); font-size:1rem; display:flex; align-items:center; gap:0.6rem }
+.nivel-dot { width:14px; height:14px; border-radius:50%; display:inline-block }
+.nivel-count { color:var(--var-700); margin-left:6px }
+
+.table-wrapper { overflow:auto; border-radius:8px }
+.reportes-table { width:100%; border-collapse:separate; border-spacing:0 0.5rem }
+.reportes-table thead tr { background:var(--bg-300); color:var(--pri-500); font-weight:600 }
+.reportes-table th, .reportes-table td { padding:0.75rem 1rem; color:var(--var-700); text-align:left }
+.reportes-table tbody tr { background:var(--bg-100); border:1px solid var(--bg-500); border-radius:8px }
+.reportes-table tbody tr td { border:none }
+
+.grafico-linea-container { width:100%; height:420px; margin:0 auto; padding:12px; box-sizing:border-box; background:var(--bg-100); border:1px solid var(--bg-500); border-radius:12px; box-shadow: 0 10px 28px rgba(16,24,40,0.06); }
+.grafico-linea-container canvas { width:100% !important; height:100% !important; display:block }
+
+/* Small phones (<=374px) */
+@media (max-width: 374px) {
+  .reportes-container { padding:0.6rem; margin: 12px auto; width: calc(100% - 24px); }
+  .grafico-container { height:220px }
+  .grafico-linea-container { height:200px }
+  .card-value { font-size:1.1rem }
+  .riesgo-grid { flex-direction:column }
+  .niveles-aside { width:100%; }
+}
+
+/* Narrow phones (375-390) */
+@media (min-width:375px) and (max-width:390px) {
+  .reportes-container { padding:0.8rem }
+  .summary-grid { gap:0.6rem }
+  .grafico-container { height:260px }
+  .grafico-linea-container { height:220px }
+}
+
+/* Small tablets / large phones (391-767) */
+@media (min-width:391px) and (max-width:767px) {
+  .summary-grid { gap:0.8rem }
+  .riesgo-grid { flex-direction:column }
+  .grafico-container { height:300px }
+  .grafico-linea-container { height:280px }
+  .niveles-aside { width:100%; }
+}
+
+/* Tablets and small desktops (768-1023) */
+@media (min-width:768px) and (max-width:1023px) {
+  .summary-grid { gap:1rem }
+  .grafico-container { height:320px }
+  .reportes-container { padding:1.25rem; width: calc(100% - 48px); margin-left:0 }
+}
+
+/* Desktop (1024-1439) - leave space for sidebar */
+@media (min-width:1024px) and (max-width:1439px) {
+  .summary-grid { grid-template-columns: repeat(4, 1fr) }
+  .grafico-linea-container { height:360px }
+  .reportes-container { padding:1.5rem }
+}
+
+/* Large screens (>=1440) */
+@media (min-width:1440px) {
+  .reportes-container { padding:2rem }
+  .grafico-linea-container { height:420px }
+}
+
+/* Extra-large screens: take advantage of very wide monitors/laptops */
+@media (min-width:1600px) {
+  .reportes-container { padding:2.25rem; width: calc(100% - 80px); }
+  .summary-grid { grid-template-columns: repeat(4, minmax(200px, 1fr)); gap:1.25rem }
+  .grafico-container { height:520px; flex-basis: 68%; }
+  .niveles-aside { flex-basis: 30%; }
+  .grafico-linea-container { height:520px }
+  .header-content h1 { font-size: clamp(1.6rem, 2rem + 0.6vw, 2.4rem) }
+}
+
+@media (min-width:1920px) {
+  .reportes-container { padding:2.5rem; width: calc(100% - 100px); }
+  .summary-grid { grid-template-columns: repeat(4, minmax(220px, 1fr)); gap:1.5rem }
+  .grafico-container { height:600px; flex-basis: 70%; }
+  .grafico-linea-container { height:600px }
+  .card-value { font-size:2rem }
+}
+
+@media (hover: none) {
+  .card-resumen:hover { transform:none; box-shadow:0 6px 12px rgba(0,0,0,0.04) }
+}
+
+/* Small visual tweaks to ensure full-width usage */
+.reportes-table tr { width:100%; }
+.grafico-container, .niveles-aside { min-height: 120px }
+

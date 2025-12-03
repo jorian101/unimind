@@ -1,4 +1,7 @@
 <?php
+require_once dirname(__DIR__) . '/pageHeader.php';
+renderPageHeader();
+
 require_once __DIR__ . '/../../models/administrador/ReportsModel.php';
 
 $reportsModel = new ReportsModel();
@@ -12,168 +15,177 @@ $niveles = $reportsModel->getNivelesDistribucion();
 $escuelas_riesgo = $reportsModel->getEscuelasRiesgo();
 $puntuaciones_mes = $reportsModel->getPuntuacionesMes();
 ?>
-<link rel="stylesheet" href="reportes.css">
-<div class="reportes-container" style="max-width: 98vw; min-width: 320px; margin: 24px auto 24px auto; background: #fff; padding: 48px 3vw; border-radius: 24px; box-shadow: 0 4px 24px #0002; font-family: 'Inter',sans-serif;">
-  <h2>Reportes del Sistema</h2>
-  <div style="margin-bottom:32px;">
-      <h3>Resumen General</h3>
-      <div style="display:flex;gap:32px;flex-wrap:wrap;justify-content:center;">
-        <div class="card-resumen">
-          <div style="font-size:2.2rem;color:#6b1a1a;font-weight:700;margin-bottom:8px;"><i class="fas fa-users" style="margin-right:8px;"></i><?= $usuarios ?></div>
-          <div style="font-size:1.1rem;color:#333;font-weight:500;">Usuarios</div>
-        </div>
-        <div class="card-resumen">
-          <div style="font-size:2.2rem;color:#6b1a1a;font-weight:700;margin-bottom:8px;"><i class="fas fa-book" style="margin-right:8px;"></i><?= $cursos ?></div>
-          <div style="font-size:1.1rem;color:#333;font-weight:500;">Cursos</div>
-        </div>
-        <div class="card-resumen">
-          <div style="font-size:2.2rem;color:#6b1a1a;font-weight:700;margin-bottom:8px;"><i class="fas fa-school" style="margin-right:8px;"></i><?= $escuelas ?></div>
-          <div style="font-size:1.1rem;color:#333;font-weight:500;">Escuelas</div>
-        </div>
-        <div class="card-resumen">
-          <div style="font-size:2.2rem;color:#6b1a1a;font-weight:700;margin-bottom:8px;"><i class="fas fa-clipboard-list" style="margin-right:8px;"></i><?= $tests ?></div>
-          <div style="font-size:1.1rem;color:#333;font-weight:500;">Tests</div>
-        </div>
-      </div>
+
+<?php require_once __DIR__ . '/../../utils/asset-version.php'; ?>
+<link rel="stylesheet" href="public/css/theme.css?v=<?php echo asset_version('public/css/theme.css'); ?>">
+<link rel="stylesheet" href="public/css/style.css?v=<?php echo asset_version('public/css/style.css'); ?>">
+<link rel="stylesheet" href="views/administrador/reportes.css?v=<?php echo asset_version('views/administrador/reportes.css'); ?>">
+
+<main class="reportes-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1><i class="fas fa-chart-pie"></i> Reportes del Sistema</h1>
+      <p class="subtitle">Resumen general, distribución de riesgo y evolución de puntuaciones</p>
+    </div>
   </div>
-  <!-- Distribución de Niveles de Riesgo -->
-  <div style="margin:48px 0 32px 0;">
-    <h3>Distribución de Niveles de Riesgo</h3>
-    <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:center;justify-content:center;">
-      <div class="grafico-container">
-        <canvas id="graficoRiesgo" width="320" height="320"></canvas>
+
+  <section class="summary-section">
+    <h2 class="section-title">Resumen General</h2>
+    <div class="summary-grid">
+      <div class="card-resumen">
+        <div class="card-value"><i class="fas fa-users"></i><span><?= $usuarios ?></span></div>
+        <div class="card-label">Usuarios</div>
       </div>
-      <div style="flex:1 1 220px;min-width:220px;max-width:320px;">
+      <div class="card-resumen">
+        <div class="card-value"><i class="fas fa-book"></i><span><?= $cursos ?></span></div>
+        <div class="card-label">Cursos</div>
+      </div>
+      <div class="card-resumen">
+        <div class="card-value"><i class="fas fa-school"></i><span><?= $escuelas ?></span></div>
+        <div class="card-label">Escuelas</div>
+      </div>
+      <div class="card-resumen">
+        <div class="card-value"><i class="fas fa-clipboard-list"></i><span><?= $tests ?></span></div>
+        <div class="card-label">Tests</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="riesgo-section">
+    <h2 class="section-title">Distribución de Niveles de Riesgo</h2>
+    <div class="riesgo-grid">
+      <div class="grafico-container">
+        <canvas id="graficoRiesgo"></canvas>
+      </div>
+      <aside class="niveles-aside">
         <ul class="niveles-list">
           <?php foreach ($niveles as $nivel): ?>
             <li>
-              <span class="nivel-dot" style="background:#<?= ($nivel['resultado_nivel']=='Alto'?'e53e3e':($nivel['resultado_nivel']=='Moderado'?'f59e0b':'10b981')) ?>;"></span>
-              <b><?= htmlspecialchars($nivel['resultado_nivel']) ?>:</b> <?= $nivel['total'] ?> casos
+              <span class="nivel-dot" data-nivel="<?= htmlspecialchars($nivel['resultado_nivel']) ?>" data-color="#<?= ($nivel['resultado_nivel']=='Alto'?'e53e3e':($nivel['resultado_nivel']=='Moderado'?'f59e0b':'10b981')) ?>"></span>
+              <b><?= htmlspecialchars($nivel['resultado_nivel']) ?>:</b>
+              <span class="nivel-count"><?= $nivel['total'] ?> casos</span>
             </li>
           <?php endforeach; ?>
         </ul>
-      </div>
+      </aside>
     </div>
-  </div>
+  </section>
 
-  <!-- Escuelas y riesgo -->
-  <div style="margin-bottom:48px;">
-    <h3>Escuelas y Promedio de Puntuación / Casos de Riesgo Alto</h3>
-    <table class="reportes-table" style="border-collapse: separate; border-spacing: 0; width: 100%;">
-      <thead>
-        <tr>
-          <th>Escuela</th>
-          <th>Promedio Puntuación</th>
-          <th>Casos Riesgo Alto</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($escuelas_riesgo as $row): ?>
-        <tr style="border-bottom: 3px solid #bdbdbd;">
-          <td style="border-right: 2px solid #bdbdbd; border-bottom: 2px solid #bdbdbd; padding: 12px 8px;"> <?= htmlspecialchars($row['nombre_escuela']) ?> </td>
-          <td style="border-right: 2px solid #bdbdbd; border-bottom: 2px solid #bdbdbd; padding: 12px 8px;"> <?= number_format($row['promedio_puntuacion'],2) ?> </td>
-          <td style="border-bottom: 2px solid #bdbdbd; padding: 12px 8px;"> <?= $row['casos_alto'] ?> </td>
-        </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
-  </div>
-
-    <!-- Línea de tiempo: Promedio de puntuaciones mes a mes -->
-    <div style="margin-bottom:48px;">
-      <h3>Promedio de Puntuaciones a lo largo del tiempo</h3>
-      <div class="grafico-linea-container" style="max-width: 900px; margin: 0 auto;">
-        <canvas id="graficoLineaTiempo" width="900" height="340"></canvas>
-      </div>
+  <section class="escuelas-section">
+    <h2 class="section-title">Escuelas y Promedio / Casos Alto</h2>
+    <div class="table-wrapper">
+      <table class="reportes-table">
+        <thead>
+          <tr>
+            <th>Escuela</th>
+            <th>Promedio Puntuación</th>
+            <th>Casos Riesgo Alto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($escuelas_riesgo as $row): ?>
+            <tr>
+              <td><?= htmlspecialchars($row['nombre_escuela']) ?></td>
+              <td><?= number_format($row['promedio_puntuacion'],2) ?></td>
+              <td><?= $row['casos_alto'] ?></td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
     </div>
-</div>
+  </section>
+
+  <section class="evolucion-section">
+    <h2 class="section-title">Promedio de Puntuaciones a lo largo del tiempo</h2>
+    <div class="grafico-linea-container">
+      <canvas id="graficoLineaTiempo"></canvas>
+    </div>
+  </section>
+</main>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Gráfico de pastel/donut para niveles de riesgo
 document.addEventListener('DOMContentLoaded', function() {
-  var ctx = document.getElementById('graficoRiesgo').getContext('2d');
-  var data = {
-    labels: [
-      <?php foreach ($niveles as $nivel): ?>
-        "<?= htmlspecialchars($nivel['resultado_nivel']) ?>",
-      <?php endforeach; ?>
-    ],
-    datasets: [{
-      data: [
-        <?php foreach ($niveles as $nivel): ?>
-          <?= $nivel['total'] ?>,
-        <?php endforeach; ?>
-      ],
-      backgroundColor: [
-        <?php foreach ($niveles as $nivel): ?>
-          '#<?= ($nivel['resultado_nivel']=='Alto'?'e53e3e':($nivel['resultado_nivel']=='Moderado'?'f59e0b':'10b981')) ?>',
-        <?php endforeach; ?>
-      ],
-      borderWidth: 2
-    }]
-  };
+  // Pie/Doughnut data
+  const labelsRiesgo = [
+    <?php foreach ($niveles as $nivel): ?>
+      "<?= htmlspecialchars($nivel['resultado_nivel']) ?>",
+    <?php endforeach; ?>
+  ];
+  const valuesRiesgo = [
+    <?php foreach ($niveles as $nivel): ?>
+      <?= $nivel['total'] ?>,
+    <?php endforeach; ?>
+  ];
+  const colorsRiesgo = [
+    <?php foreach ($niveles as $nivel): ?>
+      '#<?= ($nivel['resultado_nivel']=='Alto'?'e53e3e':($nivel['resultado_nivel']=='Moderado'?'f59e0b':'10b981')) ?>',
+    <?php endforeach; ?>
+  ];
+
+  // Helper to compute total
+  const totalRiesgo = valuesRiesgo.reduce((s, v) => s + Number(v), 0) || 1;
+
+  const ctx = document.getElementById('graficoRiesgo').getContext('2d');
   new Chart(ctx, {
     type: 'doughnut',
-    data: data,
+    data: { labels: labelsRiesgo, datasets: [{ data: valuesRiesgo, backgroundColor: colorsRiesgo, borderWidth: 2 }] },
     options: {
-      responsive: false,
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { font: { size: 16 } }
+        legend: { position: 'bottom', labels: { font: { size: 13 } } },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const val = Number(context.parsed);
+              const pct = ((val / totalRiesgo) * 100).toFixed(1);
+              return context.label + ': ' + val + ' (' + pct + '%)';
+            }
+          }
         }
       }
     }
   });
-});
-// Gráfico de línea para promedio de puntuaciones mes a mes
-document.addEventListener('DOMContentLoaded', function() {
-  var ctxLinea = document.getElementById('graficoLineaTiempo').getContext('2d');
-  var dataLinea = {
-    labels: [
-      <?php foreach ($puntuaciones_mes as $row): ?>
-        "<?= htmlspecialchars($row['mes']) ?>",
-      <?php endforeach; ?>
-    ],
-    datasets: [{
-      label: 'Promedio de puntuaciones',
-      data: [
-        <?php foreach ($puntuaciones_mes as $row): ?>
-          <?= number_format($row['promedio'],2) ?>,
-        <?php endforeach; ?>
-      ],
-      fill: false,
-      borderColor: '#6b1a1a',
-      backgroundColor: '#f59e0b',
-      tension: 0.2,
-      pointRadius: 5,
-      pointBackgroundColor: '#6b1a1a',
-      pointBorderColor: '#fff',
-      pointHoverRadius: 7
-    }]
-  };
+
+  // Line chart
+  const labelsLinea = [
+    <?php foreach ($puntuaciones_mes as $row): ?>
+      "<?= htmlspecialchars($row['mes']) ?>",
+    <?php endforeach; ?>
+  ];
+  const valuesLinea = [
+    <?php foreach ($puntuaciones_mes as $row): ?>
+      <?= number_format($row['promedio'],2) ?>,
+    <?php endforeach; ?>
+  ];
+
+  const ctxLinea = document.getElementById('graficoLineaTiempo').getContext('2d');
   new Chart(ctxLinea, {
     type: 'line',
-    data: dataLinea,
+    data: { labels: labelsLinea, datasets: [{ label: 'Promedio de puntuaciones', data: valuesLinea, fill: false, borderColor: getComputedStyle(document.documentElement).getPropertyValue('--pri-500') || '#70001e', backgroundColor: '#f59e0b', tension: 0.24, pointRadius: 4 }] },
     options: {
-      responsive: false,
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-          labels: { font: { size: 15 } }
+        legend: { display: true, position: 'top', labels: { font: { size: 13 } } },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y; }
+          }
         }
       },
       scales: {
-        x: {
-          title: { display: true, text: 'Mes', font: { size: 14 } }
-        },
-        y: {
-          title: { display: true, text: 'Promedio', font: { size: 14 } },
-          beginAtZero: true
-        }
+        x: { title: { display: true, text: 'Mes' }, ticks: { maxRotation: 0, autoSkip: true } },
+        y: { beginAtZero: true }
       }
     }
+  });
+
+  // Apply color chips to nivel-dot elements (read color from data-color)
+  document.querySelectorAll('.nivel-dot').forEach(el => {
+    const c = el.getAttribute('data-color');
+    if (c) el.style.background = c;
   });
 });
 </script>
