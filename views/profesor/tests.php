@@ -254,15 +254,38 @@ async function cargarCursosProfesor() {
         // Aquí deberías hacer un fetch a una API que devuelva los cursos del profesor
         // Por ahora usamos datos de ejemplo
         const base = window.UNIMIND_BASE || '';
-        const baseUrl = window.location.origin && window.location.origin !== 'null' 
-            ? window.location.origin + (base ? base : '') 
-            : (base ? base : '');
-        
-        // Simulación - en producción deberías tener un endpoint para esto
-        cursosDisponibles = [
-            { id_curso: 1, nombre_curso: 'Curso de Ejemplo 1' },
-            { id_curso: 2, nombre_curso: 'Curso de Ejemplo 2' }
+        const baseUrl = window.location.origin && window.location.origin !== 'null'
+            ? window.location.origin + base
+            : base;
+
+        const candidates = [
+            `${baseUrl}/controllers/TestsController.php?action=getCursosProfesor`,
+            `${window.location.origin}/unimind/controllers/TestsController.php?action=getCursosProfesor`,
+            `${window.location.origin}/controllers/TestsController.php?action=getCursosProfesor`,
         ];
+
+        let responseData = null;
+        for (const url of candidates) {
+            try {
+                const resp = await fetch(url, { credentials: 'include' });
+                if (resp && resp.ok) {
+                    const json = await resp.json();
+                    if (json && json.success && Array.isArray(json.data)) {
+                        responseData = json.data;
+                        break;
+                    }
+                }
+            } catch (e) {
+                // intentar siguiente candidato
+            }
+        }
+
+        if (responseData) {
+            cursosDisponibles = responseData;
+        } else {
+            cursosDisponibles = [];
+            console.warn('No se pudieron obtener cursos del servidor; usando lista vacía');
+        }
         
     } catch (error) {
         console.error('Error al cargar cursos:', error);

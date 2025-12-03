@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../models/administrador/TestsModel.php';
+require_once __DIR__ . '/../models/administrador/CursosModel.php';
 
 class TestsController {
     private $model;
@@ -36,6 +37,10 @@ class TestsController {
                 
                 case 'getTipos':
                     $this->getTipos();
+                    break;
+
+                case 'getCursosProfesor':
+                    $this->getCursosProfesor();
                     break;
                 
                 case 'getOpcionesByTipoEscala':
@@ -127,6 +132,26 @@ class TestsController {
 
         $opciones = $this->model->getOpcionesByTipoEscala($tipo_escala);
         $this->sendResponse(true, 'Opciones obtenidas correctamente', $opciones);
+    }
+
+    /**
+     * Obtener cursos asignados al profesor (usando la sesión)
+     */
+    private function getCursosProfesor() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $id_usuario = $_SESSION['id_usuario'] ?? null;
+
+        if (!$id_usuario) {
+            $this->sendResponse(false, 'No hay sesión de usuario');
+            return;
+        }
+
+        $cModel = new CursosModel();
+        $cursos = $cModel->getByProfesor($id_usuario);
+        $this->sendResponse(true, 'Cursos obtenidos correctamente', $cursos);
     }
 
     /**

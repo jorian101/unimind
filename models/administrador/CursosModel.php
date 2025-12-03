@@ -113,6 +113,23 @@ class CursosModel {
             return [];
         }
     }
+
+    /**
+     * Obtener cursos asignados a un profesor por su id
+     * Devuelve array con `id_curso` y `nombre_curso`
+     */
+    public function getByProfesor($id_profesor) {
+        try {
+            $stmt = $this->conn->prepare(
+                'SELECT id_curso, nombre_curso FROM Cursos WHERE id_profesor = :id_profesor ORDER BY nombre_curso'
+            );
+            $stmt->execute([':id_profesor' => $id_profesor]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('CursosModel::getByProfesor error: ' . $e->getMessage());
+            return [];
+        }
+    }
 }
 
 ?>
