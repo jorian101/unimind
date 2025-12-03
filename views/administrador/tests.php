@@ -207,7 +207,6 @@ renderPageHeader();
                     <small class="form-hint">Mínimo 3 caracteres, máximo 100</small>
                 </div>
 
-
                 <!-- Opciones de respuesta -->
                 <div class="form-section" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--bg-500);">
                     <div class="section-header" style="margin-bottom: 1rem;">
