@@ -23,17 +23,16 @@ renderPageHeader();
 <link rel="stylesheet" href="views/profesor/tests.css?v=<?php echo time(); ?>">
 
 <div class="tests-container">
-    <div class="tests-header">
+    <section class="tests-card">
         <h2 class="tests-title">Tests Disponibles</h2>
         <p class="tests-subtitle">Gestiona y sugiere evaluaciones psicológicas a tus cursos</p>
-    </div>
 
-    <div class="tests-list" id="testsGrid">
-        <div class="loading-container">
-            <div class="spinner"></div>
-            <p>Cargando tests...</p>
+        <div class="tests-table-container" id="testsGrid">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i> Cargando tests...
+            </div>
         </div>
-    </div>
+    </section>
 </div>
 
 <!-- Modal para sugerir test -->
@@ -134,7 +133,7 @@ async function cargarTests() {
 }
 
 /**
- * Renderizar la lista de tests
+ * Renderizar la lista de tests como tabla
  */
 function renderTests(tests) {
     const container = document.getElementById('testsGrid');
@@ -149,7 +148,8 @@ function renderTests(tests) {
         return;
     }
     
-    const testsHTML = tests.map(test => {
+    // Construir filas de la tabla
+    const rowsHTML = tests.map(test => {
         // Determinar icono según el tipo de test
         let icon = 'fa-clipboard-list';
         const nombre = test.nombre.toLowerCase();
@@ -168,74 +168,76 @@ function renderTests(tests) {
         const fechaCreacion = test.created_at ? formatearFecha(test.created_at) : 'N/A';
         const fechaActualizacion = test.updated_at ? formatearFecha(test.updated_at) : 'N/A';
         
-        // Construir tags de opciones de la escala
+        // Construir tags de opciones de la escala (versión compacta)
         let opcionesTags = '';
         if (test.opciones && test.opciones.length > 0) {
             opcionesTags = test.opciones.map(opcion => 
-                `<span class="option-tag" title="${escapeHtml(opcion.texto_opcion)}">
-                    ${escapeHtml(opcion.texto_opcion)} (${opcion.valor_puntuacion})
+                `<span class="option-tag-small" title="${escapeHtml(opcion.texto_opcion)}: ${opcion.valor_puntuacion}">
+                    ${escapeHtml(opcion.texto_opcion.substring(0, 15))}${opcion.texto_opcion.length > 15 ? '...' : ''}
                 </span>`
             ).join('');
         } else {
-            opcionesTags = '<span class="option-tag-empty">Sin opciones definidas</span>';
+            opcionesTags = '<span class="option-tag-empty">N/A</span>';
         }
         
         return `
-            <div class="test-card">
-                <div class="test-card-header">
-                    <div class="test-icon">
-                        <i class="fas ${icon}"></i>
+            <tr class="tests-table-row">
+                <td class="tests-table-cell">
+                    <div class="test-name-cell">
+                        <div class="test-icon">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div>
+                            <div class="test-name">${escapeHtml(test.nombre)}</div>
+                            <div class="test-description">${escapeHtml(test.descripcion || '')}</div>
+                        </div>
                     </div>
-                    <div class="test-header-content">
-                        <h3 class="test-name">${escapeHtml(test.nombre)}</h3>
+                </td>
+                <td class="tests-table-cell">
+                    <span class="items-badge">
+                        <i class="fas fa-list-ol"></i>
+                        ${test.num_items}
+                    </span>
+                </td>
+                <td class="tests-table-cell">
+                    <span class="escala-name">${escapeHtml(test.nombre_escala || 'No definida')}</span>
+                </td>
+                <td class="tests-table-cell">
+                    <div class="date-cell">${fechaCreacion}</div>
+                </td>
+                <td class="tests-table-cell">
+                    <div class="opciones-compact">
+                        ${opcionesTags}
                     </div>
-                    <button class="btn-sugerir" onclick="abrirModalSugerir(${test.id_test}, '${escapeHtml(test.nombre)}', '${escapeHtml(test.descripcion || '')}')">
+                </td>
+                <td class="tests-table-cell">
+                    <button class="btn-sugerir" onclick="abrirModalSugerir(${test.id_test}, '${escapeHtml(test.nombre).replace(/'/g, "\\'")}', '${escapeHtml(test.descripcion || '').replace(/'/g, "\\'")}')">
                         <i class="fas fa-paper-plane"></i>
-                        Sugerir
+                        <span>Sugerir</span>
                     </button>
-                </div>
-                
-                <div class="test-card-body">
-                    <p class="test-description">${escapeHtml(test.descripcion || 'Sin descripción disponible')}</p>
-                    
-                    <div class="test-details-grid">
-                        <div class="detail-item">
-                            <i class="fas fa-list-ol"></i>
-                            <span><strong>Items:</strong> ${test.num_items}</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-ruler"></i>
-                            <span><strong>Escala:</strong> ${escapeHtml(test.nombre_escala || 'No definida')}</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-calendar-plus"></i>
-                            <span><strong>Creado:</strong> ${fechaCreacion}</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-calendar-edit"></i>
-                            <span><strong>Actualizado:</strong> ${fechaActualizacion}</span>
-                        </div>
-                    </div>
-                    
-                    ${test.descripcion_escala ? `
-                        <div class="escala-info">
-                            <h4><i class="fas fa-info-circle"></i> Descripción de la Escala</h4>
-                            <p>${escapeHtml(test.descripcion_escala)}</p>
-                        </div>
-                    ` : ''}
-                    
-                    <div class="opciones-section">
-                        <h4><i class="fas fa-tags"></i> Opciones de Respuesta</h4>
-                        <div class="opciones-tags">
-                            ${opcionesTags}
-                        </div>
-                    </div>
-                </div>
-            </div>
+                </td>
+            </tr>
         `;
     }).join('');
     
-    container.innerHTML = testsHTML;
+    // Construir tabla completa
+    container.innerHTML = `
+        <table class="tests-table">
+            <thead class="tests-table-head">
+                <tr class="tests-table-row">
+                    <th class="tests-table-header">Test</th>
+                    <th class="tests-table-header">Items</th>
+                    <th class="tests-table-header">Escala</th>
+                    <th class="tests-table-header">Creado</th>
+                    <th class="tests-table-header">Opciones</th>
+                    <th class="tests-table-header">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rowsHTML}
+            </tbody>
+        </table>
+    `;
 }
 
 /**
