@@ -66,14 +66,14 @@
 .unimind-modal-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
+  gap: 0.875rem;
+  padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--bg-400);
   position: relative;
 }
 
 .unimind-modal-icon {
-  font-size: 2rem;
+  font-size: 1.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,7 +81,7 @@
 }
 
 .unimind-modal-title {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 600;
   margin: 0;
   flex: 1;
@@ -122,9 +122,9 @@
 
 .unimind-modal-body p {
   margin: 0;
-  color: var(--var-700);
+  color: var(--var-800);
   line-height: 1.6;
-  font-size: 0.95rem;
+  font-size: 0.98rem;
 }
 
 .unimind-modal-body p + p {
@@ -284,6 +284,7 @@
 
 .modal-delete .unimind-modal-body {
   background: var(--pri-50);
+  padding: 2rem 1.5rem;
 }
 
 .modal-delete .unimind-modal-btn-confirm {

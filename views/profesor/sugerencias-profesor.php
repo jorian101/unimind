@@ -244,17 +244,12 @@ function configurarFiltros() {
 function abrirModalEliminar(idSugerencia, nombreTest, nombreEstudiante, nombreCurso, esMultiple) {
     sugerenciaAEliminar = idSugerencia;
 
-    const warning = esMultiple
-        ? 'Nota: Otros profesores también sugirieron este test. Solo se eliminará tu sugerencia.'
-        : 'Esta acción no se puede deshacer.';
+    const mensaje = esMultiple
+        ? `Se eliminará tu sugerencia del test <strong>${escapeHtml(nombreTest)}</strong> para <strong>${escapeHtml(nombreEstudiante)}</strong>. Otros profesores también sugirieron este test.`
+        : `Se eliminará la sugerencia del test <strong>${escapeHtml(nombreTest)}</strong> para <strong>${escapeHtml(nombreEstudiante)}</strong>.`;
 
     const htmlContent = `
-        <div style="padding:0.2rem 0">
-            <p><strong>Test:</strong> ${escapeHtml(nombreTest)}</p>
-            <p><strong>Estudiante:</strong> ${escapeHtml(nombreEstudiante)}</p>
-            <p><strong>Curso:</strong> ${escapeHtml(nombreCurso)}</p>
-            <p style="margin-top:0.5rem; ${esMultiple ? 'color:var(--warning-600);' : ''}">${warning}</p>
-        </div>
+        <p style="font-size: 1rem; line-height: 1.6;">${mensaje}</p>
     `;
 
     // Usar el modal reutilizable
