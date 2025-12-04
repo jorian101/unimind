@@ -43,6 +43,9 @@ $cargos = ['Estudiante','Docente','Administrador'];
       <i class="fas fa-plus"></i> Nuevo Usuario
     </button>
   </div>
+  <div style="display:inline-block; margin-left:12px; vertical-align: middle;">
+    <button class="btn-secondary" id="btnMostrarTodos" title="Mostrar todos los usuarios">Mostrar Todos</button>
+  </div>
 
   <!-- Filtros y búsqueda -->
   <div class="filters-section">
@@ -69,6 +72,7 @@ $cargos = ['Estudiante','Docente','Administrador'];
       <table class="usuarios-table">
         <thead>
           <tr>
+            <th>#</th>
             <th>Nombre</th>
             <th>Apellido</th>
             <th>Código</th>
@@ -163,16 +167,17 @@ function renderUsuariosTable(usuarios) {
   if (!usuarios || usuarios.length === 0) {
     const tr = document.createElement('tr');
     const td = document.createElement('td');
-    td.colSpan = 6;
+    td.colSpan = 7;
     td.textContent = 'No se encontraron usuarios.';
     td.style.textAlign = 'center';
     tr.appendChild(td);
     tbody.appendChild(tr);
     return;
   }
-  usuarios.forEach(u => {
+  usuarios.forEach((u, idx) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
+      <td>${idx + 1}</td>
       <td>${u.nombre}</td>
       <td>${u.apellido}</td>
       <td>${u.codigo_usuario}</td>
@@ -284,9 +289,17 @@ document.getElementById('formNuevoUsuario') && document.getElementById('formNuev
     .catch(err => { console.error(err); alert('Error al crear usuario'); });
 });
 
+// Mostrar todos - limpia filtros y carga todos los usuarios
+document.getElementById('btnMostrarTodos') && document.getElementById('btnMostrarTodos').addEventListener('click', function() {
+  if (busquedaInput) busquedaInput.value = '';
+  if (cargoInput) cargoInput.value = '';
+  // hide autocomplete
+  if (autocompleteList) autocompleteList.style.display = 'none';
+  buscarUsuariosAjax();
+});
 // --- New: load escuelas and cursos and show selects when cargo requires them ---
 let escuelasCache = null;
-let cursosCache = null;
+let cursosCache = {}; // cache courses per escuela_id: { '<id>': [courses] }
 
 function populateSelect(selectEl, items, valueKey = 'id', labelKey = 'nombre') {
   if (!selectEl) return;
@@ -307,7 +320,7 @@ function ensureEscuelasYCursosLoaded() {
   // Show/hide fields based on cargo
   function toggleFields() {
     const val = cargoEl.value;
-    const needExtra = (val === 'Docente' || val === 'Administrador');
+    const needExtra = (val === 'Estudiante' || val === 'Docente');
     document.querySelectorAll('.escuela-field, .curso-field').forEach(el => {
       if (needExtra) el.classList.remove('hidden'); else el.classList.add('hidden');
     });
@@ -317,25 +330,75 @@ function ensureEscuelasYCursosLoaded() {
   if (!escuelasCache) {
     fetch('api/escuelas.php')
       .then(r => r.json())
-      .then(data => { escuelasCache = Array.isArray(data) ? data : []; populateSelect(escuelaEl, escuelasCache, 'id_escuela', 'nombre_escuela'); })
+      .then(data => {
+        escuelasCache = Array.isArray(data) ? data : [];
+        populateSelect(escuelaEl, escuelasCache, 'id_escuela', 'nombre_escuela');
+        // si hay escuelas, seleccionar la primera por defecto
+        if (escuelasCache.length > 0 && escuelaEl && !escuelaEl.value) {
+          escuelaEl.value = escuelasCache[0].id_escuela;
+        }
+        // Después de poblar el select, disparar el change para precargar cursos
+        try {
+          const ev = new Event('change');
+          escuelaEl && escuelaEl.dispatchEvent(ev);
+        } catch (e) { /* silencioso */ }
+      })
       .catch(() => { escuelasCache = []; });
   } else {
     populateSelect(escuelaEl, escuelasCache, 'id_escuela', 'nombre_escuela');
+    if (escuelasCache.length > 0 && escuelaEl && !escuelaEl.value) {
+      escuelaEl.value = escuelasCache[0].id_escuela;
+    }
+    // Si ya teníamos cache, también disparar el change para precargar cursos
+    try {
+      const ev = new Event('change');
+      escuelaEl && escuelaEl.dispatchEvent(ev);
+    } catch (e) { /* silencioso */ }
   }
 
-  // Load cursos if needed
-  if (!cursosCache) {
-    fetch('api/cursos.php')
+  // Helper to load cursos for a given escuela id and populate the curso select
+  function loadCursosForEscuela(id) {
+    if (!cursoEl) return;
+    if (!id) {
+      populateSelect(cursoEl, [], 'id_curso', 'nombre');
+      return;
+    }
+    if (cursosCache[id]) {
+      populateSelect(cursoEl, cursosCache[id], 'id_curso', 'nombre');
+      return;
+    }
+    fetch(`api/cursos.php?escuela_id=${encodeURIComponent(id)}`)
       .then(r => r.json())
-      .then(data => { cursosCache = Array.isArray(data) ? data : []; populateSelect(cursoEl, cursosCache, 'id_curso', 'nombre'); })
-      .catch(() => { cursosCache = []; });
-  } else {
-    populateSelect(cursoEl, cursosCache, 'id_curso', 'nombre');
+      .then(data => {
+        const list = Array.isArray(data) ? data : [];
+        cursosCache[id] = list;
+        populateSelect(cursoEl, list, 'id_curso', 'nombre');
+      })
+      .catch(() => { populateSelect(cursoEl, [], 'id_curso', 'nombre'); });
   }
 
-  // Set initial visibility and attach change handler
+  // Attach listeners (safe to call multiple times)
+  if (!window._usuarios_listeners_attached) {
+    if (escuelaEl) {
+      escuelaEl.addEventListener('change', function() { loadCursosForEscuela(this.value); });
+    }
+    if (cargoEl) {
+      cargoEl.addEventListener('change', toggleFields);
+    }
+    // mark globally to avoid duplicate listeners across re-invocations
+    window._usuarios_listeners_attached = true;
+  }
+
+  // Immediately load courses for the selected (or first) escuela
+  setTimeout(() => {
+    if (escuelaEl) {
+      const sel = escuelaEl.value || (escuelasCache && escuelasCache.length ? escuelasCache[0].id_escuela : '');
+      if (sel) loadCursosForEscuela(sel);
+    }
+  }, 120);
+
+  // Set initial visibility
   toggleFields();
-  cargoEl.addEventListener('change', toggleFields);
 }
 
 // Cargar inicialmente

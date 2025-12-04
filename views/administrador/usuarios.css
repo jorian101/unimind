@@ -307,3 +307,10 @@
 /* Autocomplete: dejar espacio para que se muestre sin superposición */
 .autocomplete-list { top: 46px; }
 
+/* Modal create button larger for prominence */
+.modal-content .btn-primary.full-width {
+    padding: 14px 18px;
+    font-size: 1.05rem;
+    border-radius: 10px;
+}
+

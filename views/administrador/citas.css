@@ -1,7 +1,6 @@
 /* CSS específico para views/administrador/citas.php */
 @import url("../../public/css/theme.css");
 
-.Base layout similar to tests */
 /* Use a subtle page background so the white cards stand out */
 body { background-color: var(--bg-300); font-family: var(--font); }
 .admin-citas-container {
