@@ -12,6 +12,7 @@ include 'sidebar.php';
 <link rel="stylesheet" href="views/header.css?v=<?php echo asset_version('views/header.css'); ?>">
 <link rel="stylesheet" href="views/pageHeader.css?v=<?php echo asset_version('views/pageHeader.css'); ?>">
 <link rel="stylesheet" href="views/estudiante/inicio.css?v=<?php echo asset_version('views/estudiante/inicio.css'); ?>">
+<link rel="stylesheet" href="public/css/modal.css?v=<?php echo asset_version('public/css/modal.css'); ?>">
 
 <?php if(($_GET['page'] ?? '') === 'dashboard'): ?>
 <link rel="stylesheet" href="views/estudiante/dashboard.css?v=<?php echo asset_version('views/estudiante/dashboard.css'); ?>">
@@ -58,6 +59,7 @@ window.UNIMIND_BASE = '<?php echo $base; ?>';
 })();
 </script>
 
+<script src="public/js/modal.js?v=<?php echo asset_version('public/js/modal.js'); ?>"></script>
 <script src="public/js/main-simple.js?v=<?php echo asset_version('public/js/main-simple.js'); ?>"></script>
 <script src="public/js/idb-wrapper.js?v=<?php echo asset_version('public/js/idb-wrapper.js'); ?>"></script>
 <script src="public/js/pwa-sync.js?v=<?php echo asset_version('public/js/pwa-sync.js'); ?>"></script>
