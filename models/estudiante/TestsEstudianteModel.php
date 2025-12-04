@@ -132,38 +132,30 @@ class TestsEstudianteModel {
     public function getOpcionesByTestId($id_test) {
         try {
             // Obtener el tipo de escala del test
-            $stmt = $this->conn->prepare("SELECT tipo_escala FROM Tests WHERE id_test = :id_test");
+            $stmt = $this->conn->prepare("SELECT id_tipo_escala FROM Tests WHERE id_test = :id_test");
             $stmt->bindParam(':id_test', $id_test, PDO::PARAM_INT);
             $stmt->execute();
             $result = $stmt->fetch();
             
-            if (!$result || !$result['tipo_escala']) {
-                // Si no tiene tipo de escala, retornar todas las opciones
+            if (!$result || empty($result['id_tipo_escala'])) {
+                // Si no tiene tipo de escala, retornar todas las opciones generales
                 return $this->getOpcionesRespuesta();
             }
-            
-            $tipo_escala = $result['tipo_escala'];
-            
-            // Obtener los IDs de opciones para este tipo de escala
-            $stmt = $this->conn->prepare("SELECT opciones_ids FROM Tipos_Escalas WHERE id_tipo_escala = :tipo_escala");
-            $stmt->bindParam(':tipo_escala', $tipo_escala, PDO::PARAM_INT);
-            $stmt->execute();
-            $escalasResult = $stmt->fetch();
-            
-            if (!$escalasResult || !$escalasResult['opciones_ids']) {
-                return [];
-            }
-            
-            $opciones_ids = $escalasResult['opciones_ids'];
-            
-            // Obtener las opciones correspondientes
-            $query = "SELECT id_opcion, texto_opcion, valor_puntuacion 
-                      FROM Opciones_Respuesta 
-                      WHERE id_opcion IN ({$opciones_ids}) 
-                      ORDER BY valor_puntuacion ASC";
+
+            $id_tipo_escala = (int)$result['id_tipo_escala'];
+
+            // Obtener las opciones vinculadas a este tipo de escala usando la tabla intermedia
+            $query = "SELECT o.id_opcion, o.texto_opcion, o.valor_puntuacion
+                      FROM TiposEscala_Opciones te
+                      JOIN Opciones_Respuesta o ON te.id_opcion = o.id_opcion
+                      WHERE te.id_tipo_escala = :id_tipo_escala
+                      ORDER BY o.valor_puntuacion ASC";
             $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':id_tipo_escala', $id_tipo_escala, PDO::PARAM_INT);
             $stmt->execute();
-            return $stmt->fetchAll();
+            $opciones = $stmt->fetchAll();
+            $stmt->closeCursor();
+            return $opciones;
         } catch (PDOException $e) {
             error_log("Error en getOpcionesByTestId: " . $e->getMessage());
             return [];
