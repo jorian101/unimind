@@ -362,10 +362,17 @@ async function confirmarSugerencia() {
         const result = await response.json();
         
         if (result.success) {
-            alert('✅ Test sugerido correctamente a los estudiantes del curso');
+            const estudiantesAfectados = result.data?.estudiantes_afectados || 0;
+            mostrarNotificacion(
+                `✅ Test sugerido correctamente a ${estudiantesAfectados} estudiante(s) del curso`,
+                'success'
+            );
             cerrarModalSugerir();
         } else {
-            alert('❌ Error: ' + (result.message || 'No se pudo sugerir el test'));
+            mostrarNotificacion(
+                '❌ Error: ' + (result.message || 'No se pudo sugerir el test'),
+                'error'
+            );
         }
     } catch (error) {
         console.error('Error al sugerir test:', error);
@@ -414,5 +421,26 @@ function formatearFecha(fecha) {
     const mes = String(date.getMonth() + 1).padStart(2, '0');
     const anio = date.getFullYear();
     return `${dia}/${mes}/${anio}`;
+}
+
+/**
+ * Mostrar notificación temporal
+ */
+function mostrarNotificacion(mensaje, tipo = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${tipo}`;
+    notification.innerHTML = `
+        <i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        <span>${mensaje}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.classList.add('show'), 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
 }
 </script>

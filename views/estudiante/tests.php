@@ -7,7 +7,7 @@ require_once dirname(__DIR__) . '/pageHeader.php';
 require_once __DIR__ . '/../../models/estudiante/TestsEstudianteModel.php';
 $model = new TestsEstudianteModel();
 $userId = $_SESSION['id_usuario'] ?? null;
-$tests = $model->getTestsDisponibles($userId);
+$tests = $model->getTestsSugeridos($userId);
 
 // El breadcrumb se detecta automáticamente desde routes-config.php
 renderPageHeader();
@@ -28,52 +28,20 @@ renderPageHeader();
         <div class="modal-icon-success">
             <i class="fas fa-check-circle"></i>
         </div>
-        <!-- Aquí va el contenido del modal, el resto de la lista de tests va fuera del modal -->
-    </div>
-</div>
-
-<?php foreach ($tests as $test): 
-    $tiempoEstimado = ceil($test['num_items'] / 2); // ~2 preguntas por minuto
-    $icon = 'fa-clipboard-list'; // icono por defecto
-    // Asignar iconos según el tipo de test
-    if (stripos($test['nombre'], 'estrés') !== false || stripos($test['nombre'], 'estres') !== false) {
-        $icon = 'fa-chart-bar';
-    } elseif (stripos($test['nombre'], 'ansiedad') !== false) {
-        $icon = 'fa-brain';
-    } elseif (stripos($test['nombre'], 'depresión') !== false || stripos($test['nombre'], 'depresion') !== false) {
-        $icon = 'fa-heart-broken';
-    } elseif (stripos($test['nombre'], 'burnout') !== false) {
-        $icon = 'fa-fire';
-    }
-?>
-    <div class="test-item">
-        <div class="test-header">
-            <h3><i class="fas <?php echo $icon; ?>"></i> <?php echo htmlspecialchars($test['nombre']); ?></h3>
-            <?php if (!empty($test['id_aplicacion'])): ?>
-                <span class="status suggested">Sugerido por profesor</span>
-            <?php else: ?>
-                <span class="status pending">Disponible</span>
-            <?php endif; ?>
-        </div>
-        <div class="test-description">
-            <p><?php echo htmlspecialchars($test['descripcion'] ?: 'Test de evaluación psicológica'); ?></p>
-            <div class="test-details">
-                <span class="detail"><i class="fas fa-list"></i> <?php echo $test['num_items']; ?> ítems</span>
-                <span class="detail"><i class="fas fa-clock"></i> ~<?php echo $tiempoEstimado; ?> min</span>
+        <h2>¡Test Completado!</h2>
+        <div class="modal-body-success">
+            <p>Has completado el test exitosamente.</p>
+            <div class="result-details" id="resultDetails">
+                <!-- Los resultados se insertarán aquí dinámicamente -->
             </div>
         </div>
-        <div class="test-actions">
-            <button class="btn-primary iniciar-test"
-                data-id="<?php echo $test['id_test']; ?>"
-                data-aplicacion="<?php echo isset($test['id_aplicacion']) ? $test['id_aplicacion'] : ''; ?>"
-                data-name="<?php echo htmlspecialchars($test['nombre']); ?>"
-                data-questions="<?php echo $test['num_items']; ?>">
-                <?php echo !empty($test['id_aplicacion']) ? 'Iniciar (Sugerido)' : 'Iniciar Test'; ?>
+        <div class="modal-actions-success">
+            <button class="btn-primary" onclick="cerrarModalYVerHistorial()">
+                <i class="fas fa-history"></i> Ver Historial
             </button>
-        </div>
-    </div>
-<?php endforeach; ?>
-            </div>
+            <button class="btn-secondary" onclick="cerrarModal()">
+                <i class="fas fa-times"></i> Cerrar
+            </button>
         </div>
     </div>
 </div>
@@ -97,7 +65,7 @@ async function cargarTestsDisponibles() {
             : base;
             
         const response = await fetch(
-            `${baseUrl}/controllers/AplicacionesController.php?action=getTestsDisponibles`,
+            `${baseUrl}/controllers/AplicacionesController.php?action=getTestsSugeridos`,
             {
                 method: 'GET',
                 headers: {
@@ -175,10 +143,10 @@ function renderTests(tests) {
             statusClass = 'suggested';
         }
         
-        const buttonText = completado ? 'Ver Historial' : 'Iniciar Test';
+        const buttonText = completado ? 'Ver Historial' : (esSugerido ? 'Realizar Test Sugerido' : 'Iniciar Test');
         const buttonIcon = completado ? 'fa-history' : 'fa-play';
         
-        // Información adicional de sugerencia (sin mensaje personalizado)
+        // Información adicional de sugerencia
         let infoSugerencia = '';
         if (esSugerido && !completado) {
             infoSugerencia = `
@@ -213,7 +181,9 @@ function renderTests(tests) {
                         data-id="${test.id_test}"
                         data-name="${escapeHtml(test.nombre)}"
                         data-questions="${test.num_items}"
-                        data-completado="${completado}">
+                        data-completado="${completado}"
+                        data-sugerencia="${test.id_sugerencia || ''}"
+                        data-es-sugerido="${esSugerido}">
                         <i class="fas ${buttonIcon}"></i> ${buttonText}
                     </button>
                 </div>
@@ -229,19 +199,23 @@ function renderTests(tests) {
             const testId = button.dataset.id;
             const testName = encodeURIComponent(button.dataset.name);
             const questions = button.dataset.questions;
-            const aplicacion = button.dataset.aplicacion || '';
-
-            // Redirige al formulario con los parámetros del test seleccionado
-            let url = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
-            if (aplicacion) url += `&id_aplicacion=${aplicacion}`;
-            window.location.href = url;
             const completado = button.dataset.completado === 'true';
+            const sugerencia = button.dataset.sugerencia || '';
+            const esSugerido = button.dataset.esSugerido === 'true';
             
             // Si ya está completado, ir al historial; si no, iniciar test
             if (completado) {
                 window.location.href = `?role=estudiante&page=historial`;
             } else {
-                window.location.href = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
+                // Redirige al formulario con los parámetros del test seleccionado
+                let url = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
+                if (sugerencia) {
+                    url += `&id_sugerencia=${sugerencia}`;
+                }
+                if (esSugerido) {
+                    url += `&es_sugerido=1`;
+                }
+                window.location.href = url;
             }
         });
     });

@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_name'] = $usuario['nombre'] . ' ' . $usuario['apellido'];
             $_SESSION['user_role'] = strtolower($usuario['cargo']);
             $_SESSION['id_rol'] = strtolower($usuario['cargo']);
+            $_SESSION['cargo'] = $usuario['cargo'];
 
             $role = strtolower($usuario['cargo']);
             if ($role === 'estudiante') {

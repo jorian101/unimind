@@ -100,10 +100,11 @@ CREATE PROCEDURE `sp_finalizar_aplicacion_y_calcular_puntuacion`(
 BEGIN
     DECLARE v_puntuacion_total INT;
     DECLARE v_id_test INT;
+    DECLARE v_id_usuario INT;
     DECLARE v_resultado_nivel VARCHAR(50);
 
-    -- Obtener el ID del Test
-    SELECT `id_test` INTO v_id_test
+    -- Obtener el ID del Test y el ID del Usuario
+    SELECT `id_test`, `id_usuario` INTO v_id_test, v_id_usuario
     FROM `Aplicaciones`
     WHERE `id_aplicacion` = p_id_aplicacion;
 
@@ -143,7 +144,19 @@ BEGIN
         `resultado_nivel` = v_resultado_nivel
     WHERE `id_aplicacion` = p_id_aplicacion;
 
-    SELECT 'Cálculo finalizado y aplicación actualizada.' AS Mensaje, v_puntuacion_total AS Puntuacion_Final, v_resultado_nivel AS Nivel_Resultado;
+    -- Marcar la sugerencia como completada si existe
+    UPDATE `Sugerencias`
+    SET 
+        `estado` = 'completado',
+        `fecha_completado` = NOW()
+    WHERE `id_estudiante` = v_id_usuario
+        AND `id_test` = v_id_test
+        AND `estado` = 'pendiente';
+
+    SELECT 
+        'Cálculo finalizado y aplicación actualizada.' AS Mensaje, 
+        v_puntuacion_total AS Puntuacion_Final, 
+        v_resultado_nivel AS Nivel_Resultado;
 END //
 
 -- =============================================
@@ -473,76 +486,38 @@ CREATE PROCEDURE sp_sugerir_test(
     IN p_id_profesor INT
 )
 BEGIN
-    DECLARE done INT DEFAULT FALSE;
-    DECLARE v_id_estudiante INT;
     DECLARE v_estudiantes_afectados INT DEFAULT 0;
     DECLARE v_estudiantes_reusados INT DEFAULT 0;
-    DECLARE v_fecha_sugerencia_anterior DATETIME;
-    DECLARE v_meses_transcurridos INT;
-    DECLARE cur CURSOR FOR 
-        SELECT id_usuario 
-        FROM Usuario_Curso 
-        WHERE id_curso = p_id_curso;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-    OPEN cur;
+    -- Insertar o actualizar sugerencias para todos los estudiantes del curso
+    -- Utiliza INSERT ... ON DUPLICATE KEY UPDATE para manejar sugerencias nuevas y existentes
+    INSERT INTO Sugerencias (id_estudiante, id_test, profesores_ids, cursos_ids, fecha_sugerencia, fecha_ultima_sugerencia, estado)
+    SELECT 
+        uc.id_usuario,
+        p_id_test,
+        JSON_ARRAY(p_id_profesor),
+        JSON_ARRAY(p_id_curso),
+        NOW(),
+        NOW(),
+        'pendiente'
+    FROM Usuario_Curso uc
+    WHERE uc.id_curso = p_id_curso
+    ON DUPLICATE KEY UPDATE
+        profesores_ids = JSON_MERGE_PRESERVE(profesores_ids, JSON_ARRAY(p_id_profesor)),
+        cursos_ids = JSON_MERGE_PRESERVE(cursos_ids, JSON_ARRAY(p_id_curso)),
+        fecha_ultima_sugerencia = NOW(),
+        estado = 'pendiente';
     
-    read_loop: LOOP
-        FETCH cur INTO v_id_estudiante;
-        IF done THEN
-            LEAVE read_loop;
-        END IF;
-        
-        -- Verificar si ya existe una sugerencia para este estudiante y test
-        SET v_fecha_sugerencia_anterior = NULL;
-        SELECT fecha_sugerencia INTO v_fecha_sugerencia_anterior
-        FROM Sugerencias
-        WHERE id_estudiante = v_id_estudiante AND id_test = p_id_test
-        LIMIT 1;
-        
-        IF v_fecha_sugerencia_anterior IS NOT NULL THEN
-            -- Calcular meses transcurridos desde la primera sugerencia
-            SET v_meses_transcurridos = TIMESTAMPDIFF(MONTH, v_fecha_sugerencia_anterior, NOW());
-            
-            IF v_meses_transcurridos < 2 THEN
-                -- Dentro del intervalo de 2 meses: REUTILIZAR sugerencia existente
-                -- Agregar el nuevo profesor y curso a los arrays JSON
-                UPDATE Sugerencias
-                SET profesores_ids = JSON_MERGE_PRESERVE(profesores_ids, JSON_ARRAY(p_id_profesor)),
-                    cursos_ids = JSON_MERGE_PRESERVE(cursos_ids, JSON_ARRAY(p_id_curso)),
-                    fecha_ultima_sugerencia = NOW(),
-                    estado = 'pendiente'
-                WHERE id_estudiante = v_id_estudiante AND id_test = p_id_test;
-                
-                SET v_estudiantes_reusados = v_estudiantes_reusados + 1;
-            ELSE
-                -- Pasaron 2+ meses: RENOVAR sugerencia (reiniciar ciclo)
-                -- Eliminar la sugerencia antigua y crear una nueva
-                DELETE FROM Sugerencias 
-                WHERE id_estudiante = v_id_estudiante AND id_test = p_id_test;
-                
-                INSERT INTO Sugerencias (id_estudiante, id_test, profesores_ids, cursos_ids, fecha_sugerencia, estado)
-                VALUES (v_id_estudiante, p_id_test, JSON_ARRAY(p_id_profesor), JSON_ARRAY(p_id_curso), NOW(), 'pendiente');
-                
-                SET v_estudiantes_afectados = v_estudiantes_afectados + 1;
-            END IF;
-        ELSE
-            -- No existe sugerencia previa: CREAR NUEVA
-            INSERT INTO Sugerencias (id_estudiante, id_test, profesores_ids, cursos_ids, fecha_sugerencia, estado)
-            VALUES (v_id_estudiante, p_id_test, JSON_ARRAY(p_id_profesor), JSON_ARRAY(p_id_curso), NOW(), 'pendiente');
-            
-            SET v_estudiantes_afectados = v_estudiantes_afectados + 1;
-        END IF;
-        
-    END LOOP;
-    
-    CLOSE cur;
+    -- Contar estudiantes afectados
+    SELECT COUNT(*) INTO v_estudiantes_afectados
+    FROM Usuario_Curso
+    WHERE id_curso = p_id_curso;
     
     SELECT 
         'Test sugerido correctamente' AS Mensaje, 
-        (v_estudiantes_afectados + v_estudiantes_reusados) AS estudiantes_afectados,
+        v_estudiantes_afectados AS estudiantes_afectados,
         v_estudiantes_afectados AS estudiantes_nuevos,
-        v_estudiantes_reusados AS estudiantes_reusados;
+        0 AS estudiantes_reusados;
 END //
 
 -- Obtener tests sugeridos para un estudiante

@@ -12,14 +12,22 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
+if (!isset($_SESSION['id_usuario']) || !isset($_SESSION['user_role'])) {
     http_response_code(401);
     $response['message'] = 'No autenticado';
     echo json_encode($response);
     exit;
 }
 
-$profesorId = (int) $_SESSION['user_id'];
+// Verificar que sea profesor
+if ($_SESSION['user_role'] !== 'docente') {
+    http_response_code(403);
+    $response['message'] = 'Solo los profesores pueden sugerir tests';
+    echo json_encode($response);
+    exit;
+}
+
+$profesorId = (int) $_SESSION['id_usuario'];
 
 $payload = json_decode(file_get_contents('php://input'), true);
 $id_test = isset($payload['id_test']) ? (int)$payload['id_test'] : 0;

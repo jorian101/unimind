@@ -22,6 +22,9 @@ class AplicacionesController {
                 case 'getTestsDisponibles':
                     $this->getTestsDisponibles();
                     break;
+                case 'getTestsSugeridos':
+                    $this->getTestsSugeridos();
+                    break;
                 
                 case 'getTestData':
                     $this->getTestData();
@@ -59,14 +62,56 @@ class AplicacionesController {
      * Obtener todos los tests disponibles
      */
     private function getTestsDisponibles() {
-    $id_usuario = $_SESSION['id_usuario'] ?? null;
-    $tests = $this->model->getTestsDisponibles($id_usuario);
-    // Si quieres marcar completados, descomenta y ajusta:
-    // $completados = $this->model->getTestsCompletadosPorUsuario($id_usuario);
-    // foreach ($tests as &$test) {
-    //     $test['completado'] = in_array($test['id_test'], $completados);
-    // }
-    $this->sendResponse(true, 'Tests obtenidos correctamente', $tests);
+        if (!isset($_SESSION['id_usuario'])) {
+            $this->sendResponse(false, 'Usuario no autenticado');
+            return;
+        }
+        
+        $id_usuario = $_SESSION['id_usuario'];
+        $tests = $this->model->getTestsDisponibles($id_usuario);
+        
+        // Los tests ya vienen con las banderas es_sugerido y completado desde el SP
+        // Asegurar que las banderas estén como booleanos para el frontend
+        foreach ($tests as &$test) {
+            $test['es_sugerido'] = (bool)($test['es_sugerido'] ?? false);
+            $test['completado'] = (bool)($test['completado'] ?? false);
+            
+            // Convertir campos numéricos
+            $test['id_test'] = (int)$test['id_test'];
+            $test['num_items'] = (int)$test['num_items'];
+            
+            // Si tiene sugerencia, incluir información adicional
+            if ($test['es_sugerido']) {
+                $test['id_sugerencia'] = isset($test['id_sugerencia']) ? (int)$test['id_sugerencia'] : null;
+            }
+        }
+        
+        $this->sendResponse(true, 'Tests obtenidos correctamente', $tests);
+    }
+
+    /**
+     * Obtener solo los tests sugeridos por los profesores para el estudiante
+     */
+    private function getTestsSugeridos() {
+        if (!isset($_SESSION['id_usuario'])) {
+            $this->sendResponse(false, 'Usuario no autenticado');
+            return;
+        }
+
+        $id_usuario = $_SESSION['id_usuario'];
+        $tests = $this->model->getTestsSugeridos($id_usuario);
+
+        foreach ($tests as &$test) {
+            $test['es_sugerido'] = true; // vienen como sugeridos
+            $test['completado'] = (bool)($test['completado'] ?? false);
+            $test['id_test'] = isset($test['id_test']) ? (int)$test['id_test'] : null;
+            $test['num_items'] = isset($test['num_items']) ? (int)$test['num_items'] : 0;
+            if ($test['es_sugerido']) {
+                $test['id_sugerencia'] = isset($test['id_sugerencia']) ? (int)$test['id_sugerencia'] : null;
+            }
+        }
+
+        $this->sendResponse(true, 'Tests sugeridos obtenidos correctamente', $tests);
     }
 
     /**
