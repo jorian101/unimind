@@ -127,9 +127,7 @@ function renderTests(tests) {
         
         // Determinar si está completado
         const completado = test.completado === true || test.completado === 1;
-        const esSugerido = test.es_sugerido === true || test.es_sugerido === 1;
         const completadoClass = completado ? 'test-completado' : '';
-        const sugeridoClass = esSugerido ? 'test-sugerido' : '';
         
         // Definir el estado del test
         let statusText = 'Disponible';
@@ -138,31 +136,16 @@ function renderTests(tests) {
         if (completado) {
             statusText = 'Completado';
             statusClass = 'completed';
-        } else if (esSugerido) {
-            statusText = 'Sugerido por profesor';
-            statusClass = 'suggested';
         }
-        
-        const buttonText = completado ? 'Ver Historial' : (esSugerido ? 'Realizar Test Sugerido' : 'Iniciar Test');
+
+        const buttonText = completado ? 'Ver Historial' : 'Iniciar Test';
         const buttonIcon = completado ? 'fa-history' : 'fa-play';
         
-        // Información adicional de sugerencia
+        // Ya no mostramos información de sugerencia (Sugerido por profesor)
         let infoSugerencia = '';
-        if (esSugerido && !completado) {
-            infoSugerencia = `
-                <div class="suggestion-info">
-                    <div class="suggestion-header">
-                        <i class="fas fa-user-tie"></i>
-                        <strong>Sugerido por: ${escapeHtml(test.nombre_profesor || 'Profesor')}</strong>
-                    </div>
-                    ${test.nombre_curso ? `<div class="suggestion-course"><i class="fas fa-book"></i> ${escapeHtml(test.nombre_curso)}</div>` : ''}
-                    ${test.fecha_sugerencia ? `<div class="suggestion-date"><i class="fas fa-calendar-alt"></i> ${formatearFecha(test.fecha_sugerencia)}</div>` : ''}
-                </div>
-            `;
-        }
         
         return `
-            <div class="test-item ${completadoClass} ${sugeridoClass}">
+            <div class="test-item ${completadoClass}">
                 <div class="test-header">
                     <h3><i class="fas ${icon}"></i> ${escapeHtml(test.nombre)}</h3>
                     <span class="status ${statusClass}">${statusText}</span>
@@ -182,8 +165,7 @@ function renderTests(tests) {
                         data-name="${escapeHtml(test.nombre)}"
                         data-questions="${test.num_items}"
                         data-completado="${completado}"
-                        data-sugerencia="${test.id_sugerencia || ''}"
-                        data-es-sugerido="${esSugerido}">
+                        data-sugerencia="${test.id_sugerencia || ''}">
                         <i class="fas ${buttonIcon}"></i> ${buttonText}
                     </button>
                 </div>
@@ -201,7 +183,6 @@ function renderTests(tests) {
             const questions = button.dataset.questions;
             const completado = button.dataset.completado === 'true';
             const sugerencia = button.dataset.sugerencia || '';
-            const esSugerido = button.dataset.esSugerido === 'true';
             
             // Si ya está completado, ir al historial; si no, iniciar test
             if (completado) {
@@ -211,9 +192,6 @@ function renderTests(tests) {
                 let url = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
                 if (sugerencia) {
                     url += `&id_sugerencia=${sugerencia}`;
-                }
-                if (esSugerido) {
-                    url += `&es_sugerido=1`;
                 }
                 window.location.href = url;
             }
