@@ -1,3 +1,88 @@
+// ============================================================================
+// SERVICE WORKER AUTO-UPDATE SYSTEM
+// ============================================================================
+// Sistema que detecta y aplica automáticamente nuevas versiones del SW
+// sin necesidad de usar "Clear Site Data"
+// Mantiene intacta la sesión (cookies, localStorage, IndexedDB)
+
+/* eslint-disable no-console */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      // Registrar el Service Worker
+      const registration = await navigator.serviceWorker.register("/sw.js");
+
+      console.log("[SW] Service Worker registrado exitosamente");
+
+      // Forzar comprobación de actualización inmediatamente
+      try {
+        await registration.update();
+      } catch {
+        // Ignorar errores de update (puede fallar si no hay conexión)
+      }
+
+      // Si hay un SW esperando, activarlo inmediatamente
+      if (registration.waiting) {
+        console.log("[SW] Hay una nueva versión esperando, activando...");
+        registration.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
+
+      // Detectar cuando se instala una nueva versión
+      registration.addEventListener("updatefound", () => {
+        const newWorker = registration.installing;
+        if (!newWorker) return;
+
+        console.log("[SW] Nueva versión detectada, instalando...");
+
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed") {
+            // Si hay un controller, es una actualización (no primera instalación)
+            if (navigator.serviceWorker.controller) {
+              console.log(
+                "[SW] Nueva versión instalada, activando automáticamente...",
+              );
+              // Forzar activación inmediata del nuevo SW
+              newWorker.postMessage({ type: "SKIP_WAITING" });
+            } else {
+              console.log("[SW] Primera instalación completada");
+            }
+          }
+        });
+      });
+
+      // Escuchar mensajes del Service Worker
+      navigator.serviceWorker.addEventListener("message", (event) => {
+        const data = event.data || {};
+
+        if (data.type === "NEW_VERSION") {
+          console.log("[SW] Nueva versión activa:", data.version);
+          // Aquí podrías mostrar un toast/notificación al usuario si lo deseas
+          // Por ejemplo: mostrarNotificacion('Nueva versión disponible');
+        }
+      });
+
+      // Auto-reload cuando el SW nuevo tome control
+      // Esto asegura que la página use los nuevos assets sin borrar datos
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshing) return;
+        refreshing = true;
+        console.log(
+          "[SW] Nuevo Service Worker en control, recargando página...",
+        );
+        window.location.reload();
+      });
+    } catch (error) {
+      console.error("[SW] Error en registro de Service Worker:", error);
+    }
+  });
+}
+/* eslint-enable no-console */
+
+// ============================================================================
+// INICIO DEL CÓDIGO ORIGINAL
+// ============================================================================
+
 document.addEventListener("DOMContentLoaded", function () {
   // Get elements and initial state
   const sidebar = document.getElementById("sidebar");

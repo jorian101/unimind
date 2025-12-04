@@ -69,16 +69,35 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((names) =>
-        Promise.all(
-          names
-            .filter((n) => n !== CACHE_NAME && n !== RUNTIME_CACHE)
-            .map((n) => caches.delete(n)),
-        ),
-      )
-      .then(() => self.clients.claim()),
+    (async () => {
+      // Limpiar cachés antiguas
+      const names = await caches.keys();
+      await Promise.all(
+        names
+          .filter((n) => n !== CACHE_NAME && n !== RUNTIME_CACHE)
+          .map((n) => caches.delete(n)),
+      );
+
+      // Tomar control inmediato de todos los clientes
+      await self.clients.claim();
+
+      // Notificar a todos los clientes que hay nueva versión activa
+      // Los clientes pueden decidir recargar sin borrar site data
+      try {
+        const allClients = await self.clients.matchAll({
+          type: "window",
+          includeUncontrolled: true,
+        });
+        allClients.forEach((client) => {
+          client.postMessage({
+            type: "NEW_VERSION",
+            version: CACHE_NAME,
+          });
+        });
+      } catch {
+        // ignore notification errors
+      }
+    })(),
   );
 });
 
@@ -141,6 +160,13 @@ self.addEventListener("fetch", (event) => {
 // Listen messages from clients to trigger sync via SW (optional)
 self.addEventListener("message", (event) => {
   if (!event.data) return;
+
+  // Permitir que las páginas fuercen activación inmediata del nuevo SW
+  if (event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+    return;
+  }
+
   if (event.data.type === "SYNC_BATCH") {
     const payload = event.data.payload;
     (async () => {
