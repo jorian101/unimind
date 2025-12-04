@@ -1557,62 +1557,17 @@ class AdminTestsManager {
    * Mostrar notificación
    */
   showNotification(message, type = "info") {
-    // Crear notificación
-    const notification = document.createElement("div");
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-            <div class="notification-content">
-                <i class="fas fa-${
-                  type === "success"
-                    ? "check-circle"
-                    : type === "error"
-                      ? "exclamation-circle"
-                      : "info-circle"
-                }"></i>
-                <span>${message}</span>
-            </div>
-        `;
-
-    // Agregar estilos si no existen
-    if (!document.getElementById("notification-styles")) {
-      const style = document.createElement("style");
-      style.id = "notification-styles";
-      style.textContent = `
-                .notification {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    padding: 1rem 1.5rem;
-                    border-radius: 8px;
-                    background: white;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                    z-index: 10000;
-                    animation: slideIn 0.3s ease;
-                }
-                .notification-success { border-left: 4px solid #10b981; }
-                .notification-error { border-left: 4px solid #ef4444; }
-                .notification-warning { border-left: 4px solid #f59e0b; }
-                .notification-info { border-left: 4px solid #3b82f6; }
-                .notification-content {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                }
-                @keyframes slideIn {
-                    from { transform: translateX(400px); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-            `;
-      document.head.appendChild(style);
+    // Usar el Toast global si está disponible
+    if (window.Toast) {
+      window.Toast.show({
+        message: message,
+        type: type,
+        duration: 3000,
+      });
+    } else {
+      // Fallback: mostrar en consola
+      console.warn("Toast no está disponible:", message);
     }
-
-    document.body.appendChild(notification);
-
-    // Eliminar después de 3 segundos
-    setTimeout(() => {
-      notification.style.animation = "slideIn 0.3s ease reverse";
-      setTimeout(() => notification.remove(), 300);
-    }, 3000);
   }
 
   /**

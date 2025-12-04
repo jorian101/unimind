@@ -314,15 +314,24 @@ function mostrarMensaje(mensaje, tipo = 'info') {
 }
 
 function mostrarNotificacion(mensaje, tipo = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${tipo}`;
-    notification.innerHTML = `
-        <i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-        <span>${mensaje}</span>
-    `;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.classList.add('show'), 100);
-    setTimeout(() => { notification.classList.remove('show'); setTimeout(() => notification.remove(), 300); }, 3000);
+    if (window.Toast) {
+        window.Toast.show({
+            message: mensaje,
+            type: tipo,
+            duration: 3000
+        });
+    } else {
+        // Fallback mínimo
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${tipo}`;
+        notification.innerHTML = `
+            <i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${mensaje}</span>
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.add('show'), 100);
+        setTimeout(() => { notification.classList.remove('show'); setTimeout(() => notification.remove(), 300); }, 3000);
+    }
 }
 
 function escapeHtml(text) { if (!text) return ''; const map = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}; return String(text).replace(/[&<>"']/g, m => map[m]); }
