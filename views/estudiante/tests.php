@@ -22,29 +22,7 @@ renderPageHeader();
     </div>
 </div>
 
-<!-- Modal de confirmación de test completado -->
-<div class="modal-overlay" id="testCompletedModal" style="display: none;">
-    <div class="modal-content-success">
-        <div class="modal-icon-success">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <h2>¡Test Completado!</h2>
-        <div class="modal-body-success">
-            <p>Has completado el test exitosamente.</p>
-            <div class="result-details" id="resultDetails">
-                <!-- Los resultados se insertarán aquí dinámicamente -->
-            </div>
-        </div>
-        <div class="modal-actions-success">
-            <button class="btn-primary" onclick="cerrarModalYVerHistorial()">
-                <i class="fas fa-history"></i> Ver Historial
-            </button>
-            <button class="btn-secondary" onclick="cerrarModal()">
-                <i class="fas fa-times"></i> Cerrar
-            </button>
-        </div>
-    </div>
-</div>
+<!-- Toast notification: se mostrará al completar un test (reemplaza el modal anterior) -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -248,39 +226,37 @@ function formatearFecha(fecha) {
 function verificarTestCompletado() {
     const urlParams = new URLSearchParams(window.location.search);
     const testCompleted = urlParams.get('test_completed');
-    
+
     if (testCompleted === '1') {
         // Obtener resultado de la sesión mediante PHP
         <?php if (isset($_SESSION['test_resultado'])): ?>
             const resultado = <?php echo json_encode($_SESSION['test_resultado']); ?>;
-            mostrarModalExito(resultado);
+            const mensaje = `✅ ${resultado.test_name} — ${resultado.resultado_nivel}`;
+            mostrarNotificacion(mensaje, 'success', 'Ver Historial', function(){
+                window.location.href = '?role=estudiante&page=historial';
+            });
             <?php 
                 // Limpiar la sesión después de mostrar
                 unset($_SESSION['test_resultado']);
             ?>
         <?php else: ?>
-            // Si la sesión no tiene datos (por ejemplo, cookie de sesión no disponible),
-            // intentar leer parámetros de la URL como fallback.
+            // Si la sesión no tiene datos, intentar leer parámetros de la URL como fallback.
             (function(){
                 const params = new URLSearchParams(window.location.search);
                 const name = params.get('name') ? decodeURIComponent(params.get('name')) : 'Evaluación';
-                const score = params.get('score') ? parseInt(params.get('score'), 10) : 0;
                 const level = params.get('level') ? decodeURIComponent(params.get('level')) : 'Completado';
                 let completedAt = params.get('completed_at') ? decodeURIComponent(params.get('completed_at')) : new Date().toISOString();
-                // Normalizar fecha si viene con espacio (YYYY-MM-DD HH:MM:SS)
                 if (completedAt.indexOf(' ') !== -1) {
                     completedAt = completedAt.replace(' ', 'T');
                 }
 
-                mostrarModalExito({
-                    test_name: name,
-                    puntuacion_total: score,
-                    resultado_nivel: level,
-                    completed_at: completedAt
+                const mensaje = `✅ ${name} — ${level}`;
+                mostrarNotificacion(mensaje, 'success', 'Ver Historial', function(){
+                    window.location.href = '?role=estudiante&page=historial';
                 });
             })();
         <?php endif; ?>
-        
+
         // Limpiar URL sin recargar la página
         const cleanUrl = window.location.pathname + '?role=estudiante&page=tests';
         window.history.replaceState({}, document.title, cleanUrl);
@@ -288,67 +264,51 @@ function verificarTestCompletado() {
 }
 
 /**
- * Mostrar modal de éxito con los resultados
+ * Mostrar notificación tipo "toast" en la esquina superior derecha
+ * Opcionalmente acepta una acción (label + callback)
  */
-function mostrarModalExito(resultado) {
-    const modal = document.getElementById('testCompletedModal');
-    const resultDetails = document.getElementById('resultDetails');
-    
-    // Construir detalles del resultado
-    let nivelColor = 'var(--success-500)';
-    let nivelIcon = 'fa-smile';
-    
-    const nivelLower = resultado.resultado_nivel.toLowerCase();
-    if (nivelLower.includes('alto') || nivelLower.includes('severo')) {
-        nivelColor = 'var(--danger-500)';
-        nivelIcon = 'fa-exclamation-triangle';
-    } else if (nivelLower.includes('medio') || nivelLower.includes('moderado')) {
-        nivelColor = 'var(--warning-500)';
-        nivelIcon = 'fa-exclamation-circle';
-    }
-    
-    resultDetails.innerHTML = `
-        <div class="result-item">
-            <span class="result-label">Test:</span>
-            <span class="result-value"><strong>${escapeHtml(resultado.test_name)}</strong></span>
-        </div>
-        <div class="result-item">
-            <span class="result-label">Nivel de Resultado:</span>
-            <span class="result-value" style="color: ${nivelColor};">
-                <i class="fas ${nivelIcon}"></i> 
-                <strong>${escapeHtml(resultado.resultado_nivel)}</strong>
-            </span>
-        </div>
-        <div class="result-item">
-            <span class="result-label">Completado:</span>
-            <span class="result-value">${formatearFecha(resultado.completed_at)}</span>
+function mostrarNotificacion(mensaje, tipo = 'info', actionLabel = null, actionCallback = null) {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${tipo}`;
+
+    const iconClass = tipo === 'success' ? 'fa-check-circle' : (tipo === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+
+    notification.innerHTML = `
+        <div class="notification-inner">
+            <i class="fas ${iconClass} notification-icon"></i>
+            <div class="notification-text">${escapeHtml(String(mensaje))}</div>
+            ${actionLabel ? `<button class="notification-action">${escapeHtml(String(actionLabel))}</button>` : ''}
         </div>
     `;
-    
-    modal.style.display = 'flex';
-    
-    // Auto-cerrar después de 30 segundos
+
+    if (actionLabel) {
+        // Delegar acción si existe
+        notification.addEventListener('click', (e) => {
+            const target = e.target;
+            if (target.classList.contains('notification-action')) {
+                e.stopPropagation();
+                try {
+                    if (typeof actionCallback === 'function') actionCallback();
+                } catch (err) {
+                    console.error('Error en acción de notificación:', err);
+                }
+                // cerrar inmediatamente
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }
+        });
+    }
+
+    document.body.appendChild(notification);
+    // Forzar reflow para animación
+    void notification.offsetWidth;
+    setTimeout(() => notification.classList.add('show'), 100);
+
+    // Auto-hide
     setTimeout(() => {
-        if (modal.style.display === 'flex') {
-            cerrarModal();
-        }
-    }, 30000);
-}
-
-/**
- * Cerrar modal
- */
-function cerrarModal() {
-    const modal = document.getElementById('testCompletedModal');
-    modal.style.display = 'none';
-}
-
-/**
- * Cerrar modal y redirigir a historial
- */
-function cerrarModalYVerHistorial() {
-    cerrarModal();
-    window.location.href = '?role=estudiante&page=historial';
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
 }
 </script>
 
@@ -383,168 +343,76 @@ function cerrarModalYVerHistorial() {
     color: #17a2b8;
 }
 
-/* Modal de confirmación */
-.modal-overlay {
+/* Toast / Notification styles (aparece arriba a la derecha) */
+.notification {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    top: 1rem;
+    right: 1rem;
+    z-index: 99999;
+    display: flex;
+    gap: 0.5rem;
+    max-width: 360px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border-radius: 10px;
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: all 0.25s ease;
+    overflow: hidden;
+    pointer-events: auto;
+}
+
+.notification.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.notification-inner {
     display: flex;
     align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    padding: 1rem;
-    backdrop-filter: blur(4px);
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.modal-content-success {
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
     background: white;
-    border-radius: 16px;
-    padding: 2rem;
-    max-width: 500px;
     width: 100%;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: slideUp 0.4s ease;
-    text-align: center;
 }
 
-@keyframes slideUp {
-    from {
-        transform: translateY(30px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+.notification-icon {
+    font-size: 1.25rem;
+    color: var(--pri-600, #2563eb);
 }
 
-.modal-icon-success {
-    font-size: 4rem;
-    color: var(--success-500, #10b981);
-    margin-bottom: 1rem;
-    animation: bounceIn 0.6s ease;
-}
-
-@keyframes bounceIn {
-    0% { transform: scale(0); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-}
-
-.modal-content-success h2 {
-    color: var(--neutral-800, #1f2937);
-    font-size: 1.75rem;
-    margin-bottom: 1rem;
-    font-weight: 700;
-}
-
-.modal-body-success {
-    margin: 1.5rem 0;
-}
-
-.modal-body-success > p {
-    color: var(--neutral-600, #6b7280);
-    margin-bottom: 1.5rem;
-    font-size: 1rem;
-}
-
-.result-details {
-    background: var(--neutral-50, #f9fafb);
-    border-radius: 12px;
-    padding: 1.25rem;
-    margin-top: 1rem;
-    text-align: left;
-}
-
-.result-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--neutral-200, #e5e7eb);
-}
-
-.result-item:last-child {
-    border-bottom: none;
-}
-
-.result-label {
-    color: var(--neutral-600, #6b7280);
+.notification-text {
+    flex: 1;
+    font-weight: 600;
+    color: var(--neutral-800, #111827);
     font-size: 0.95rem;
 }
 
-.result-value {
-    color: var(--neutral-800, #1f2937);
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.modal-actions-success {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    flex-wrap: wrap;
-}
-
-.modal-actions-success button {
-    flex: 1;
-    min-width: 150px;
-    padding: 0.875rem 1.5rem;
+.notification-action {
+    background: transparent;
     border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+    color: var(--pri-600, #2563eb);
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
 }
 
-.modal-actions-success .btn-primary {
-    background: var(--primary-500, #3b82f6);
-    color: white;
+.notification.notification-success .notification-inner {
+    border-left: 4px solid var(--success-500, #10b981);
 }
-
-.modal-actions-success .btn-primary:hover {
-    background: var(--primary-600, #2563eb);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+.notification.notification-error .notification-inner {
+    border-left: 4px solid var(--danger-500, #ef4444);
 }
-
-.modal-actions-success .btn-secondary {
-    background: var(--neutral-100, #f3f4f6);
-    color: var(--neutral-700, #374151);
-}
-
-.modal-actions-success .btn-secondary:hover {
-    background: var(--neutral-200, #e5e7eb);
-    transform: translateY(-2px);
+.notification.notification-info .notification-inner {
+    border-left: 4px solid var(--pri-500, #3b82f6);
 }
 
 @media (max-width: 640px) {
-    .modal-content-success {
-        padding: 1.5rem;
-    }
-    
-    .modal-actions-success {
-        flex-direction: column;
-    }
-    
-    .modal-actions-success button {
-        width: 100%;
+    .notification {
+        left: 1rem;
+        right: 1rem;
+        max-width: calc(100% - 2rem);
+        top: 1rem;
     }
 }
 </style>

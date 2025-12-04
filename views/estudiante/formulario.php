@@ -249,13 +249,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission via AJAX to maintain session
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
+
         const answered = form.querySelectorAll('input[type="radio"]:checked').length;
         if (answered < totalQuestions) {
             alert(`Por favor, responde todas las preguntas. Te faltan ${totalQuestions - answered} preguntas.`);
             return;
         }
-        
+
+        // Mostrar modal de confirmación si está disponible, si no usar confirm nativo
+        let proceed = true;
+        const confirmMessage = '¿Estás seguro que deseas enviar la evaluación? Una vez enviado no podrás modificarlo.';
+        try {
+            if (window.Modal && typeof window.Modal.confirm === 'function') {
+                proceed = await window.Modal.confirm('Confirmar envío', confirmMessage, {
+                    confirmText: 'Enviar',
+                    cancelText: 'Cancelar'
+                });
+            } else {
+                proceed = confirm(confirmMessage);
+            }
+        } catch (err) {
+            console.error('Error mostrando modal de confirmación:', err);
+            proceed = confirm(confirmMessage);
+        }
+
+        if (!proceed) {
+            return;
+        }
+
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
@@ -304,7 +325,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Hubo un error al enviar el test. Por favor, intenta de nuevo.');
+            // Usar modal de error si está disponible
+            if (window.Modal && typeof window.Modal.error === 'function') {
+                try { await window.Modal.error('Error', 'Hubo un error al enviar el test. Por favor, intenta de nuevo.'); } catch (e) { /* ignore */ }
+            } else {
+                alert('Hubo un error al enviar el test. Por favor, intenta de nuevo.');
+            }
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-check"></i> Enviar Evaluación';
         }
