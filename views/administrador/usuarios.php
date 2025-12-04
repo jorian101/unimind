@@ -184,6 +184,7 @@ function renderUsuariosTable(usuarios) {
       <td>${u.cargo}</td>
       <td>${u.fecha_registro ? new Date(u.fecha_registro.replace(' ', 'T')).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</td>
       <td>
+        <a href="#" class="action-btn tertiary ver-usuario" data-id="${u.id_usuario}">Ver</a>
         <a href="#" class="action-btn primary editar-usuario" data-id="${u.id_usuario}">Editar</a>
         <a href="#" class="action-btn secondary eliminar-usuario" data-id="${u.id_usuario}">Eliminar</a>
       </td>
@@ -209,6 +210,15 @@ function renderUsuariosTable(usuarios) {
       const id = this.dataset.id;
       // mostrar modal de confirmación (implementar si hace falta)
       console.log('Eliminar usuario', id);
+    });
+  });
+  // Ver (sin funcionalidad por ahora)
+  document.querySelectorAll('.ver-usuario').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const id = this.dataset.id;
+      // placeholder: mostrar detalles eventualmente
+      console.log('Ver usuario', id);
     });
   });
 }
