@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['q'])) {
         $params[] = "%$q%";
         $params[] = "%$q%";
     }
-    $sql .= " ORDER BY fecha_registro DESC LIMIT 10";
+    $sql .= " ORDER BY fecha_registro DESC LIMIT 50";
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
     $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);

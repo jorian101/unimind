@@ -124,15 +124,20 @@
 .usuarios-table {
     width:100%;
     border-collapse: separate;
-    border-spacing: 0 0.6rem; /* separación vertical entre filas para efecto tarjeta */
+    /* usar menos separación para aprovechar más espacio en pantalla */
+    border-spacing: 0 0.3rem; /* separación vertical más compacta */
     background: transparent;
+    table-layout: fixed; /* repartir columnas según ancho definido */
 }
 
 .usuarios-table thead { background: var(--bg-300); border-radius:10px; }
 .usuarios-table th, .usuarios-table td {
-    padding: 0.85rem 0.9rem;
+    padding: 0.6rem 0.85rem;
     text-align:left;
     color: var(--var-700);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Remove visible cell borders/lines to get card-like rows */
@@ -143,9 +148,9 @@
 .usuarios-table tbody tr {
     background: var(--bg-100);
     border: 1px solid var(--bg-500);
-    box-shadow: 0 8px 22px rgba(0,0,0,0.04);
-    border-radius: 10px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.04);
+    border-radius: 8px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 .usuarios-table tbody tr:hover { transform: translateY(-4px); box-shadow: 0 14px 40px rgba(0,0,0,0.06); }
 .usuarios-table tbody td { border: none; }
@@ -162,7 +167,7 @@
 .modal-content h2 { color: var(--pri-500); font-size:1.4rem; margin:0 0 12px 0; text-align:center }
 
 /* Larger modal and more spacious form layout */
-.modal-content { max-width: 720px; }
+.modal-content { max-width: 920px; }
 .modal-form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 24px; width: 100%; }
 .modal-form .full-row { grid-column: 1 / -1; }
 .modal-content label { display:block; margin-bottom:6px; color: var(--pri-500); font-weight:500; font-size:0.95rem }
@@ -184,12 +189,14 @@
 .close-modal { position:absolute; top:1rem; right:1.25rem; background:transparent; border:none; font-size:1.25rem; color:var(--var-700); cursor:pointer }
 
 /* Action buttons inside table */
-.action-btn { padding:0.4rem 0.8rem; border-radius:8px; font-weight:600; display:inline-flex; gap:0.4rem; cursor:pointer; font-size:0.95rem }
+.action-btn { padding:0.35rem 0.6rem; border-radius:8px; font-weight:600; display:inline-flex; gap:0.4rem; cursor:pointer; font-size:0.88rem; align-items:center }
 .action-btn.primary { background:var(--acc-700); color:var(--bg-100); border:none }
 .action-btn.primary i { color: var(--bg-100); }
 .action-btn.primary:hover { background: var(--acc-900); transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,129,150,0.08); }
 .action-btn.secondary { background:transparent; color:var(--pri-500); border:1px solid var(--pri-500) }
 .action-btn.secondary:hover { background: var(--pri-100); color: var(--pri-700); border-color: var(--pri-600); }
+.action-btn.tertiary { background:transparent; color:var(--var-700); border:1px solid var(--bg-500) }
+.action-btn.tertiary:hover { background: var(--bg-200); }
 
 /* small circular icon buttons similar to tests.css */
 .btn-icon { width:36px; height:36px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:none; cursor:pointer; color:var(--var-700) }
@@ -286,9 +293,22 @@
 .filters-section .filter-group { display:flex; align-items:center; gap:0.5rem; }
 .filters-section label { font-weight:600; color:var(--var-700); }
 
-.table-wrapper { margin-top:0.75rem; overflow:auto; }
-.usuarios-table thead th { padding: 0.85rem 1rem; }
-.usuarios-table tbody td { padding: 0.9rem 1rem; }
+.table-wrapper { margin-top:0.6rem; overflow:auto; }
+.usuarios-table thead th { padding: 0.6rem 0.9rem; }
+.usuarios-table tbody td { padding: 0.6rem 0.9rem; }
+
+/* Column width guidance to better use screen space */
+.usuarios-table thead th:nth-child(1), .usuarios-table tbody td:nth-child(1) { width:6%; }
+.usuarios-table thead th:nth-child(2), .usuarios-table tbody td:nth-child(2) { width:18%; }
+.usuarios-table thead th:nth-child(3), .usuarios-table tbody td:nth-child(3) { width:18%; }
+.usuarios-table thead th:nth-child(4), .usuarios-table tbody td:nth-child(4) { width:12%; }
+.usuarios-table thead th:nth-child(5), .usuarios-table tbody td:nth-child(5) { width:12%; }
+/* Hide the Fecha Registro column to give more room for actions */
+.usuarios-table thead th:nth-child(6), .usuarios-table tbody td:nth-child(6) { display: none; }
+.usuarios-table thead th:nth-child(7), .usuarios-table tbody td:nth-child(7) { width:26%; }
+
+/* Ensure action column content wraps if needed */
+.usuarios-table tbody td:nth-child(7) { white-space: normal; }
 
 /* Aumentar separación entre controles y filas en pantallas pequeñas */
 @media (max-width: 767px) {
@@ -306,4 +326,11 @@
 
 /* Autocomplete: dejar espacio para que se muestre sin superposición */
 .autocomplete-list { top: 46px; }
+
+/* Modal create button larger for prominence */
+.modal-content .btn-primary.full-width {
+    padding: 14px 18px;
+    font-size: 1.05rem;
+    border-radius: 10px;
+}
 
