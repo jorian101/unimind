@@ -103,6 +103,15 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   let { request } = event;
+  // Detect development host (localhost) to relax caching for fast iteration.
+  // Using URL(self.location.href).hostname works inside SW.
+  const IS_DEV = (() => {
+    try {
+      return new URL(self.location.href).hostname === "localhost";
+    } catch {
+      return false;
+    }
+  })();
   try {
     const url = new URL(request.url);
     // Only handle http(s) GET requests
@@ -130,6 +139,17 @@ self.addEventListener("fetch", (event) => {
     }
 
     const requestUrl = new URL(request.url);
+
+    // Development override: prefer network for JS/CSS so changes are visible
+    // immediately without needing to bump CACHE_NAME. This only applies on
+    // localhost and only for .js/.css files.
+    if (IS_DEV) {
+      const pathname = requestUrl.pathname.split("?")[0];
+      if (pathname.match(/\.(js|css)$/i)) {
+        event.respondWith(networkFirst(request));
+        return;
+      }
+    }
 
     // No-cache routes (API endpoints) should use networkFirst with fallback instead of direct fetch
     // This prevents "Failed to fetch" errors when offline

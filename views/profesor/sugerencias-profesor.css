@@ -234,8 +234,8 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.5rem;
-  background: var(--warning-100);
-  color: var(--warning-700);
+  background: var(--pri-400);
+  color: var(--bg-100);
   border-radius: 4px;
   font-size: 0.75rem;
   margin-left: 0.5rem;
@@ -268,12 +268,12 @@
   letter-spacing: 0.5px;
 }
 .sugerencias__status--pendiente {
-  background: var(--warning-100);
-  color: var(--warning-700);
+  background: var(--pri-400);
+  color: var(--bg-100);
 }
 .sugerencias__status--completado {
-  background: var(--success-100);
-  color: var(--success-700);
+  background: var(--pri-400);
+  color: var(--bg-100);
 }
 .sugerencias__status i {
   font-size: 0.75rem;
@@ -295,7 +295,7 @@
   font-family: var(--font);
 }
 .sugerencias__btn-eliminar:hover {
-  background: var(--danger-700);
+  background: var(--pri-300);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
@@ -343,7 +343,7 @@
   display: block;
 }
 .sugerencias__message.text-danger i {
-  color: var(--danger-500);
+  color: var(--pri-400);
 }
 .sugerencias__message.text-info i {
   color: var(--info-500);
@@ -355,7 +355,6 @@
   }
 }
 
-/* Keep modal and global buttons as-is for reuse */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -400,7 +399,6 @@
   }
 }
 
-/* Responsive tweaks mapping original behavior to BEM classes */
 @media (max-width: 1024px) {
   .sugerencias__header {
     flex-direction: column;
