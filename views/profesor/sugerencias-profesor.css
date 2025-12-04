@@ -1,8 +1,3 @@
-/* ========================================
-   SUGERENCIAS DE TESTS - PROFESOR
-   Diseño consistente con tests.css
-   ======================================== */
-
 .sugerencias-container {
   font-family: var(--font);
   color: var(--pri-500);
@@ -18,12 +13,7 @@
   border: 1px solid var(--bg-500);
 }
 
-/* ========================================
-   HEADER CON ESTADÍSTICAS
-   ======================================== */
-
 .card-header-section {
-  padding: 1.5rem 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -81,10 +71,6 @@
   color: var(--var-700);
   margin-top: 0.25rem;
 }
-
-/* ========================================
-   SECCIÓN DE FILTROS
-   ======================================== */
 
 .filters-section {
   padding: 1rem 0;
@@ -165,10 +151,6 @@
   font-size: 0.85rem;
 }
 
-/* ========================================
-   TABLA DE SUGERENCIAS
-   ======================================== */
-
 .sugerencias-table-container {
   overflow-x: auto;
   border-radius: 8px;
@@ -213,7 +195,6 @@
   font-weight: 500;
 }
 
-/* Test Info */
 .test-info {
   display: flex;
   align-items: center;
@@ -245,7 +226,6 @@
   line-height: 1.4;
 }
 
-/* Estudiante Info */
 .estudiante-info {
   display: flex;
   flex-direction: column;
@@ -264,7 +244,6 @@
   font-family: "Courier New", monospace;
 }
 
-/* Curso Badge */
 .curso-badge {
   display: inline-flex;
   align-items: center;
@@ -294,7 +273,6 @@
   cursor: help;
 }
 
-/* Fecha Info */
 .fecha-info {
   display: flex;
   flex-direction: column;
@@ -312,7 +290,6 @@
   color: var(--var-700);
 }
 
-/* Estado Badge */
 .estado-badge {
   display: inline-flex;
   align-items: center;
@@ -364,10 +341,6 @@
 .btn-eliminar i {
   font-size: 1rem;
 }
-
-/* ========================================
-   MENSAJES Y ESTADOS VACÍOS
-   ======================================== */
 
 .loading-spinner {
   text-align: center;
@@ -426,10 +399,6 @@
 .mensaje-container.text-info i {
   color: var(--info-500);
 }
-
-/* ========================================
-   MODAL DE CONFIRMACIÓN
-   ======================================== */
 
 .modal-overlay {
   position: fixed;
@@ -586,10 +555,6 @@
   box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
 }
 
-/* ========================================
-   NOTIFICACIONES
-   ======================================== */
-
 .notification {
   position: fixed;
   top: 20px;
@@ -629,10 +594,6 @@
   color: var(--danger-500);
   font-size: 1.25rem;
 }
-
-/* ========================================
-   RESPONSIVE
-   ======================================== */
 
 @media (max-width: 1024px) {
   .card-header-section {

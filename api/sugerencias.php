@@ -13,8 +13,8 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
     exit;
 }
 
-// Verificar que sea docente
-if ($_SESSION['user_role'] !== 'Docente') {
+// Verificar que sea docente (comparación case-insensitive)
+if (!isset($_SESSION['user_role']) || strtolower($_SESSION['user_role']) !== 'docente') {
     http_response_code(403);
     $response['message'] = 'Acceso denegado. Solo docentes pueden acceder a esta función.';
     echo json_encode($response);
@@ -48,11 +48,8 @@ try {
                 t.num_items,
                 CONCAT(u.nombre, ' ', u.apellido) AS nombre_estudiante,
                 u.codigo_usuario,
-                -- Extraer primer curso del JSON array
-                (SELECT c.nombre_curso 
-                 FROM Cursos c 
-                 WHERE c.id_curso = JSON_UNQUOTE(JSON_EXTRACT(s.cursos_ids, '$[0]'))
-                 LIMIT 1) AS nombre_curso,
+                -- Extraer todos los cursos del JSON array y unir sus nombres separados por coma
+                NULL AS nombre_curso,
                 -- Verificar si el estudiante completó el test
                 (SELECT COUNT(*) 
                  FROM Aplicaciones a 
@@ -69,11 +66,44 @@ try {
         $stmt->execute([$profesorId]);
         $sugerencias = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Formatear datos
+        // Formatear datos y preparar mapeo de cursos
+        $all_course_ids = [];
         foreach ($sugerencias as &$sug) {
             $sug['profesores_ids'] = json_decode($sug['profesores_ids'], true);
             $sug['cursos_ids'] = json_decode($sug['cursos_ids'], true);
+            if (is_array($sug['cursos_ids'])) {
+                foreach ($sug['cursos_ids'] as $cid) {
+                    $all_course_ids[] = (int)$cid;
+                }
+            }
             $sug['completado'] = (int)$sug['completado'] > 0;
+        }
+
+        $course_names_map = [];
+        $all_course_ids = array_values(array_unique(array_filter($all_course_ids)));
+        if (count($all_course_ids) > 0) {
+            // Build placeholders
+            $placeholders = implode(',', array_fill(0, count($all_course_ids), '?'));
+            $stmtCourses = $conn->prepare("SELECT id_curso, nombre_curso FROM Cursos WHERE id_curso IN ($placeholders)");
+            $stmtCourses->execute($all_course_ids);
+            $courses = $stmtCourses->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($courses as $c) {
+                $course_names_map[(int)$c['id_curso']] = $c['nombre_curso'];
+            }
+        }
+
+        // Attach curso names (comma-separated) to each suggestion
+        foreach ($sugerencias as &$sug) {
+            $names = [];
+            if (is_array($sug['cursos_ids'])) {
+                foreach ($sug['cursos_ids'] as $cid) {
+                    $cidInt = (int)$cid;
+                    if (isset($course_names_map[$cidInt])) {
+                        $names[] = $course_names_map[$cidInt];
+                    }
+                }
+            }
+            $sug['nombre_curso'] = count($names) ? implode(', ', $names) : null;
         }
         
         $response['success'] = true;
