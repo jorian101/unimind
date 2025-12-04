@@ -145,10 +145,11 @@ BEGIN
     WHERE `id_aplicacion` = p_id_aplicacion;
 
     -- Marcar la sugerencia como completada si existe
+    -- Nota: La tabla Sugerencias no tiene columna fecha_completado, solo estado
+    -- Se puede usar fecha_ultima_sugerencia para registrar cuando se completó si es necesario
     UPDATE `Sugerencias`
     SET 
-        `estado` = 'completado',
-        `fecha_completado` = NOW()
+        `estado` = 'visto'
     WHERE `id_estudiante` = v_id_usuario
         AND `id_test` = v_id_test
         AND `estado` = 'pendiente';

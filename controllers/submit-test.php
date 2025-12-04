@@ -89,6 +89,19 @@ try {
         error_log("Errores al guardar respuestas: " . implode(', ', $errores));
         // Continuar de todas formas si al menos algunas se guardaron
     }
+
+    // Verificar que al menos una respuesta se haya guardado para esta aplicación
+    $detallesGuardados = $model->getDetalleAplicacion($id_aplicacion);
+    $numEnviadas = count($respuestas);
+    $numGuardadas = is_array($detallesGuardados) ? count($detallesGuardados) : 0;
+    if ($numGuardadas === 0) {
+        // No se guardó ninguna respuesta: devolver error claro con detalles para depuración
+        $erroresStr = '';
+        if (!empty($errores)) {
+            $erroresStr = ' Errores internos: ' . implode('; ', $errores);
+        }
+        throw new Exception("No se guardaron las respuestas en la aplicación (enviadas: $numEnviadas, guardadas: $numGuardadas). Por favor, intenta de nuevo." . $erroresStr);
+    }
     
     // 3. Finalizar y calcular puntuación
     $resultado = $model->finalizarAplicacion($id_aplicacion);
