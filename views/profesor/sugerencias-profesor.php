@@ -66,33 +66,7 @@ renderPageHeader();
     </section>
 </div>
 
-<!-- Modal de confirmación de eliminación -->
-<div class="modal-overlay" id="eliminarModal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Confirmar Eliminación</h3>
-            <button class="modal-close" onclick="cerrarModalEliminar()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div class="warning-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <p><strong>¿Estás seguro de eliminar esta sugerencia?</strong></p>
-            <div class="sugerencia-info-box">
-                <p><strong>Test:</strong> <span id="modalTestNombre"></span></p>
-                <p><strong>Estudiante:</strong> <span id="modalEstudiante"></span></p>
-                <p><strong>Curso:</strong> <span id="modalCurso"></span></p>
-            </div>
-            <p class="warning-text">Esta acción no se puede deshacer.</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-secondary" onclick="cerrarModalEliminar()">Cancelar</button>
-            <button class="btn-danger" onclick="confirmarEliminacion()">Eliminar</button>
-        </div>
-    </div>
-</div>
+
 
 <script>
 let sugerencias = [];
@@ -269,36 +243,59 @@ function configurarFiltros() {
 
 function abrirModalEliminar(idSugerencia, nombreTest, nombreEstudiante, nombreCurso, esMultiple) {
     sugerenciaAEliminar = idSugerencia;
-    document.getElementById('modalTestNombre').textContent = nombreTest;
-    document.getElementById('modalEstudiante').textContent = nombreEstudiante;
-    document.getElementById('modalCurso').textContent = nombreCurso;
-    const warningText = document.querySelector('.warning-text');
-    if (esMultiple) {
-        warningText.textContent = 'Nota: Otros profesores también sugirieron este test. Solo se eliminará tu sugerencia.';
-        warningText.style.color = 'var(--warning-600)';
+
+    const warning = esMultiple
+        ? 'Nota: Otros profesores también sugirieron este test. Solo se eliminará tu sugerencia.'
+        : 'Esta acción no se puede deshacer.';
+
+    const htmlContent = `
+        <div style="padding:0.2rem 0">
+            <p><strong>Test:</strong> ${escapeHtml(nombreTest)}</p>
+            <p><strong>Estudiante:</strong> ${escapeHtml(nombreEstudiante)}</p>
+            <p><strong>Curso:</strong> ${escapeHtml(nombreCurso)}</p>
+            <p style="margin-top:0.5rem; ${esMultiple ? 'color:var(--warning-600);' : ''}">${warning}</p>
+        </div>
+    `;
+
+    // Usar el modal reutilizable
+    if (window.Modal && typeof window.Modal.show === 'function') {
+        window.Modal.show({
+            type: 'delete',
+            title: 'Confirmar Eliminación',
+            html: htmlContent,
+            confirmText: 'Eliminar',
+            cancelText: 'Cancelar',
+            onConfirm: async () => {
+                // onConfirm ejecuta antes de cerrar el modal; delegamos la eliminación
+                await confirmarEliminacion(idSugerencia);
+            }
+        });
     } else {
-        warningText.textContent = 'Esta acción no se puede deshacer.';
-        warningText.style.color = '';
+        // Fallback: si no hay modal, abrir el antiguo (no existen elementos ahora)
+        if (confirm(`¿Eliminar la sugerencia de ${nombreEstudiante} para el test ${nombreTest}?`)) {
+            confirmarEliminacion(idSugerencia);
+        } else {
+            sugerenciaAEliminar = null;
+        }
     }
-    document.getElementById('eliminarModal').style.display = 'flex';
 }
 
-function cerrarModalEliminar() { document.getElementById('eliminarModal').style.display = 'none'; sugerenciaAEliminar = null; }
-
-async function confirmarEliminacion() {
-    if (!sugerenciaAEliminar) return;
+// confirmarEliminacion acepta un id (soporta llamadas directas y desde el modal)
+async function confirmarEliminacion(id) {
+    const idToDelete = id || sugerenciaAEliminar;
+    if (!idToDelete) return;
     try {
         const base = window.UNIMIND_BASE || '';
         const baseUrl = window.location.origin && window.location.origin !== 'null'
             ? window.location.origin + base
             : base;
         const response = await fetch(`${baseUrl}/api/sugerencias.php?action=eliminar`, {
-            method: 'POST', headers: {'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify({ id_sugerencia: sugerenciaAEliminar })
+            method: 'POST', headers: {'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify({ id_sugerencia: idToDelete })
         });
         const result = await response.json();
         if (result.success) {
             mostrarNotificacion(result.message, 'success');
-            cerrarModalEliminar();
+            sugerenciaAEliminar = null;
             await cargarSugerencias();
         } else {
             mostrarNotificacion('Error: ' + (result.message || 'No se pudo eliminar la sugerencia'), 'error');
