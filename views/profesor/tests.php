@@ -364,13 +364,13 @@ async function confirmarSugerencia() {
         if (result.success) {
             const estudiantesAfectados = result.data?.estudiantes_afectados || 0;
             mostrarNotificacion(
-                `✅ Test sugerido correctamente a ${estudiantesAfectados} estudiante(s) del curso`,
+                `Test sugerido correctamente a ${estudiantesAfectados} estudiante(s) del curso`,
                 'success'
             );
             cerrarModalSugerir();
         } else {
             mostrarNotificacion(
-                '❌ Error: ' + (result.message || 'No se pudo sugerir el test'),
+                'Error: ' + (result.message || 'No se pudo sugerir el test'),
                 'error'
             );
         }
@@ -424,23 +424,16 @@ function formatearFecha(fecha) {
 }
 
 /**
- * Mostrar notificación temporal
+ * Mostrar notificación usando el Toast global
  */
 function mostrarNotificacion(mensaje, tipo = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${tipo}`;
-    notification.innerHTML = `
-        <i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-        <span>${mensaje}</span>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => notification.classList.add('show'), 100);
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 4000);
+    if (window.Toast) {
+        window.Toast.show({
+            message: mensaje,
+            type: tipo
+        });
+    } else {
+        console.warn('Toast no está disponible');
+    }
 }
 </script>

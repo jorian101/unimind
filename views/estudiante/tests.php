@@ -264,51 +264,20 @@ function verificarTestCompletado() {
 }
 
 /**
- * Mostrar notificación tipo "toast" en la esquina superior derecha
- * Opcionalmente acepta una acción (label + callback)
+ * Mostrar notificación usando el Toast global
+ * Wrapper para mantener compatibilidad
  */
 function mostrarNotificacion(mensaje, tipo = 'info', actionLabel = null, actionCallback = null) {
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${tipo}`;
-
-    const iconClass = tipo === 'success' ? 'fa-check-circle' : (tipo === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
-
-    notification.innerHTML = `
-        <div class="notification-inner">
-            <i class="fas ${iconClass} notification-icon"></i>
-            <div class="notification-text">${escapeHtml(String(mensaje))}</div>
-            ${actionLabel ? `<button class="notification-action">${escapeHtml(String(actionLabel))}</button>` : ''}
-        </div>
-    `;
-
-    if (actionLabel) {
-        // Delegar acción si existe
-        notification.addEventListener('click', (e) => {
-            const target = e.target;
-            if (target.classList.contains('notification-action')) {
-                e.stopPropagation();
-                try {
-                    if (typeof actionCallback === 'function') actionCallback();
-                } catch (err) {
-                    console.error('Error en acción de notificación:', err);
-                }
-                // cerrar inmediatamente
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            }
+    if (window.Toast) {
+        window.Toast.show({
+            message: mensaje,
+            type: tipo,
+            actionLabel: actionLabel,
+            actionCallback: actionCallback
         });
+    } else {
+        console.warn('Toast no está disponible');
     }
-
-    document.body.appendChild(notification);
-    // Forzar reflow para animación
-    void notification.offsetWidth;
-    setTimeout(() => notification.classList.add('show'), 100);
-
-    // Auto-hide
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 4000);
 }
 </script>
 
@@ -343,76 +312,5 @@ function mostrarNotificacion(mensaje, tipo = 'info', actionLabel = null, actionC
     color: #17a2b8;
 }
 
-/* Toast / Notification styles (aparece arriba a la derecha) */
-.notification {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 99999;
-    display: flex;
-    gap: 0.5rem;
-    max-width: 360px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    border-radius: 10px;
-    transform: translateY(-10px);
-    opacity: 0;
-    transition: all 0.25s ease;
-    overflow: hidden;
-    pointer-events: auto;
-}
-
-.notification.show {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-.notification-inner {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    background: white;
-    width: 100%;
-}
-
-.notification-icon {
-    font-size: 1.25rem;
-    color: var(--pri-600, #2563eb);
-}
-
-.notification-text {
-    flex: 1;
-    font-weight: 600;
-    color: var(--neutral-800, #111827);
-    font-size: 0.95rem;
-}
-
-.notification-action {
-    background: transparent;
-    border: none;
-    color: var(--pri-600, #2563eb);
-    font-weight: 700;
-    cursor: pointer;
-    padding: 0.35rem 0.6rem;
-    border-radius: 6px;
-}
-
-.notification.notification-success .notification-inner {
-    border-left: 4px solid var(--success-500, #10b981);
-}
-.notification.notification-error .notification-inner {
-    border-left: 4px solid var(--danger-500, #ef4444);
-}
-.notification.notification-info .notification-inner {
-    border-left: 4px solid var(--pri-500, #3b82f6);
-}
-
-@media (max-width: 640px) {
-    .notification {
-        left: 1rem;
-        right: 1rem;
-        max-width: calc(100% - 2rem);
-        top: 1rem;
-    }
-}
+/* Toast notification: ahora se usa el componente global public/js/toast.js */
 </style>
