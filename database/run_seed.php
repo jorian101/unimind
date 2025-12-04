@@ -9,6 +9,17 @@ $pass = '';
 $db   = 'db_tests_estres_ansiedad';
 $sqlFile = __DIR__ . '/seed.sql';
 
+// Preguntar al usuario si desea llenar la base de datos con datos o empezar vacía
+echo "¿Desea llenar la base de datos con datos de seed.sql? (s/n): ";
+$handle = fopen("php://stdin", "r");
+$response = trim(fgets($handle));
+fclose($handle);
+
+if (strtolower($response) !== 's') {
+    echo "Se ha elegido no llenar la base de datos con datos. Saliendo...\n";
+    exit(0);
+}
+
 if (!file_exists($sqlFile)) {
     echo "Archivo SQL no encontrado: $sqlFile\n";
     exit(1);
