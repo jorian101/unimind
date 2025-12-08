@@ -30,7 +30,15 @@ echo '<link rel="stylesheet" href="' . $baseUrl . '/views/administrador/cursos_e
     </div>
     <div class="cu-columns">
       <div class="cu-column-escuelas">
-        <h2>Escuelas</h2>
+        <div class="section-header">
+          <h2>Escuelas</h2>
+          <div class="search-filter-group">
+            <div class="search-box-inline">
+              <i class="fas fa-search"></i>
+              <input type="text" id="searchEscuelas" placeholder="Buscar escuela..." class="usuarios-search-input">
+            </div>
+          </div>
+        </div>
         <table class="cu-table">
           <thead>
             <tr>
@@ -54,7 +62,27 @@ echo '<link rel="stylesheet" href="' . $baseUrl . '/views/administrador/cursos_e
         </table>
       </div>
       <div class="cu-column-cursos">
-        <h2>Cursos</h2>
+        <div class="section-header">
+          <h2>Cursos</h2>
+          <div class="search-filter-group">
+            <div class="search-box-inline">
+              <i class="fas fa-search"></i>
+              <input type="text" id="searchCursos" placeholder="Buscar curso..." class="usuarios-search-input">
+            </div>
+            <select id="filterEscuela" class="usuarios-search-input filter-select">
+              <option value="">Todas las escuelas</option>
+              <?php foreach ($escuelas as $esc): ?>
+              <option value="<?= htmlspecialchars($esc['nombre_escuela']) ?>"><?= htmlspecialchars($esc['nombre_escuela']) ?></option>
+              <?php endforeach; ?>
+            </select>
+            <select id="filterProfesor" class="usuarios-search-input filter-select">
+              <option value="">Todos los profesores</option>
+              <?php foreach ($profesores as $p): ?>
+              <option value="<?= htmlspecialchars($p['nombre'] . ' ' . $p['apellido']) ?>"><?= htmlspecialchars($p['nombre'] . ' ' . $p['apellido']) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+        </div>
         <table class="cu-table">
           <thead>
             <tr>
@@ -194,6 +222,74 @@ document.addEventListener('keydown', function(e) {
     document.querySelectorAll('.modal').forEach(m => { m.style.display = 'none'; });
   }
 });
+
+// ========== Búsqueda y filtros en tiempo real ==========
+
+// Función para filtrar tabla de Escuelas
+function filterEscuelasTable() {
+  const searchTerm = document.getElementById('searchEscuelas').value.toLowerCase();
+  const tbody = document.getElementById('escuelasTableBody');
+  const rows = tbody.getElementsByTagName('tr');
+  
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const nombre = row.cells[0].textContent.toLowerCase();
+    const telefono = row.cells[1].textContent.toLowerCase();
+    
+    if (nombre.includes(searchTerm) || telefono.includes(searchTerm)) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  }
+}
+
+// Función para filtrar tabla de Cursos
+function filterCursosTable() {
+  const searchTerm = document.getElementById('searchCursos').value.toLowerCase();
+  const escuelaFilter = document.getElementById('filterEscuela').value.toLowerCase();
+  const profesorFilter = document.getElementById('filterProfesor').value.toLowerCase();
+  const tbody = document.getElementById('cursosTableBody');
+  const rows = tbody.getElementsByTagName('tr');
+  
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const nombre = row.cells[0].textContent.toLowerCase();
+    const escuela = row.cells[1].textContent.toLowerCase();
+    const profesor = row.cells[2].textContent.toLowerCase();
+    
+    let matchSearch = nombre.includes(searchTerm) || escuela.includes(searchTerm) || profesor.includes(searchTerm);
+    let matchEscuela = !escuelaFilter || escuela.includes(escuelaFilter);
+    let matchProfesor = !profesorFilter || profesor.includes(profesorFilter);
+    
+    if (matchSearch && matchEscuela && matchProfesor) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  }
+}
+
+// Event listeners para búsqueda y filtros
+const searchEscuelas = document.getElementById('searchEscuelas');
+if (searchEscuelas) {
+  searchEscuelas.addEventListener('input', filterEscuelasTable);
+}
+
+const searchCursos = document.getElementById('searchCursos');
+if (searchCursos) {
+  searchCursos.addEventListener('input', filterCursosTable);
+}
+
+const filterEscuela = document.getElementById('filterEscuela');
+if (filterEscuela) {
+  filterEscuela.addEventListener('change', filterCursosTable);
+}
+
+const filterProfesor = document.getElementById('filterProfesor');
+if (filterProfesor) {
+  filterProfesor.addEventListener('change', filterCursosTable);
+}
 
 // ...similar para cursos y edición/eliminación...
 </script>

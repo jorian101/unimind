@@ -112,11 +112,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_usuario'])) {
 // Eliminar usuario (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id_usuario'])) {
     $id = intval($_POST['eliminar_id_usuario']);
-    $stmt = $conn->prepare('CALL sp_eliminar_usuario(?)');
-    $stmt->execute([$id]);
-    $msg = $stmt->fetch(PDO::FETCH_ASSOC);
-    echo json_encode($msg);
-    exit;
+    try {
+        // revisar si el usuario es Docente y tiene cursos asignados
+        $s = $conn->prepare('SELECT cargo FROM Usuarios WHERE id_usuario = ?');
+        $s->execute([$id]);
+        $cargoUser = $s->fetchColumn();
+        if ($cargoUser === 'Docente') {
+            $q = $conn->prepare('SELECT COUNT(*) FROM Cursos WHERE id_profesor = ?');
+            $q->execute([$id]);
+            $cnt = intval($q->fetchColumn());
+            if ($cnt > 0) {
+                http_response_code(400);
+                echo json_encode(['error' => 'El docente tiene cursos asignados. Reasigna o elimina los cursos antes de eliminar al docente.']);
+                exit;
+            }
+        }
+
+        // safe to delete
+        $stmt = $conn->prepare('CALL sp_eliminar_usuario(?)');
+        $stmt->execute([$id]);
+        $msg = $stmt->fetch(PDO::FETCH_ASSOC);
+        echo json_encode($msg);
+        exit;
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'DB error', 'message' => $e->getMessage()]);
+        exit;
+    }
 }
 
 echo json_encode(['error'=>'Acción no válida']);

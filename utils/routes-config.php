@@ -58,6 +58,16 @@ return [
             'title' => 'Gestión de Citas',
             'breadcrumb' => ['Inicio', 'Citas'],
         ],
+        'notificaciones' => [
+            'path' => 'administrador/notificaciones.php',
+            'title' => 'Notificaciones',
+            'breadcrumb' => ['Inicio', 'Notificaciones'],
+        ],
+        'recomendaciones' => [
+            'path' => 'administrador/recomendaciones.php',
+            'title' => 'Recomendaciones',
+            'breadcrumb' => ['Inicio', 'Recomendaciones'],
+        ],
     ],
 
     // ========================================

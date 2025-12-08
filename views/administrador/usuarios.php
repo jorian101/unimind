@@ -208,8 +208,33 @@ function renderUsuariosTable(usuarios) {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
       const id = this.dataset.id;
-      // mostrar modal de confirmación (implementar si hace falta)
-      console.log('Eliminar usuario', id);
+      // confirmación simple antes de eliminar
+      if (!confirm('¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.')) return;
+      const link = this;
+      const originalText = link.textContent;
+      link.textContent = 'Eliminando...';
+      // preparar datos y enviar petición POST a la API
+      const fd = new FormData();
+      fd.append('eliminar_id_usuario', id);
+      fetch('api/usuarios.php', { method: 'POST', body: fd })
+        .then(res => res.json())
+        .then(data => {
+          // mostrar mensaje de respuesta (la API devuelve un array/obj con mensaje)
+          if (data && (data.Mensaje || data.mensaje || data.message)) {
+            alert(data.Mensaje || data.mensaje || data.message);
+          } else if (data && data.error) {
+            alert('Error: ' + data.error);
+          } else {
+            alert('Usuario eliminado');
+          }
+          // refrescar la lista
+          try { buscarUsuariosAjax(); } catch (err) { location.reload(); }
+        })
+        .catch(err => {
+          console.error('Error al eliminar usuario', err);
+          alert('Error al eliminar usuario');
+        })
+        .finally(() => { link.textContent = originalText; });
     });
   });
   // Ver (sin funcionalidad por ahora)
