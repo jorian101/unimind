@@ -34,11 +34,15 @@ require_once __DIR__ . '/../../utils/asset-version.php';
         <button id="btn-hoy" class="citas-btn info">Hoy</button>
     </div>
 
-    <div class="citas-main-grid">
+    <!-- Calendario en la parte superior -->
+    <div class="citas-calendar-section">
         <div class="citas-calendar">
             <div id="calendar"></div>
         </div>
+    </div>
 
+    <!-- Detalles de citas en la parte inferior -->
+    <div class="citas-details-section">
         <div class="citas-details" id="citas-details">
             <div class="citas-details-title">Detalles de las citas del día</div>
 
@@ -83,12 +87,12 @@ const datosPrueba = [
 
 function getCalendarHeight() {
     const w = window.innerWidth;
-    // Larger heights on bigger screens
-    if (w >= 1920) return 900;
-    if (w >= 1600) return 820;
-    if (w >= 1440) return 720;
-    if (w >= 1024) return 640;
-    if (w >= 768) return 520;
+    // Alturas optimizadas para layout vertical - calendario más compacto
+    if (w >= 1920) return 750;
+    if (w >= 1600) return 680;
+    if (w >= 1440) return 620;
+    if (w >= 1024) return 560;
+    if (w >= 768) return 500;
     if (w >= 375) return 420;
     return 360;
 }

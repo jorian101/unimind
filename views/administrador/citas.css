@@ -29,14 +29,15 @@ body { background-color: var(--bg-300); font-family: var(--font); }
 .citas-btn.primary { background: var(--acc-500); color: var(--bg-100); border: none }
 .citas-btn.ghost { background: transparent; color: var(--pri-500); border: 2px solid var(--pri-500) }
 
-/* Two-column layout on wide screens: calendar left, details right */
-.citas-main-grid { display:grid; grid-template-columns: 1fr; gap:1rem }
+/* Vertical layout: calendar on top, details below */
+.citas-calendar-section { margin-bottom: 1.5rem; }
 .citas-calendar { background: var(--bg-300); border-radius:12px; padding:1rem; box-shadow:0 6px 18px rgba(0,0,0,0.04); min-height:420px; display:flex; align-items:center; justify-content:center }
-.citas-details { background: var(--bg-100); border-radius:12px; padding:1rem; box-shadow:0 6px 18px rgba(0,0,0,0.04) }
+.citas-details-section { width: 100%; }
+.citas-details { background: var(--bg-100); border-radius:12px; padding:1.5rem; box-shadow:0 6px 18px rgba(0,0,0,0.04) }
 .citas-details-title { font-size:1.1rem; color:var(--pri-500); font-weight:600; margin-bottom:0.75rem }
 
-/* Appointments grid (card view) */
-.appointments-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:1rem }
+/* Appointments grid (card view) - aprovechar todo el ancho disponible */
+.appointments-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1.25rem }
 .cita-card { background: var(--bg-100); border:1px solid var(--bg-500); border-radius:12px; padding:12px; box-shadow:0 6px 18px rgba(0,0,0,0.04); display:flex; flex-direction:column; gap:8px }
 .cita-card-header { display:flex; justify-content:space-between; align-items:center }
 .cita-time { font-weight:700; color:var(--pri-500) }
@@ -131,38 +132,33 @@ body { background-color: var(--bg-300); font-family: var(--font); }
 
 @media (min-width:768px) and (max-width:1023px) {
     .admin-citas-container { padding: 20px }
-    /* Give the calendar more room: 2fr vs 420px sidebar */
-    .citas-main-grid { grid-template-columns: 2fr 420px }
-    .citas-calendar { min-height:560px }
-    .appointments-grid { display:grid }
+    .citas-calendar { min-height:500px }
+    .appointments-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) }
     .citas-table { display:none }
 }
 
 @media (min-width:1024px) and (max-width:1439px) {
     .admin-citas-container { padding: 24px }
-    /* Wider calendar column on desktop */
-    .citas-main-grid { grid-template-columns: 3fr 520px }
-    .citas-calendar { min-height:640px }
-    .appointments-grid { grid-template-columns: repeat(2, 1fr) }
+    .citas-calendar { min-height:560px }
+    .appointments-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:1.25rem }
 }
 
 @media (min-width:1440px) {
     .admin-citas-container { padding: 28px }
-    .citas-main-grid { grid-template-columns: 3fr 600px }
-    .citas-calendar { min-height:720px }
-    .appointments-grid { grid-template-columns: repeat(3, 1fr) }
+    .citas-calendar { min-height:620px }
+    .appointments-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem }
 }
 
 @media (min-width:1600px) {
     .admin-citas-container { padding: 32px }
-    .citas-main-grid { grid-template-columns: 3fr 720px }
-    .appointments-grid { grid-template-columns: repeat(3, minmax(300px, 1fr)); gap:1.25rem }
+    .citas-calendar { min-height:680px }
+    .appointments-grid { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap:1.5rem }
 }
 
 @media (min-width:1920px) {
     .admin-citas-container { padding: 36px }
-    .citas-main-grid { grid-template-columns: 4fr 820px }
-    .appointments-grid { grid-template-columns: repeat(4, minmax(300px, 1fr)); gap:1.5rem }
+    .citas-calendar { min-height:750px }
+    .appointments-grid { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap:1.75rem }
 }
 
 /* Utility */
