@@ -87,7 +87,32 @@ function renderTests(tests) {
         return;
     }
     
-    const testsHTML = tests.map(test => {
+    // Categorizar tests por tipo
+    const testsPorTipo = {
+        'estres': [],
+        'ansiedad': [],
+        'depresion': [],
+        'burnout': [],
+        'otros': []
+    };
+    
+    tests.forEach(test => {
+        const nombre = test.nombre.toLowerCase();
+        if (nombre.includes('estrés') || nombre.includes('estres')) {
+            testsPorTipo.estres.push(test);
+        } else if (nombre.includes('ansiedad')) {
+            testsPorTipo.ansiedad.push(test);
+        } else if (nombre.includes('depresión') || nombre.includes('depresion')) {
+            testsPorTipo.depresion.push(test);
+        } else if (nombre.includes('burnout')) {
+            testsPorTipo.burnout.push(test);
+        } else {
+            testsPorTipo.otros.push(test);
+        }
+    });
+    
+    // Función para generar HTML de un test
+    const generarTestHTML = (test) => {
         const tiempoEstimado = Math.ceil(test.num_items / 2);
         let icon = 'fa-clipboard-list';
         const nombre = test.nombre.toLowerCase();
@@ -116,8 +141,8 @@ function renderTests(tests) {
             statusClass = 'completed';
         }
 
-        const buttonText = completado ? 'Ver Historial' : 'Iniciar Test';
-        const buttonIcon = completado ? 'fa-history' : 'fa-play';
+        const buttonText = completado ? 'Ver Detalles' : 'Iniciar Test';
+        const buttonIcon = completado ? 'fa-eye' : 'fa-play';
         
         // Ya no mostramos información de sugerencia (Sugerido por profesor)
         let infoSugerencia = '';
@@ -143,15 +168,44 @@ function renderTests(tests) {
                         data-name="${escapeHtml(test.nombre)}"
                         data-questions="${test.num_items}"
                         data-completado="${completado}"
+                        data-id-aplicacion="${test.id_aplicacion || ''}"
                         data-sugerencia="${test.id_sugerencia || ''}">
                         <i class="fas ${buttonIcon}"></i> ${buttonText}
                     </button>
                 </div>
             </div>
         `;
-    }).join('');
+    };
     
-    container.innerHTML = testsHTML;
+    // Generar HTML con secciones
+    let sectionsHTML = '';
+    
+    const secciones = [
+        { key: 'estres', titulo: 'Evaluaciones de Estrés', icon: 'fa-chart-bar' },
+        { key: 'ansiedad', titulo: 'Evaluaciones de Ansiedad', icon: 'fa-brain' },
+        { key: 'depresion', titulo: 'Evaluaciones de Depresión', icon: 'fa-heart-broken' },
+        { key: 'burnout', titulo: 'Evaluaciones de Burnout', icon: 'fa-fire' },
+        { key: 'otros', titulo: 'Otras Evaluaciones', icon: 'fa-clipboard-list' }
+    ];
+    
+    secciones.forEach(seccion => {
+        const testsSeccion = testsPorTipo[seccion.key];
+        if (testsSeccion.length > 0) {
+            sectionsHTML += `
+                <div class="test-section">
+                    <h2 class="section-title">
+                        <i class="fas ${seccion.icon}"></i>
+                        ${seccion.titulo}
+                    </h2>
+                    <div class="test-section-content">
+                        ${testsSeccion.map(generarTestHTML).join('')}
+                    </div>
+                </div>
+            `;
+        }
+    });
+    
+    container.innerHTML = sectionsHTML;
     
     // Agregar event listeners a los botones
     container.querySelectorAll('.iniciar-test').forEach(button => {
@@ -160,11 +214,18 @@ function renderTests(tests) {
             const testName = encodeURIComponent(button.dataset.name);
             const questions = button.dataset.questions;
             const completado = button.dataset.completado === 'true';
+            const idAplicacion = button.dataset.idAplicacion || '';
             const sugerencia = button.dataset.sugerencia || '';
             
-            // Si ya está completado, ir al historial; si no, iniciar test
+            // Si ya está completado, ir a detalles; si no, iniciar test
             if (completado) {
-                window.location.href = `?role=estudiante&page=historial`;
+                // Ir a la página de detalles con el id_aplicacion
+                if (idAplicacion) {
+                    window.location.href = `?role=estudiante&page=detalles&id=${idAplicacion}`;
+                } else {
+                    // Fallback al historial si no hay id_aplicacion
+                    window.location.href = `?role=estudiante&page=historial`;
+                }
             } else {
                 // Redirige al formulario con los parámetros del test seleccionado
                 let url = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
