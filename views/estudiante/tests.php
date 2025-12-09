@@ -231,7 +231,7 @@ function verificarTestCompletado() {
         // Obtener resultado de la sesión mediante PHP
         <?php if (isset($_SESSION['test_resultado'])): ?>
             const resultado = <?php echo json_encode($_SESSION['test_resultado']); ?>;
-            const mensaje = `✅ ${resultado.test_name} — ${resultado.resultado_nivel}`;
+            const mensaje = `${resultado.test_name} — ${resultado.resultado_nivel}`;
             mostrarNotificacion(mensaje, 'success', 'Ver Historial', function(){
                 window.location.href = '?role=estudiante&page=historial';
             });
@@ -250,7 +250,7 @@ function verificarTestCompletado() {
                     completedAt = completedAt.replace(' ', 'T');
                 }
 
-                const mensaje = `✅ ${name} — ${level}`;
+                const mensaje = `${name} — ${level}`;
                 mostrarNotificacion(mensaje, 'success', 'Ver Historial', function(){
                     window.location.href = '?role=estudiante&page=historial';
                 });

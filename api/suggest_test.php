@@ -12,22 +12,23 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!isset($_SESSION['id_usuario']) || !isset($_SESSION['user_role'])) {
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
     http_response_code(401);
     $response['message'] = 'No autenticado';
     echo json_encode($response);
     exit;
 }
 
-// Verificar que sea profesor
-if ($_SESSION['user_role'] !== 'docente') {
+// Verificar que sea profesor (puede ser 'docente' o 'Docente')
+$userRole = strtolower($_SESSION['user_role']);
+if ($userRole !== 'docente' && $userRole !== 'teacher') {
     http_response_code(403);
     $response['message'] = 'Solo los profesores pueden sugerir tests';
     echo json_encode($response);
     exit;
 }
 
-$profesorId = (int) $_SESSION['id_usuario'];
+$profesorId = (int) $_SESSION['user_id'];
 
 $payload = json_decode(file_get_contents('php://input'), true);
 $id_test = isset($payload['id_test']) ? (int)$payload['id_test'] : 0;
@@ -45,8 +46,7 @@ if (!$id_curso) {
 }
 
 try {
-    $db = new Database();
-    $conn = $db->connect();
+    $conn = Database::getInstance()->getConnection();
 
     // Validar que el profesor sea responsable del curso
     $stmt = $conn->prepare('SELECT COUNT(*) FROM Cursos WHERE id_curso = :id_curso AND id_profesor = :id_profesor');

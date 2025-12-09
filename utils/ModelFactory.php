@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../database/Database.php';
 /**
  * ModelFactory - Factory Method Pattern
  * 
@@ -22,6 +23,17 @@ class ModelFactory {
         $modelClass = self::getModelClass($role, $modelType);
         
         if ($modelClass && class_exists($modelClass)) {
+            // Inyectar la conexión PDO al constructor del modelo si espera una
+            try {
+                $conn = \Database::getInstance()->getConnection();
+            } catch (Exception $e) {
+                $conn = null;
+            }
+
+            if ($conn !== null) {
+                return new $modelClass($conn);
+            }
+
             return new $modelClass();
         }
         
@@ -117,6 +129,16 @@ class ModelFactory {
             
             if (file_exists($path)) {
                 require_once $path;
+                try {
+                    $conn = Database::getInstance()->getConnection();
+                } catch (Exception $e) {
+                    $conn = null;
+                }
+
+                if ($conn !== null) {
+                    return new $className($conn);
+                }
+
                 return new $className();
             }
         }

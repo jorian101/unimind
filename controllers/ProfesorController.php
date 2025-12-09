@@ -46,30 +46,33 @@ class ProfesorController {
         try {
             $conn = Database::getInstance()->getConnection();
             
-            // Obtener todos los cursos del profesor
-            $stmt = $conn->prepare('SELECT id_curso, nombre_curso FROM Cursos WHERE id_profesor = ?');
+            // Usar stored procedure para obtener cursos del profesor
+            $stmt = $conn->prepare('CALL sp_obtener_cursos_por_profesor(?)');
             $stmt->execute([$profesorId]);
             $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
             
             $top = [];
             foreach ($cursos as $curso) {
                 $id_curso = (int) $curso['id_curso'];
                 
-                // Promedio estrés
-                $sqlEstres = "SELECT AVG(a.puntuacion_total) as avg_score FROM Aplicaciones a
-                    JOIN Tests t ON a.id_test = t.id_test
-                    JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
-                    WHERE uc.id_curso = ? AND LOWER(t.nombre) LIKE '%estres%'";
+                // Promedio estrés - usar tipo_test del enum
+                $sqlEstres = "SELECT AVG(a.puntuacion_total) as avg_score 
+                             FROM Aplicaciones a
+                             JOIN Tests t ON a.id_test = t.id_test
+                             JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+                             WHERE uc.id_curso = ? AND t.tipo_test = 'estres' AND t.estado_test = 'activo'";
                 $stmt2 = $conn->prepare($sqlEstres);
                 $stmt2->execute([$id_curso]);
                 $avgEstres = $stmt2->fetchColumn();
                 $avgEstres = $avgEstres !== null ? round((float)$avgEstres, 1) : null;
                 
                 // Promedio ansiedad
-                $sqlAns = "SELECT AVG(a.puntuacion_total) as avg_score FROM Aplicaciones a
-                    JOIN Tests t ON a.id_test = t.id_test
-                    JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
-                    WHERE uc.id_curso = ? AND LOWER(t.nombre) LIKE '%ansiedad%'";
+                $sqlAns = "SELECT AVG(a.puntuacion_total) as avg_score 
+                          FROM Aplicaciones a
+                          JOIN Tests t ON a.id_test = t.id_test
+                          JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+                          WHERE uc.id_curso = ? AND t.tipo_test = 'ansiedad' AND t.estado_test = 'activo'";
                 $stmt2 = $conn->prepare($sqlAns);
                 $stmt2->execute([$id_curso]);
                 $avgAns = $stmt2->fetchColumn();
@@ -100,6 +103,7 @@ class ProfesorController {
 
     /**
      * API: GET métricas completas de profesor
+     * Utiliza stored procedures donde sea posible y mantiene queries optimizadas
      */
     public function handleApiMetrics(int $profesorId): void {
         header('Content-Type: application/json');
@@ -108,10 +112,11 @@ class ProfesorController {
             $conn = Database::getInstance()->getConnection();
             $response = ['success' => false, 'message' => '', 'courses' => []];
             
-            // Obtener cursos del profesor
-            $stmt = $conn->prepare('SELECT id_curso, nombre_curso FROM Cursos WHERE id_profesor = ?');
+            // Obtener cursos del profesor usando stored procedure
+            $stmt = $conn->prepare('CALL sp_obtener_cursos_por_profesor(?)');
             $stmt->execute([$profesorId]);
             $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
 
             foreach ($cursos as $curso) {
                 $id_curso = (int) $curso['id_curso'];
@@ -122,66 +127,49 @@ class ProfesorController {
                 $totalStudents = (int) $stmt->fetchColumn();
 
                 // Promedio de tests de estrés/ansiedad
-                $sqlAvg = "SELECT AVG(a.puntuacion_total) as avg_score FROM Aplicaciones a
-                       JOIN Tests t ON a.id_test = t.id_test
-                       JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
-                       WHERE uc.id_curso = ? AND t.tipo_test IN ('estres','ansiedad') AND t.estado_test = 'activo'";
+                $sqlAvg = "SELECT AVG(a.puntuacion_total) as avg_score 
+                          FROM Aplicaciones a
+                          JOIN Tests t ON a.id_test = t.id_test
+                          JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+                          WHERE uc.id_curso = ? 
+                          AND t.tipo_test IN ('estres','ansiedad') 
+                          AND t.estado_test = 'activo'";
                 $stmt = $conn->prepare($sqlAvg);
                 $stmt->execute([$id_curso]);
                 $avgScore = $stmt->fetchColumn();
                 $avgScore = $avgScore !== null ? round((float)$avgScore, 1) : null;
 
-                // Distribución por nivel
-                $sqlDist = "SELECT a.resultado_nivel as nivel, COUNT(*) as cnt FROM Aplicaciones a
-                        JOIN Tests t ON a.id_test = t.id_test
-                        JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
-                        WHERE uc.id_curso = ? AND t.tipo_test IN ('estres','ansiedad') AND t.estado_test = 'activo'
-                        GROUP BY a.resultado_nivel";
-                $stmt = $conn->prepare($sqlDist);
+                // Distribución por nivel usando stored procedure
+                $stmt = $conn->prepare('CALL sp_obtener_distribucion_riesgo_por_curso(?)');
                 $stmt->execute([$id_curso]);
                 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
 
                 $distribution = ['Bajo' => 0, 'Moderado' => 0, 'Alto' => 0];
                 foreach ($rows as $r) {
-                    $nivel = $r['nivel'] ?? '';
-                    $cnt = (int) $r['cnt'];
-                    if (stripos($nivel, 'bajo') !== false) $distribution['Bajo'] += $cnt;
-                    elseif (stripos($nivel, 'moderado') !== false) $distribution['Moderado'] += $cnt;
-                    elseif (stripos($nivel, 'alto') !== false) $distribution['Alto'] += $cnt;
-                }
-
-                // Si no hay distribución por texto, clasificar por puntuaciones
-                $totalDist = array_sum($distribution);
-                if ($totalDist === 0 && $totalStudents > 0) {
-                    $sqlScoreDist = "SELECT a.puntuacion_total as score FROM Aplicaciones a
-                                      JOIN Tests t ON a.id_test = t.id_test
-                                      JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
-                                      WHERE uc.id_curso = ? AND t.tipo_test IN ('estres','ansiedad') AND t.estado_test = 'activo'";
-                    $stmt = $conn->prepare($sqlScoreDist);
-                    $stmt->execute([$id_curso]);
-                    $scores = $stmt->fetchAll(PDO::FETCH_COLUMN);
-                    foreach ($scores as $s) {
-                        $s = (float)$s;
-                        if ($s < 30) $distribution['Bajo']++;
-                        elseif ($s < 70) $distribution['Moderado']++;
-                        else $distribution['Alto']++;
+                    $nivel = $r['nivel_riesgo'] ?? '';
+                    $cnt = (int) $r['conteo'];
+                    if (stripos($nivel, 'bajo') !== false || stripos($nivel, 'mínimo') !== false) {
+                        $distribution['Bajo'] += $cnt;
+                    } elseif (stripos($nivel, 'moderado') !== false || stripos($nivel, 'medio') !== false) {
+                        $distribution['Moderado'] += $cnt;
+                    } elseif (stripos($nivel, 'alto') !== false || stripos($nivel, 'severo') !== false) {
+                        $distribution['Alto'] += $cnt;
                     }
                 }
 
-                // Series temporal (últimos 12 días)
-                $sqlSeries = "SELECT DATE(a.fecha_aplicacion) as fecha, AVG(a.puntuacion_total) as avg_score FROM Aplicaciones a
-                          JOIN Tests t ON a.id_test = t.id_test
-                          JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
-                          WHERE uc.id_curso = ? AND t.tipo_test IN ('estres','ansiedad') AND t.estado_test = 'activo'
-                          GROUP BY DATE(a.fecha_aplicacion)
-                          ORDER BY DATE(a.fecha_aplicacion) ASC
-                          LIMIT 12";
-                $stmt = $conn->prepare($sqlSeries);
+                // Series temporal usando stored procedure
+                $stmt = $conn->prepare('CALL sp_obtener_evolucion_temporal_por_curso(?)');
                 $stmt->execute([$id_curso]);
                 $seriesRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+                
                 $series = [];
                 foreach ($seriesRows as $sr) {
-                    $series[] = ['date' => $sr['fecha'], 'value' => (float) round($sr['avg_score'],1)];
+                    $series[] = [
+                        'date' => $sr['etiqueta_temporal'], 
+                        'value' => (float) round($sr['promedio_puntuacion'], 1)
+                    ];
                 }
 
                 $response['courses'][] = [

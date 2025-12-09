@@ -35,17 +35,26 @@ class DashboardModel {
         return $resultados;
     }
     
-    public function sugerirTestACurso($id_curso, $id_test) {
+    public function sugerirTestACurso($id_curso, $id_test, $id_profesor) {
         try {
-            $stmt = $this->conn->prepare("CALL sp_sugerir_test_a_curso(:p_id_curso, :p_id_test)");
+            // Usar sp_sugerir_test que es el procedimiento correcto
+            $stmt = $this->conn->prepare("CALL sp_sugerir_test(:p_id_curso, :p_id_test, :p_id_profesor)");
             $stmt->bindParam(':p_id_curso', $id_curso, PDO::PARAM_INT);
             $stmt->bindParam(':p_id_test', $id_test, PDO::PARAM_INT);
+            $stmt->bindParam(':p_id_profesor', $id_profesor, PDO::PARAM_INT);
             $stmt->execute();
+            $resultado = $stmt->fetch();
             $stmt->closeCursor();
-            return true;
+            return [
+                'success' => true,
+                'estudiantes_afectados' => $resultado['estudiantes_afectados'] ?? 0
+            ];
         } catch(PDOException $e) {
-            // Manejar error (ej. log)
-            return false;
+            error_log("Error al sugerir test: " . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
         }
     }
 
@@ -86,19 +95,19 @@ class DashboardModel {
     public function getAllTestsConDetalles() {
         try {
             // Obtener tests con información del tipo de escala
-            // Intentar ambas columnas posibles: id_tipo_escala y tipo_escala
             $query = "SELECT 
                         t.id_test,
                         t.nombre,
                         t.descripcion,
                         t.num_items,
+                        t.tipo_test,
                         t.created_at,
                         t.updated_at,
-                        COALESCE(t.id_tipo_escala, t.tipo_escala) as id_tipo_escala,
-                        COALESCE(te.nombre, te.nombre_escala) as nombre_escala,
+                        t.id_tipo_escala,
+                        te.nombre as nombre_escala,
                         te.descripcion as descripcion_escala
                       FROM Tests t
-                      LEFT JOIN Tipos_Escalas te ON COALESCE(t.id_tipo_escala, t.tipo_escala) = te.id_tipo_escala
+                      LEFT JOIN Tipos_Escalas te ON t.id_tipo_escala = te.id_tipo_escala
                       ORDER BY t.nombre ASC";
             
             $stmt = $this->conn->prepare($query);
@@ -109,9 +118,9 @@ class DashboardModel {
             foreach ($tests as &$test) {
                 $test['opciones'] = [];
                 
-                if ($test['id_tipo_escala']) {
+                if (!empty($test['id_tipo_escala'])) {
                     try {
-                        // Intentar obtener opciones usando la tabla de mapeo TiposEscala_Opciones
+                        // Obtener opciones usando la tabla de mapeo TiposEscala_Opciones
                         $queryOpciones = "SELECT 
                                             o.id_opcion,
                                             o.texto_opcion,
@@ -124,37 +133,9 @@ class DashboardModel {
                         $stmtOpciones = $this->conn->prepare($queryOpciones);
                         $stmtOpciones->bindParam(':id_tipo_escala', $test['id_tipo_escala'], PDO::PARAM_INT);
                         $stmtOpciones->execute();
-                        $opciones = $stmtOpciones->fetchAll(PDO::FETCH_ASSOC);
-                        
-                        if ($opciones && count($opciones) > 0) {
-                            $test['opciones'] = $opciones;
-                        }
+                        $test['opciones'] = $stmtOpciones->fetchAll(PDO::FETCH_ASSOC);
                     } catch (PDOException $e) {
-                        // Si falla, intentar obtener opciones desde el campo opciones_ids en Tipos_Escalas
-                        try {
-                            $queryIds = "SELECT opciones_ids FROM Tipos_Escalas WHERE id_tipo_escala = :id_tipo_escala";
-                            $stmtIds = $this->conn->prepare($queryIds);
-                            $stmtIds->bindParam(':id_tipo_escala', $test['id_tipo_escala'], PDO::PARAM_INT);
-                            $stmtIds->execute();
-                            $result = $stmtIds->fetch(PDO::FETCH_ASSOC);
-                            
-                            if ($result && !empty($result['opciones_ids'])) {
-                                $ids = array_filter(array_map('trim', explode(',', $result['opciones_ids'])));
-                                if (!empty($ids)) {
-                                    $in = implode(',', array_map('intval', $ids));
-                                    $queryOpcionesDirectas = "SELECT id_opcion, texto_opcion, valor_puntuacion 
-                                                              FROM Opciones_Respuesta 
-                                                              WHERE id_opcion IN ({$in}) 
-                                                              ORDER BY valor_puntuacion ASC";
-                                    $stmtOpcionesDirectas = $this->conn->prepare($queryOpcionesDirectas);
-                                    $stmtOpcionesDirectas->execute();
-                                    $test['opciones'] = $stmtOpcionesDirectas->fetchAll(PDO::FETCH_ASSOC);
-                                }
-                            }
-                        } catch (PDOException $e2) {
-                            // Si ambos métodos fallan, dejar opciones vacías
-                            error_log("No se pudieron obtener opciones para el test {$test['id_test']}: " . $e2->getMessage());
-                        }
+                        error_log("Error al obtener opciones para el test {$test['id_test']}: " . $e->getMessage());
                     }
                 }
             }
