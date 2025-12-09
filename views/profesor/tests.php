@@ -195,6 +195,11 @@ function renderTests(tests) {
                     </div>
                 </td>
                 <td class="tests-table-cell">
+                    <span class="tipo-badge tipo-${test.tipo_test || 'estres'}">
+                        ${test.tipo_test === 'ansiedad' ? 'Ansiedad' : 'Estrés'}
+                    </span>
+                </td>
+                <td class="tests-table-cell">
                     <span class="items-badge">
                         <i class="fas fa-list-ol"></i>
                         ${test.num_items}
@@ -227,6 +232,7 @@ function renderTests(tests) {
             <thead class="tests-table-head">
                 <tr class="tests-table-row">
                     <th class="tests-table-header">Test</th>
+                    <th class="tests-table-header">Tipo</th>
                     <th class="tests-table-header">Items</th>
                     <th class="tests-table-header">Escala</th>
                     <th class="tests-table-header">Creado</th>

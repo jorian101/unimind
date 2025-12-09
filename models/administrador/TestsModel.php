@@ -226,19 +226,20 @@ class TestsModel extends BaseModel {
     /**
      * Crear un nuevo test
      */
-    public function createTest($nombre, $descripcion, $num_items, $tipo_escala = 1) {
+    public function createTest($nombre, $descripcion, $num_items, $tipo_escala = 1, $tipo_test = 'estres') {
         try {
             // Some installations have the column named `id_tipo_escala` (schema),
             // others use `tipo_escala` (newer migrations). Use the existing
             // column name in the DB by inserting into `id_tipo_escala` which
             // is the column defined in `database/db.sql`.
-            $query = "INSERT INTO {$this->table_tests} (nombre, descripcion, num_items, id_tipo_escala, created_at, updated_at) 
-                     VALUES (:nombre, :descripcion, :num_items, :tipo_escala, NOW(), NOW())";
+            $query = "INSERT INTO {$this->table_tests} (nombre, descripcion, num_items, id_tipo_escala, tipo_test, created_at, updated_at) 
+                     VALUES (:nombre, :descripcion, :num_items, :tipo_escala, :tipo_test, NOW(), NOW())";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':nombre', $nombre);
             $stmt->bindParam(':descripcion', $descripcion);
             $stmt->bindParam(':num_items', $num_items, PDO::PARAM_INT);
             $stmt->bindParam(':tipo_escala', $tipo_escala, PDO::PARAM_INT);
+            $stmt->bindParam(':tipo_test', $tipo_test);
             
             if ($stmt->execute()) {
                 return $this->conn->lastInsertId();
@@ -254,7 +255,7 @@ class TestsModel extends BaseModel {
     /**
      * Actualizar un test existente
      */
-    public function updateTest($id_test, $nombre, $descripcion, $num_items, $tipo_escala = 1) {
+    public function updateTest($id_test, $nombre, $descripcion, $num_items, $tipo_escala = 1, $tipo_test = 'estres') {
         try {
             // Similar compatibility change for UPDATE: write into `id_tipo_escala`.
             $query = "UPDATE {$this->table_tests} 
@@ -262,6 +263,7 @@ class TestsModel extends BaseModel {
                          descripcion = :descripcion, 
                          num_items = :num_items,
                          id_tipo_escala = :tipo_escala,
+                         tipo_test = :tipo_test,
                          updated_at = NOW() 
                      WHERE id_test = :id_test";
             $stmt = $this->conn->prepare($query);
@@ -270,6 +272,7 @@ class TestsModel extends BaseModel {
             $stmt->bindParam(':descripcion', $descripcion);
             $stmt->bindParam(':num_items', $num_items, PDO::PARAM_INT);
             $stmt->bindParam(':tipo_escala', $tipo_escala, PDO::PARAM_INT);
+            $stmt->bindParam(':tipo_test', $tipo_test);
             
             return $stmt->execute();
         } catch (PDOException $e) {

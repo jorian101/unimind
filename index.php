@@ -98,6 +98,10 @@ if ($currentRole === 'autenticacion' && $currentPage === 'login') {
     <!-- PWA Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
+            // Flag global para evitar múltiples recargas
+            let refreshing = false;
+            let updateConfirmed = false;
+            
             window.addEventListener('load', () => {
                 // Registrar SW usando la base dinámica para funcionar en distintos despliegues
                 navigator.serviceWorker.register('<?= $base ?>/sw.js')
@@ -108,10 +112,14 @@ if ($currentRole === 'autenticacion' && $currentPage === 'login') {
                             const newWorker = registration.installing;
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // Opcional: mostrar notificación al usuario
-                                    if (confirm('Nueva versión de UniMind disponible. ¿Deseas actualizar?')) {
-                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
-                                        window.location.reload();
+                                    // Solo mostrar el diálogo si no se ha confirmado ya
+                                    if (!updateConfirmed && !refreshing) {
+                                        if (confirm('Nueva versión de UniMind disponible. ¿Deseas actualizar?')) {
+                                            updateConfirmed = true;
+                                            refreshing = true;
+                                            newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                            // No recargar inmediatamente, dejar que controllerchange lo maneje
+                                        }
                                     }
                                 }
                             });
@@ -123,7 +131,6 @@ if ($currentRole === 'autenticacion' && $currentPage === 'login') {
             });
             
             // Recargar página cuando el SW se actualiza
-            let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
                     refreshing = true;
