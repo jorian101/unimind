@@ -38,10 +38,11 @@
 /* ======== Actions Section ======== */
 .cursos-escuelas-actions {
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-left: 0.25rem;
 }
 
 /* ======== Buttons ======== */
@@ -90,8 +91,8 @@
 .cu-columns {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 1.75rem;
+  margin-bottom: 1.75rem;
   align-items: stretch;
 }
 
@@ -121,7 +122,7 @@
 /* Search and filter group */
 .search-filter-group {
   display: flex;
-  gap: 0.625rem;
+  gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
 }
@@ -129,7 +130,7 @@
 /* Inline search box with icon */
 .search-box-inline {
   position: relative;
-  min-width: 200px;
+  min-width: 240px;
 }
 
 .search-box-inline i {
@@ -148,8 +149,8 @@
 
 /* Filter select dropdowns */
 .filter-select {
-  min-width: 180px;
-  padding: 0.55rem 0.85rem;
+  min-width: 220px;
+  padding: 0.6rem 0.95rem;
 }
 
 /* ======== Tables ======== */
@@ -624,6 +625,17 @@ table.cu-table tbody tr:last-child td {
 
   .cu-columns {
     gap: 1.875rem;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .cu-column-escuelas,
+  .cu-column-cursos {
+    width: 48%;
+  }
+
+  .search-filter-group {
+    justify-content: flex-end;
   }
 }
 
@@ -641,6 +653,16 @@ table.cu-table tbody tr:last-child td {
 
   .cu-columns {
     gap: 2rem;
+  }
+
+  .cu-columns {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .cu-column-escuelas,
+  .cu-column-cursos {
+    width: 48%;
   }
 }
 

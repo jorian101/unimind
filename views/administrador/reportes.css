@@ -31,22 +31,42 @@
 .summary-section .section-title,
 .riesgo-section .section-title,
 .escuelas-section .section-title,
-.evolucion-section .section-title { color:var(--pri-500); font-weight:600; margin-bottom:0.75rem }
+.evolucion-section .section-title { 
+  color: var(--pri-500); 
+  font-weight: 600; 
+  margin-bottom: 0.75rem;
+}
+
+.summary-section,
+.riesgo-section,
+.escuelas-section,
+.evolucion-section {
+  margin-bottom: 2rem;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+}
 
 /* Use a responsive grid that fills available width */
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 1rem;
-  width:100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 .card-resumen {
-  background:var(--bg-100);
-  border:1px solid var(--bg-500);
-  border-radius:12px;
-  padding:14px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.04);
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background: var(--bg-100);
+  border: 1px solid var(--bg-500);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .card-value { font-size:1.6rem; color:var(--pri-500); font-weight:700; display:flex; gap:0.6rem; align-items:center }
 .card-value i { color:var(--acc-700); font-size:1.1rem }
@@ -94,41 +114,57 @@
 
 /* Small phones (<=374px) */
 @media (max-width: 374px) {
-  .reportes-container { padding:0.6rem; margin: 12px auto; width: calc(100% - 24px); }
-  .grafico-container { height:220px }
-  .grafico-linea-container { height:200px }
-  .card-value { font-size:1.1rem }
-  .riesgo-grid { flex-direction:column }
-  .niveles-aside { width:100%; }
+  .reportes-container { padding: 0.6rem; margin: 12px auto; width: calc(100% - 24px); }
+  .summary-grid { 
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .grafico-container { height: 220px }
+  .grafico-linea-container { height: 200px }
+  .card-value { font-size: 1.1rem }
+  .riesgo-grid { flex-direction: column }
+  .niveles-aside { width: 100%; }
 }
 
 /* Narrow phones (375-390) */
 @media (min-width:375px) and (max-width:390px) {
-  .reportes-container { padding:0.8rem }
-  .summary-grid { gap:0.6rem }
-  .grafico-container { height:260px }
-  .grafico-linea-container { height:220px }
+  .reportes-container { padding: 0.8rem }
+  .summary-grid { 
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+  }
+  .grafico-container { height: 260px }
+  .grafico-linea-container { height: 220px }
 }
 
 /* Small tablets / large phones (391-767) */
 @media (min-width:391px) and (max-width:767px) {
-  .summary-grid { gap:0.8rem }
-  .riesgo-grid { flex-direction:column }
-  .grafico-container { height:300px }
-  .grafico-linea-container { height:280px }
-  .niveles-aside { width:100%; }
+  .summary-grid { 
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+  }
+  .riesgo-grid { flex-direction: column }
+  .grafico-container { height: 300px }
+  .grafico-linea-container { height: 280px }
+  .niveles-aside { width: 100%; }
 }
 
 /* Tablets and small desktops (768-1023) */
 @media (min-width:768px) and (max-width:1023px) {
-  .summary-grid { gap:1rem }
+  .summary-grid { 
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
   .grafico-container { height:320px }
   .reportes-container { padding:1.25rem; width: calc(100% - 48px); margin-left:0 }
 }
 
 /* Desktop (1024-1439) - leave space for sidebar */
 @media (min-width:1024px) and (max-width:1439px) {
-  .summary-grid { grid-template-columns: repeat(4, 1fr) }
+  .summary-grid { 
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
   .grafico-linea-container { height:360px }
   .reportes-container { padding:1.5rem }
 }
@@ -136,6 +172,10 @@
 /* Large screens (>=1440) */
 @media (min-width:1440px) {
   .reportes-container { padding:2rem }
+  .summary-grid { 
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+  }
   .grafico-linea-container { height:420px }
 }
 
