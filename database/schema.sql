@@ -1,1 +1,0 @@
--- Estructura de tablas del sistema

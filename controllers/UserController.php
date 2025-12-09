@@ -278,8 +278,8 @@ class UserController {
                 'apellido' => $params['nuevo_apellido'],
                 'cargo' => $params['nuevo_cargo'],
                 'password' => $params['nuevo_password'],
-                'fecha_nacimiento' => $_POST['nuevo_fecha_nacimiento'] ?: null,
-                'genero' => $_POST['nuevo_genero'] ?: null,
+                'fecha_nacimiento' => $_POST['nuevo_fecha_nacimiento'] ?? null,
+                'genero' => $_POST['nuevo_genero'] ?? null,
                 'id_escuela' => isset($_POST['nuevo_escuela']) && $_POST['nuevo_escuela'] !== '' 
                     ? intval($_POST['nuevo_escuela']) : null,
                 'id_curso' => isset($_POST['nuevo_curso']) && $_POST['nuevo_curso'] !== '' 
@@ -398,14 +398,4 @@ class UserController {
             }
         }
     }
-}
-
-// Si es petición POST, procesar y devolver JSON
-// (Mantiene compatibilidad con código antiguo)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !defined('NO_AUTO_HANDLE')) {
-    $controller = new UserController();
-    $result = $controller->handlePost();
-    header('Content-Type: application/json');
-    echo json_encode($result);
-    exit;
 }
