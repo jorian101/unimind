@@ -188,7 +188,6 @@ INSERT INTO `Usuarios` (`nombre`, `apellido`, `codigo_usuario`, `password`, `car
 ('Pablo', 'Santos', 'EST014', 'est202', 'Estudiante', 'Masculino', '2005-06-18')
 ON DUPLICATE KEY UPDATE `nombre`=VALUES(`nombre`), `apellido`=VALUES(`apellido`), `codigo_usuario`=VALUES(`codigo_usuario`), `password`=VALUES(`password`), `cargo`=VALUES(`cargo`), `genero`=VALUES(`genero`), `fecha_nacimiento`=VALUES(`fecha_nacimiento`);
 
--- Estudiantes (Creamos 10 para la demo)
 INSERT INTO `Usuarios` (`id_usuario`, `nombre`, `apellido`, `codigo_usuario`, `password`, `cargo`, `genero`, `fecha_nacimiento`) VALUES
 (4, 'Juan', 'Pérez', 'EST001', 'est123', 'Estudiante', 'Masculino', '2004-05-10'),
 (5, 'Lucía', 'Gómez', 'EST002', 'est123', 'Estudiante', 'Femenino', '2004-08-22'),
@@ -202,9 +201,7 @@ INSERT INTO `Usuarios` (`id_usuario`, `nombre`, `apellido`, `codigo_usuario`, `p
 (13, 'Laura', 'Meza', 'EST010', 'est123', 'Estudiante', 'Femenino', '2004-06-05')
 ON DUPLICATE KEY UPDATE `nombre`=VALUES(`nombre`), `apellido`=VALUES(`apellido`), `codigo_usuario`=VALUES(`codigo_usuario`), `password`=VALUES(`password`), `cargo`=VALUES(`cargo`), `genero`=VALUES(`genero`), `fecha_nacimiento`=VALUES(`fecha_nacimiento`);
 
--- 1.4 Tests
 
--- Más tests, algunos inactivos y personalizados
 INSERT INTO `Tests` (`id_test`, `nombre`, `descripcion`, `num_items`, `tipo_test`, `estado_test`) VALUES
 (1, 'Test de Estrés Académico', 'Mide el nivel de sobrecarga percibida.', 5, 'estres', 'activo'),
 (2, 'Test de Ansiedad General', 'Evalúa síntomas psicofisiológicos de ansiedad.', 5, 'ansiedad', 'activo'),
@@ -214,12 +211,7 @@ INSERT INTO `Tests` (`id_test`, `nombre`, `descripcion`, `num_items`, `tipo_test
 (6, 'Test Personalizado Docente', 'Test creado por docente.', 3, 'estres', 'activo')
 ON DUPLICATE KEY UPDATE `nombre`=VALUES(`nombre`), `descripcion`=VALUES(`descripcion`), `num_items`=VALUES(`num_items`), `tipo_test`=VALUES(`tipo_test`), `estado_test`=VALUES(`estado_test`);
 
--- ----------------------------------------------------------------
--- 2. TABLAS DEPENDIENTES (NIVEL 1)
--- ----------------------------------------------------------------
 
--- 2.1 Items (Preguntas de los Tests)
--- Items Test Estrés (ID 1)
 INSERT INTO `Items` (`id_item`, `id_test`, `texto_item`, `subescala`, `orden`) VALUES
 (1, 1, 'Me siento abrumado por la cantidad de tareas.', 'Sobrecarga', 1),
 (2, 1, 'Tengo dificultades para concentrarme en clase.', 'Cognitivo', 2),
@@ -228,7 +220,6 @@ INSERT INTO `Items` (`id_item`, `id_test`, `texto_item`, `subescala`, `orden`) V
 (5, 1, 'Duermo menos de lo necesario por estudiar.', 'Físico', 5)
 ON DUPLICATE KEY UPDATE `id_test`=VALUES(`id_test`), `texto_item`=VALUES(`texto_item`), `subescala`=VALUES(`subescala`), `orden`=VALUES(`orden`);
 
--- Items Test Ansiedad (ID 2)
 INSERT INTO `Items` (`id_item`, `id_test`, `texto_item`, `subescala`, `orden`) VALUES
 (6, 2, 'Siento nerviosismo o agitación interior.', 'Emocional', 1),
 (7, 2, 'Tengo miedo a que suceda algo terrible.', 'Cognitivo', 2),
@@ -237,9 +228,7 @@ INSERT INTO `Items` (`id_item`, `id_test`, `texto_item`, `subescala`, `orden`) V
 (10, 2, 'Me cuesta relajarme incluso en tiempo libre.', 'Conductual', 5)
 ON DUPLICATE KEY UPDATE `id_test`=VALUES(`id_test`), `texto_item`=VALUES(`texto_item`), `subescala`=VALUES(`subescala`), `orden`=VALUES(`orden`);
 
--- 2.2 Cursos (Vinculan Escuela + Profesor)
 
--- Más cursos en distintas escuelas y profesores
 INSERT INTO `Cursos` (`id_curso`, `nombre_curso`, `id_escuela`, `id_profesor`) VALUES
 (1, 'Matemáticas I', 1, 2),
 (2, 'Programación Web', 1, 2),
@@ -253,10 +242,8 @@ INSERT INTO `Cursos` (`id_curso`, `nombre_curso`, `id_escuela`, `id_profesor`) V
 (10, 'Neuropsicología', 2, 3)
 ON DUPLICATE KEY UPDATE `nombre_curso`=VALUES(`nombre_curso`), `id_escuela`=VALUES(`id_escuela`), `id_profesor`=VALUES(`id_profesor`);
 
--- ----------------------------------------------------------------
 
 
--- Más relaciones usuario-curso (estudiantes distribuidos en todos los cursos)
 INSERT IGNORE INTO `Usuario_Curso` (`id_usuario`, `id_curso`) VALUES
 (4, 1), (5, 1), (6, 1), (7, 1), (8, 1), (18, 1), (19, 1), (20, 1), (21, 1), (22, 1),
 (9, 2), (10, 2), (11, 2), (12, 2), (13, 2), (23, 2), (24, 2), (25, 2), (26, 2), (27, 2),
@@ -269,9 +256,7 @@ INSERT IGNORE INTO `Usuario_Curso` (`id_usuario`, `id_curso`) VALUES
 (14, 9), (15, 9), (16, 9), (17, 9), (18, 9), (19, 9), (20, 9), (21, 9), (22, 9), (23, 9),
 (24, 10), (25, 10), (26, 10), (27, 10), (28, 10), (29, 10), (30, 10), (31, 10), (32, 10), (33, 10);
 
--- 3.1.1 Usuario_Escuela (Vinculación de estudiantes con escuelas)
 
--- Más relaciones usuario-escuela (estudiantes en varias escuelas, algunos con doble vinculación)
 INSERT IGNORE INTO `Usuario_Escuela` (`id_usuario`, `id_escuela`) VALUES
 (4, 1), (4, 2),
 (5, 1), (5, 4),
@@ -323,7 +308,6 @@ INSERT IGNORE INTO `Usuario_Escuela` (`id_usuario`, `id_escuela`) VALUES
 (55, 6), (55, 3),
 (56, 7), (56, 4),
 (57, 1), (57, 5);
--- Más aplicaciones históricas (años 2023, 2022, 2021)
 INSERT INTO `Aplicaciones` (`id_usuario`, `id_test`, `client_uuid`, `fecha_aplicacion`, `puntuacion_total`, `resultado_nivel`) VALUES
 (18, 2, 'uuid-sim-051', '2023-08-01', 10, 'Moderado'),
 (19, 4, 'uuid-sim-052', '2023-07-15', 12, 'Alto'),
@@ -360,7 +344,6 @@ INSERT INTO `Aplicaciones` (`id_usuario`, `id_test`, `client_uuid`, `fecha_aplic
 (50, 2, 'uuid-sim-083', '2021-01-20', 12, 'Alto')
 ON DUPLICATE KEY UPDATE `client_uuid`=VALUES(`client_uuid`), `fecha_aplicacion`=VALUES(`fecha_aplicacion`), `puntuacion_total`=VALUES(`puntuacion_total`), `resultado_nivel`=VALUES(`resultado_nivel`);
 
--- 3.2 Sugerencias (Profesores sugiriendo tests a estudiantes)
 -- Nuevo diseño: cada sugerencia es por estudiante individual
 -- profesores_ids y cursos_ids son arrays JSON para rastrear múltiples orígenes
 
@@ -567,5 +550,24 @@ INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uu
 (33, 5, 1, 'uuid-033', '2025-12-02 08:15:00', 10, 'Moderado'),
 (34, 10, 2, 'uuid-034', '2025-12-02 12:45:00', 2, 'Bajo')
 ON DUPLICATE KEY UPDATE client_uuid=VALUES(client_uuid), puntuacion_total=VALUES(puntuacion_total), resultado_nivel=VALUES(resultado_nivel), fecha_aplicacion=VALUES(fecha_aplicacion);
+
+-- Notificaciones de ejemplo para usuarios
+INSERT INTO `Notificaciones` (`id_usuario`, `titulo`, `mensaje`, `tipo`, `estado`, `fecha_creacion`) VALUES
+(4, 'Bienvenido', '¡Hola Juan! Tienes un nuevo test sugerido.', 'info', 'nueva', NOW()),
+(4, 'Test pendiente', 'Tienes un test pendiente de completar antes del viernes.', 'warning', 'nueva', NOW()),
+(4, 'Test completado', '¡Felicidades! Has completado el Test de Estrés.', 'success', 'leida', NOW()),
+(5, 'Recordatorio', 'Recuerda completar el Test de Estrés Académico.', 'warning', 'nueva', NOW()),
+(5, 'Mensaje del docente', 'Tu profesor ha dejado un comentario en tu test.', 'info', 'nueva', NOW()),
+(6, 'Resultado disponible', 'Tu resultado del Test de Ansiedad ya está listo.', 'success', 'nueva', NOW()),
+(6, 'Actualización de curso', 'Se ha actualizado el material del curso Programación Web.', 'info', 'nueva', NOW()),
+(2, 'Nuevo curso asignado', 'Has sido asignado como docente en Matemáticas I.', 'info', 'nueva', NOW()),
+(2, 'Aviso de sistema', 'El sistema estará en mantenimiento el sábado.', 'warning', 'nueva', NOW()),
+(1, 'Actualización', 'Se han actualizado los datos de la plataforma.', 'info', 'nueva', NOW()),
+(1, 'Alerta de seguridad', 'Se detectó un inicio de sesión desde un nuevo dispositivo.', 'error', 'nueva', NOW()),
+(7, 'Bienvenida', '¡Bienvenida Sofía! Explora los recursos disponibles.', 'info', 'nueva', NOW()),
+(8, 'Test sugerido', 'Se te ha sugerido el Test de Resiliencia.', 'info', 'nueva', NOW()),
+(9, 'Cita agendada', 'Tu cita con orientación está confirmada para el lunes.', 'success', 'nueva', NOW()),
+(10, 'Material nuevo', 'Hay nuevo material disponible en tu curso de Estadística.', 'info', 'nueva', NOW())
+ON DUPLICATE KEY UPDATE `mensaje`=VALUES(`mensaje`), `tipo`=VALUES(`tipo`), `estado`=VALUES(`estado`), `fecha_creacion`=VALUES(`fecha_creacion`);
 
 -- End of additional seed data

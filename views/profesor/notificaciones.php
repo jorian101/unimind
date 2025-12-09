@@ -1,28 +1,21 @@
 <?php
 require_once dirname(__DIR__) . '/pageHeader.php';
 renderPageHeader();
-// Construir base URL para enlaces a assets
 $baseUrl = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-
-// Conexión a la base de datos
+echo '<link rel="stylesheet" href="' . $baseUrl . '/public/css/theme.css">';
+echo '<link rel="stylesheet" href="' . $baseUrl . '/views/administrador/notificaciones.css">';
 require_once dirname(__DIR__, 2) . '/database/Database.php';
 $db = Database::getInstance()->getConnection();
-
-// Obtener el id_usuario del administrador (puedes ajustar esto según tu sistema de sesión)
 if (session_status() === PHP_SESSION_NONE) {
   session_start();
 }
 $id_usuario = isset($_SESSION['id_usuario']) ? $_SESSION['id_usuario'] : null;
-
-// Consultar notificaciones del usuario actual (admin)
 $notificaciones = [];
 if ($id_usuario) {
   $stmt = $db->prepare('SELECT * FROM Notificaciones WHERE id_usuario = ? ORDER BY fecha_creacion DESC');
   $stmt->execute([$id_usuario]);
   $notificaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-
-// Calcular estadísticas
 $total = count($notificaciones);
 $no_leidas = 0;
 $citas = 0;
@@ -35,26 +28,17 @@ foreach ($notificaciones as $n) {
   if (stripos($n['tipo'], 'evaluacion') !== false) $evaluaciones++;
 }
 ?>
-<link rel="stylesheet" href="<?php echo $baseUrl; ?>/public/css/theme.css">
-<link rel="stylesheet" href="<?php echo $baseUrl; ?>/views/administrador/notificaciones.css">
-<!-- Vista de Notificaciones - Administrador -->
 <div class="notificaciones-container">
-  
-  <!-- Page Header -->
   <div class="notif-page-header">
     <div class="notif-header-content">
-      <h1 class="notif-page-title">
-        Notificaciones
-      </h1>
-      <p class="notif-page-subtitle">Panel de Control - Monitoreo de Bienestar Estudiantil</p>
+      <h1 class="notif-page-title">Notificaciones</h1>
+      <p class="notif-page-subtitle">Panel de Control - Profesor</p>
     </div>
     <button class="notif-mark-all-btn">
       <i class="fa-solid fa-check-double"></i>
       Marcar todas como leídas
     </button>
   </div>
-
-  <!-- Stats Cards -->
   <div class="notif-stats-grid">
     <div class="notif-stat-card">
       <div class="notif-stat-icon notif-stat-total">
@@ -93,34 +77,18 @@ foreach ($notificaciones as $n) {
       </div>
     </div>
   </div>
-
-  <!-- Notifications Section -->
   <div class="notif-main-section">
     <div class="notif-section-header">
       <h2 class="notif-section-title">Lista de Notificaciones</h2>
       <p class="notif-section-desc">Mantente informado sobre actividades importantes del sistema</p>
     </div>
-
-    <!-- Tabs -->
     <div class="notif-tabs">
-      <button class="notif-tab active" data-tab="todas">
-        Todas (<?php echo $total; ?>)
-      </button>
-      <button class="notif-tab" data-tab="no-leidas">
-        No leídas (<?php echo $no_leidas; ?>)
-      </button>
-      <button class="notif-tab" data-tab="citas">
-        Citas (<?php echo $citas; ?>)
-      </button>
-      <button class="notif-tab" data-tab="alertas">
-        Alertas (<?php echo $alertas; ?>)
-      </button>
-      <button class="notif-tab" data-tab="evaluaciones">
-        Evaluaciones (<?php echo $evaluaciones; ?>)
-      </button>
+      <button class="notif-tab active" data-tab="todas">Todas (<?php echo $total; ?>)</button>
+      <button class="notif-tab" data-tab="no-leidas">No leídas (<?php echo $no_leidas; ?>)</button>
+      <button class="notif-tab" data-tab="citas">Citas (<?php echo $citas; ?>)</button>
+      <button class="notif-tab" data-tab="alertas">Alertas (<?php echo $alertas; ?>)</button>
+      <button class="notif-tab" data-tab="evaluaciones">Evaluaciones (<?php echo $evaluaciones; ?>)</button>
     </div>
-
-    <!-- Notifications List -->
     <div class="notif-list" id="notif-tab-content">
       <?php if (empty($notificaciones)): ?>
         <div class="notif-item">
@@ -130,15 +98,12 @@ foreach ($notificaciones as $n) {
         </div>
       <?php else: ?>
         <?php foreach ($notificaciones as $n):
-          // Determinar clases CSS por tipo y estado
           $itemClass = 'notif-item';
           if ($n['estado'] === 'nueva') $itemClass .= ' notif-unread';
           if (stripos($n['tipo'], 'cita') !== false) $itemClass .= ' notif-type-cita';
           elseif (stripos($n['tipo'], 'alerta') !== false || stripos($n['tipo'], 'warning') !== false) $itemClass .= ' notif-type-alert';
           elseif (stripos($n['tipo'], 'evaluacion') !== false) $itemClass .= ' notif-type-evaluacion';
           elseif (stripos($n['tipo'], 'success') !== false) $itemClass .= ' notif-type-success';
-
-          // Icono por tipo
           $icon = 'fa-solid fa-list';
           if (stripos($n['tipo'], 'cita') !== false && stripos(strtolower($n['titulo']), 'cancelada') !== false) $icon = 'fa-solid fa-calendar-xmark';
           elseif (stripos($n['tipo'], 'cita') !== false && stripos(strtolower($n['titulo']), 'solicitud') !== false) $icon = 'fa-solid fa-calendar-plus';
@@ -149,14 +114,10 @@ foreach ($notificaciones as $n) {
           elseif (stripos($n['tipo'], 'success') !== false) $icon = 'fa-solid fa-circle-check';
           elseif (stripos($n['tipo'], 'info') !== false) $icon = 'fa-solid fa-envelope';
           elseif (stripos($n['tipo'], 'flag') !== false) $icon = 'fa-solid fa-flag';
-
-          // Badge por tipo
           $badge = '';
           if (stripos($n['tipo'], 'alta') !== false || stripos($n['tipo'], 'alerta') !== false) $badge = '<span class="notif-badge notif-badge-alta">Alta</span>';
           elseif (stripos($n['tipo'], 'media') !== false) $badge = '<span class="notif-badge notif-badge-media">Media</span>';
           elseif (stripos($n['tipo'], 'baja') !== false) $badge = '<span class="notif-badge notif-badge-baja">Baja</span>';
-
-          // Tiempo relativo (simple)
           $fecha = new DateTime($n['fecha_creacion']);
           $ahora = new DateTime();
           $diff = $ahora->getTimestamp() - $fecha->getTimestamp();
@@ -195,26 +156,17 @@ foreach ($notificaciones as $n) {
       <?php endif; ?>
     </div>
   </div>
-
 </div>
-
-<!-- Script para tabs y acciones de notificaciones -->
 <script src="<?php echo $baseUrl; ?>/public/js/toast.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const tabs = document.querySelectorAll('.notif-tab');
-  
   tabs.forEach(tab => {
     tab.addEventListener('click', function() {
-      // Remover clase active de todos los tabs
       tabs.forEach(t => t.classList.remove('active'));
-      // Agregar clase active al tab clickeado
       this.classList.add('active');
     });
   });
-
-
-  // Manejar botones de marcar como leída (API)
   document.querySelectorAll('.notif-action-btn').forEach(btn => {
     btn.addEventListener('click', function(e) {
       const notifItem = this.closest('.notif-item');
@@ -237,8 +189,6 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(() => { if (window.Toast) Toast.error('Error de red'); });
     });
   });
-
-  // Manejar botones de eliminar notificación (API)
   document.querySelectorAll('.notif-dismiss-btn').forEach(btn => {
     btn.addEventListener('click', function(e) {
       const notifItem = this.closest('.notif-item');
@@ -262,8 +212,6 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(() => { if (window.Toast) Toast.error('Error de red'); });
     });
   });
-
-  // Marcar todas como leídas (API)
   const markAllBtn = document.querySelector('.notif-mark-all-btn');
   if (markAllBtn) {
     markAllBtn.addEventListener('click', function() {

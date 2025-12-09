@@ -1,10 +1,64 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const bell = document.getElementById("notif-bell");
-  const countEl = document.getElementById("notif-count");
-  const dropdown = document.getElementById("notif-dropdown");
+  // Avoid initializing twice if script is included multiple times
+  if (window.__unimind_notif_initialized) return;
+  window.__unimind_notif_initialized = true;
+
+  // Find possible bell triggers (button with id, or header icon)
+  const triggers = [];
+  const byId = document.getElementById("notif-bell");
+  if (byId) triggers.push(byId);
+  // header icon (may be <i> element)
+  const headerIcon = document.querySelector(".header-icons .icon.fas.fa-bell");
+  if (headerIcon) triggers.push(headerIcon);
+  // page header variant
+  const pageBell = document.querySelector(".notif-root #notif-bell");
+  if (pageBell && !triggers.includes(pageBell)) triggers.push(pageBell);
+
+  if (!triggers.length) return; // no bell in DOM
+  console.debug("[notif] triggers found:", triggers);
+
+  // Ensure there is a #notif-count element; if not, create and append to first trigger
+  let countEl = document.getElementById("notif-count");
+  if (!countEl) {
+    countEl = document.createElement("span");
+    countEl.id = "notif-count";
+    countEl.className = "notif-count";
+    countEl.style.display = "none";
+    // append to first trigger (if it's an <i>, append to its parent)
+    const targetForCount = triggers[0];
+    if (targetForCount.tagName === "I") {
+      if (targetForCount.parentElement)
+        targetForCount.parentElement.appendChild(countEl);
+      else document.body.appendChild(countEl);
+    } else {
+      targetForCount.appendChild(countEl);
+    }
+  }
+
+  // Ensure there is a dropdown container; if not, create one attached to body
+  let dropdown = document.getElementById("notif-dropdown");
+  if (!dropdown) {
+    dropdown = document.createElement("div");
+    dropdown.id = "notif-dropdown";
+    dropdown.className = "notif-dropdown";
+    dropdown.style.display = "none";
+    dropdown.style.position = "absolute";
+    dropdown.style.zIndex = "10000";
+    // sensible default styles so it's visible even without CSS
+    dropdown.style.background = "#fff";
+    dropdown.style.border = "1px solid rgba(0,0,0,0.12)";
+    dropdown.style.boxShadow = "0 6px 20px rgba(0,0,0,0.12)";
+    dropdown.style.padding = "8px";
+    dropdown.style.maxHeight = "60vh";
+    dropdown.style.overflowY = "auto";
+    document.body.appendChild(dropdown);
+  }
+
+  let lastAnchor = null;
 
   async function fetchNotifs() {
     try {
+      console.debug("[notif] fetchNotifs start");
       const base = window.UNIMIND_BASE || "";
       const baseUrl =
         window.location.origin && window.location.origin !== "null"
@@ -13,13 +67,23 @@ document.addEventListener("DOMContentLoaded", function () {
       const res = await fetch(`${baseUrl}/api/notifications.php`, {
         credentials: "include",
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        console.debug("[notif] fetch returned not ok", res.status);
+        return;
+      }
       const data = await res.json();
-      if (!data.success) return;
+      if (!data.success) {
+        console.debug("[notif] api returned success=false", data);
+        return;
+      }
 
+      console.debug(
+        "[notif] fetch success, notifications:",
+        data.notifications,
+      );
       renderNotifications(data.notifications || []);
     } catch {
-      // silent fail
+      console.debug("[notif] fetch error");
     }
   }
 
@@ -70,12 +134,54 @@ document.addEventListener("DOMContentLoaded", function () {
       .replace(/'/g, "&#039;");
   }
 
-  bell.addEventListener("click", function () {
-    if (dropdown.style.display === "none" || dropdown.style.display === "") {
-      dropdown.style.display = "block";
-    } else {
-      dropdown.style.display = "none";
-    }
+  // Helper to position and toggle dropdown under the clicked anchor
+  function showDropdownFor(anchor) {
+    if (!anchor) return;
+    console.debug("[notif] showDropdownFor anchor=", anchor);
+    const rect = anchor.getBoundingClientRect();
+    // position dropdown to the right edge if needed
+    dropdown.style.minWidth = "240px";
+    dropdown.style.left = rect.left + window.scrollX + "px";
+    dropdown.style.top = rect.bottom + window.scrollY + 6 + "px";
+    dropdown.style.display = "block";
+    lastAnchor = anchor;
+    console.debug("[notif] dropdown shown");
+  }
+
+  function hideDropdown() {
+    dropdown.style.display = "none";
+    lastAnchor = null;
+    console.debug("[notif] dropdown hidden");
+  }
+
+  // Attach click handlers to all triggers
+  triggers.forEach((el) => {
+    el.addEventListener("click", function (ev) {
+      console.debug("[notif] trigger click", ev.currentTarget);
+      ev.stopPropagation();
+      // If dropdown hidden -> fetch then show; if shown and anchor same -> toggle
+      if (dropdown.style.display === "none" || dropdown.style.display === "") {
+        fetchNotifs().then(() => showDropdownFor(ev.currentTarget));
+      } else {
+        // if clicking a different anchor, reposition
+        if (lastAnchor !== ev.currentTarget) {
+          showDropdownFor(ev.currentTarget);
+        } else {
+          hideDropdown();
+        }
+      }
+    });
+    // make sure bell icon shows pointer
+    el.style.cursor = "pointer";
+  });
+
+  // Close when clicking outside
+  document.addEventListener("click", function (e) {
+    if (dropdown.style.display === "none" || dropdown.style.display === "")
+      return;
+    const isInside =
+      dropdown.contains(e.target) || triggers.some((t) => t.contains(e.target));
+    if (!isInside) hideDropdown();
   });
 
   // initial fetch and poll

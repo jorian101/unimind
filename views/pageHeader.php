@@ -154,9 +154,10 @@ function renderPageHeader($title = null, $breadcrumb = null) {
             </div>
         </div>
         <div class="page-header__actions" id="page-header-actions">
+
         </div>
     </header>
-    <script src="/public/js/notifications.js"></script>
+    <script src="public/js/notifications.js"></script>
     ';
 }
 ?>

@@ -32,6 +32,7 @@ function getSidebarConfig($role, $currentPage = null) {
                 ['icon' => 'fas fa-chart-bar', 'label' => 'Reportes', 'page' => 'reportes'],
                 ['icon' => 'fas fa-calendar-alt', 'label' => 'Citas', 'page' => 'citas'],
                 ['icon' => 'fas fa-bell', 'label' => 'Notificaciones', 'page' => 'notificaciones'],
+                // Notification menu removed per request
                 ['icon' => 'fas fa-lightbulb', 'label' => 'Recomendaciones', 'page' => 'recomendaciones'],
             ],
         ],
@@ -44,6 +45,7 @@ function getSidebarConfig($role, $currentPage = null) {
             'menu' => [
                 ['icon' => 'fas fa-chart-line', 'label' => 'Dashboard', 'page' => 'dashboard-profesor'],
                 ['icon' => 'fas fa-clipboard-list', 'label' => 'Tests Disponibles', 'page' => 'tests-profesor'],
+                ['icon' => 'fas fa-bell', 'label' => 'Notificaciones', 'page' => 'notificaciones'],
                 ['icon' => 'fas fa-paper-plane', 'label' => 'Mis Sugerencias', 'page' => 'sugerencias-profesor'],
             ],
         ],
@@ -57,6 +59,7 @@ function getSidebarConfig($role, $currentPage = null) {
             'menu' => [
                 ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'page' => 'dashboard'],
                 ['icon' => 'fas fa-clipboard-list', 'label' => 'Evaluaciones', 'page' => 'tests'],
+                ['icon' => 'fas fa-bell', 'label' => 'Notificaciones', 'page' => 'notificaciones'],
                 ['icon' => 'fas fa-clipboard-list', 'label' => 'Historial de evaluaciones', 'page' => 'historial'],
                 ['icon' => 'fas fa-lightbulb', 'label' => 'Recomendaciones', 'page' => 'recomendaciones'],
                 ['icon' => 'fas fa-calendar-alt', 'label' => 'Calendario de citas', 'page' => 'calendario-citas'],
@@ -79,6 +82,7 @@ function getSidebarConfig($role, $currentPage = null) {
                         ['icon' => 'fas fa-shield-alt', 'label' => 'Seguridad Informática', 'page' => 'seguridad'],
                     ]
                 ],
+                ['icon' => 'fas fa-bell', 'label' => 'Notificaciones', 'page' => 'notificaciones'],
                 ['icon' => 'fas fa-columns', 'label' => 'Test de estres y ansiedad', 'page' => 'dashboard'],
             ],
         ],

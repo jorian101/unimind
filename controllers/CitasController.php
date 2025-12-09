@@ -160,10 +160,42 @@ class CitasController {
         
         try {
             $result = $this->agendarCita($idAlumno, $fecha_cita, $motivo);
+            $id_cita_new = $result['id_cita'] ?? null;
+
+            // Crear notificaciones para administradores
+            try {
+                $conn = Database::getInstance()->getConnection();
+                // Obtener datos del alumno
+                $ust = $conn->prepare('SELECT nombre, apellido FROM Usuarios WHERE id_usuario = :id');
+                $ust->execute([':id' => $idAlumno]);
+                $urow = $ust->fetch(PDO::FETCH_ASSOC);
+                $alumnoNombre = $urow ? trim(($urow['nombre'] ?? '') . ' ' . ($urow['apellido'] ?? '')) : 'Un alumno';
+
+                $mensaje = "Nueva solicitud de cita de $alumnoNombre para $fecha_cita";
+                $metadata = json_encode(['tipo' => 'cita', 'id_cita' => $id_cita_new, 'id_alumno' => $idAlumno]);
+
+                $adminsStmt = $conn->prepare("SELECT id_usuario FROM Usuarios WHERE cargo = 'Administrador'");
+                $adminsStmt->execute();
+                $admins = $adminsStmt->fetchAll(PDO::FETCH_COLUMN, 0);
+
+                if (!empty($admins)) {
+                    $ins = $conn->prepare('INSERT INTO Notificaciones (id_usuario_destino, mensaje, metadata, leido, creado_en) VALUES (:id_usuario, :mensaje, :metadata, 0, NOW())');
+                    foreach ($admins as $adm) {
+                        try {
+                            $ins->execute([':id_usuario' => $adm, ':mensaje' => $mensaje, ':metadata' => $metadata]);
+                        } catch (PDOException $e) {
+                            // ignore per-admin errors
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                // no bloquear si falla la notificación
+            }
+
             echo json_encode([
-                'success' => true, 
-                'message' => $result['Mensaje'] ?? 'Cita agendada', 
-                'id_cita' => $result['id_cita'] ?? null
+                'success' => true,
+                'message' => $result['Mensaje'] ?? 'Cita agendada',
+                'id_cita' => $id_cita_new
             ]);
             
         } catch (Exception $e) {

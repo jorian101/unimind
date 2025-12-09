@@ -14,9 +14,7 @@ $userName = session_status() === PHP_SESSION_ACTIVE ? ($_SESSION['user_name'] ??
         <span><?php echo $sidebarProps['title']; ?></span>
     </div>
     <div class="header-items-right">
-        <div class="header-icons">
-            <i class="icon fas fa-bell"></i>
-        </div>
+
         
         <div class="profile-menu-container" id="profileToggle"> 
             <span class="profile-icon"><i class="fas fa-user"></i></span>

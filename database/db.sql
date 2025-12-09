@@ -176,7 +176,6 @@ CREATE TABLE IF NOT EXISTS `sync_logs` (
     INDEX (`client_uuid`)
 );
 
--- Tabla para agendar citas de alumnos
 CREATE TABLE IF NOT EXISTS `Citas` (
     `id_cita` INT NOT NULL AUTO_INCREMENT,
     `id_alumno` INT NOT NULL,
@@ -186,4 +185,17 @@ CREATE TABLE IF NOT EXISTS `Citas` (
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id_cita`),
     FOREIGN KEY (`id_alumno`) REFERENCES `Usuarios`(`id_usuario`) ON DELETE CASCADE
+);
+
+-- Tabla para notificaciones de usuario
+CREATE TABLE IF NOT EXISTS `Notificaciones` (
+    `id_notificacion` INT NOT NULL AUTO_INCREMENT,
+    `id_usuario` INT NOT NULL, -- Usuario destinatario
+    `titulo` VARCHAR(255) NOT NULL,
+    `mensaje` TEXT NOT NULL,
+    `tipo` VARCHAR(50) DEFAULT 'info', -- info, warning, error, success
+    `estado` ENUM('nueva', 'leida', 'eliminada') DEFAULT 'nueva',
+    `fecha_creacion` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id_notificacion`),
+    FOREIGN KEY (`id_usuario`) REFERENCES `Usuarios`(`id_usuario`) ON DELETE CASCADE
 );
