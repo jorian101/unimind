@@ -2,25 +2,19 @@
 require_once dirname(__DIR__) . '/pageHeader.php';
 renderPageHeader();
 
-require_once __DIR__ . '/../../database/Database.php';
-$db = new Database();
-$conn = $db->connect();
+require_once __DIR__ . '/../../controllers/ReportsController.php';
 
-// Totales
-$usuarios = $conn->query('SELECT COUNT(*) FROM Usuarios')->fetchColumn();
-$cursos = $conn->query('SELECT COUNT(*) FROM Cursos')->fetchColumn();
-$escuelas = $conn->query('SELECT COUNT(*) FROM Escuelas')->fetchColumn();
-$tests = $conn->query('SELECT COUNT(*) FROM Tests')->fetchColumn();
+$reportsController = new ReportsController();
 
-// Actividad reciente: últimas aplicaciones y creaciones
-$actividad = $conn->query(
-		'SELECT a.fecha_aplicacion AS fecha, CONCAT(u.nombre, " ", u.apellido) AS usuario, "Creó Test" AS accion, t.nombre AS detalle
-		 FROM Aplicaciones a
-		 JOIN Usuarios u ON a.id_usuario = u.id_usuario
-		 JOIN Tests t ON a.id_test = t.id_test
-		 ORDER BY a.fecha_aplicacion DESC
-		 LIMIT 5'
-)->fetchAll(PDO::FETCH_ASSOC);
+// Totales (delegado al ReportsController / ReportsModel)
+$counts = $reportsController->getSummaryCounts();
+$usuarios = $counts['usuarios'] ?? 0;
+$cursos = $counts['cursos'] ?? 0;
+$escuelas = $counts['escuelas'] ?? 0;
+$tests = $counts['tests'] ?? 0;
+
+// Actividad reciente: delegada al controller (ya devuelve rows con las mismas columnas)
+$actividad = $reportsController->getActividadReciente(5);
 ?>
 
 <?php require_once __DIR__ . '/../../utils/asset-version.php'; ?>
