@@ -1,35 +1,26 @@
 <?php
+/**
+ * Vista: Administrador - Gestión de Usuarios
+ * Refactorizado con patrón MVC + UserController + UsuariosModel
+ */
 require_once dirname(__DIR__) . '/pageHeader.php';
 renderPageHeader();
 
-require_once __DIR__ . '/../../database/Database.php';
-$db = new Database();
-$conn = $db->connect();
+// Usar el Controller (patrón MVC)
+require_once __DIR__ . '/../../controllers/UserController.php';
+define('NO_AUTO_HANDLE', true); // Evitar que el controller auto-procese POST
 
-// Filtros
-$cargo = isset($_GET['cargo']) ? $_GET['cargo'] : '';
-$busqueda = isset($_GET['busqueda']) ? $_GET['busqueda'] : '';
+$controller = new UserController();
 
-// Consulta base
-$sql = "SELECT * FROM Usuarios WHERE 1";
-$params = [];
-if ($cargo && in_array($cargo, ['Estudiante','Docente','Administrador'])) {
-    $sql .= " AND cargo = ?";
-    $params[] = $cargo;
-}
-if ($busqueda) {
-    $sql .= " AND (nombre LIKE ? OR apellido LIKE ? OR codigo_usuario LIKE ?)";
-    $params[] = "%$busqueda%";
-    $params[] = "%$busqueda%";
-    $params[] = "%$busqueda%";
-}
-$sql .= " ORDER BY fecha_registro DESC";
-$stmt = $conn->prepare($sql);
-$stmt->execute($params);
-$usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Filtros desde GET
+$cargo = $_GET['cargo'] ?? '';
+$busqueda = $_GET['busqueda'] ?? '';
 
-// Cargos para filtro
-$cargos = ['Estudiante','Docente','Administrador'];
+// Obtener usuarios usando el controller (y este usa el modelo)
+$usuarios = $controller->getUsuarios($cargo, $busqueda);
+
+// Obtener cargos disponibles desde el controller
+$cargos = $controller->getCargosDisponibles();
 ?>
 <?php require_once __DIR__ . '/../../utils/asset-version.php'; ?>
 <link rel="stylesheet" href="public/css/theme.css?v=<?php echo asset_version('public/css/theme.css'); ?>">

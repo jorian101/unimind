@@ -39,7 +39,8 @@ class ModelFactory {
                 'cursos' => 'CursosModel',
                 'escuelas' => 'EscuelasModel',
                 'reports' => 'ReportsModel',
-                'escalas' => 'EscalasModel'
+                'escalas' => 'EscalasModel',
+                'usuarios' => 'UsuariosModel'
             ],
             'profesor' => [
                 'dashboard' => 'DashboardModel',
@@ -106,7 +107,8 @@ class ModelFactory {
     public static function createShared($modelType) {
         $sharedModels = [
             'cursos' => 'CursosModel',
-            'escuelas' => 'EscuelasModel'
+            'escuelas' => 'EscuelasModel',
+            'usuarios' => 'UsuariosModel'
         ];
 
         if (isset($sharedModels[$modelType])) {
