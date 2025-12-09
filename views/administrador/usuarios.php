@@ -96,6 +96,8 @@ $cargos = ['Estudiante','Docente','Administrador'];
         <button class="modal-close close-modal">&times;</button>
       </div>
       <form id="formNuevoUsuario" method="post" class="modal-form">
+        <input type="hidden" name="editar_id_usuario" id="editar_id_usuario" value="">
+        <input type="hidden" name="editar_codigo_usuario" id="editar_codigo_usuario" value="">
         <div>
           <label for="nuevo_nombre">Nombre</label>
           <input type="text" name="nuevo_nombre" id="nuevo_nombre" placeholder="Nombre" class="usuarios-search-input" required>
@@ -143,9 +145,21 @@ $cargos = ['Estudiante','Docente','Administrador'];
           <input type="password" name="nuevo_password" id="nuevo_password" placeholder="Password" class="usuarios-search-input" required>
         </div>
         <div class="full-row" style="margin-top:6px;">
-          <button type="submit" class="btn-primary full-width">Crear Usuario</button>
+          <button type="submit" id="modalSubmitButton" class="btn-primary full-width">Crear Usuario</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal Ver Usuario -->
+  <div id="modalVerUsuario" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="modal-close close-modal">&times;</button>
+      </div>
+      <div id="verUsuarioContenido">
+        <!-- El contenido se llenará dinámicamente -->
+      </div>
     </div>
   </div>
 
@@ -196,9 +210,46 @@ function renderUsuariosTable(usuarios) {
       fetch('api/usuarios.php?id=' + id)
         .then(res => res.json())
         .then(data => {
-          // abrir modal de edición (si existe) — se dejan campos para implementar
-          console.log('Editar usuario', data);
-        });
+          if (!data) return alert('No se encontraron datos del usuario');
+          // Poblar modal con datos del usuario
+          const modal = document.getElementById('modalNuevoUsuario');
+          const idInput = document.getElementById('editar_id_usuario');
+          const codigoInput = document.getElementById('editar_codigo_usuario');
+          const nombre = document.getElementById('nuevo_nombre');
+          const apellido = document.getElementById('nuevo_apellido');
+          const cargo = document.getElementById('nuevo_cargo');
+          const fecha = document.getElementById('nuevo_fecha_nacimiento');
+          const genero = document.getElementById('nuevo_genero');
+          const password = document.getElementById('nuevo_password');
+          const modalTitle = document.getElementById('modalTitle');
+          const submitBtn = document.getElementById('modalSubmitButton');
+
+          // Asignar valores
+          idInput.value = data.id_usuario || id;
+          codigoInput.value = data.codigo_usuario || '';
+          nombre.value = data.nombre || '';
+          apellido.value = data.apellido || '';
+          cargo.value = data.cargo || '';
+          fecha.value = data.fecha_nacimiento ? data.fecha_nacimiento.split(' ')[0] : '';
+          genero.value = data.genero || '';
+          password.value = '';
+          // Contraseña opcional al editar
+          password.required = false;
+
+          // Deshabilitar cargo para que no se pueda editar (muestra pero no permite cambio)
+          cargo.disabled = true;
+
+          // Actualizar título y botón
+          modalTitle.innerHTML = '<i class="fas fa-user-edit"></i> Editar Usuario';
+          submitBtn.textContent = 'Guardar Cambios';
+
+          // Abrir modal
+          modal.classList.add('active');
+          
+          // Cargar escuelas y cursos (aunque estén deshabilitados, para mostrar valores)
+          ensureEscuelasYCursosLoaded();
+        })
+        .catch(err => { console.error('Error al cargar usuario:', err); alert('Error al cargar datos del usuario'); });
     });
   });
   document.querySelectorAll('.eliminar-usuario').forEach(btn => {
@@ -234,13 +285,69 @@ function renderUsuariosTable(usuarios) {
         .finally(() => { link.textContent = originalText; });
     });
   });
-  // Ver (sin funcionalidad por ahora)
+  // Ver (mostrar datos del usuario)
   document.querySelectorAll('.ver-usuario').forEach(btn => {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
       const id = this.dataset.id;
-      // placeholder: mostrar detalles eventualmente
-      console.log('Ver usuario', id);
+      fetch('api/usuarios.php?id=' + id)
+        .then(res => res.json())
+        .then(data => {
+          if (!data) return alert('No se encontraron datos del usuario');
+          // Crear contenido del modal
+          let contenido = `
+            <div style="padding: 20px;">
+              <h3 style="margin-top: 0; color: var(--pri-500); border-bottom: 2px solid var(--bg-500); padding-bottom: 10px;">
+                <i class="fas fa-user-circle"></i> Información del Usuario
+              </h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
+                <div>
+                  <strong style="color: var(--var-700);">ID:</strong><br>
+                  <span>${data.id_usuario || 'N/A'}</span>
+                </div>
+                <div>
+                  <strong style="color: var(--var-700);">Código:</strong><br>
+                  <span>${data.codigo_usuario || 'N/A'}</span>
+                </div>
+                <div>
+                  <strong style="color: var(--var-700);">Nombre:</strong><br>
+                  <span>${data.nombre || 'N/A'}</span>
+                </div>
+                <div>
+                  <strong style="color: var(--var-700);">Apellido:</strong><br>
+                  <span>${data.apellido || 'N/A'}</span>
+                </div>
+                <div>
+                  <strong style="color: var(--var-700);">Cargo:</strong><br>
+                  <span>${data.cargo || 'N/A'}</span>
+                </div>
+                <div>
+                  <strong style="color: var(--var-700);">Género:</strong><br>
+                  <span>${data.genero || 'N/A'}</span>
+                </div>
+                <div>
+                  <strong style="color: var(--var-700);">Fecha de Nacimiento:</strong><br>
+                  <span>${data.fecha_nacimiento ? data.fecha_nacimiento.split(' ')[0] : 'N/A'}</span>
+                </div>
+                <div>
+                  <strong style="color: var(--var-700);">Fecha de Registro:</strong><br>
+                  <span>${data.fecha_registro ? new Date(data.fecha_registro.replace(' ', 'T')).toLocaleString('es-ES') : 'N/A'}</span>
+                </div>
+              </div>
+              <div style="margin-top: 24px; text-align: right;">
+                <button onclick="document.getElementById('modalVerUsuario').classList.remove('active')" class="btn-primary">
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          `;
+          // Mostrar en modal
+          const modal = document.getElementById('modalVerUsuario');
+          const contenidoDiv = document.getElementById('verUsuarioContenido');
+          contenidoDiv.innerHTML = contenido;
+          modal.classList.add('active');
+        })
+        .catch(err => { console.error('Error al cargar usuario:', err); alert('Error al cargar datos del usuario'); });
     });
   });
 }
@@ -297,29 +404,97 @@ function buscarUsuariosAjax() {
 
 // Abrir modal nuevo usuario
 document.getElementById('btnNuevoUsuario') && document.getElementById('btnNuevoUsuario').addEventListener('click', function() {
+  resetUsuarioModal();
   document.getElementById('modalNuevoUsuario').classList.add('active');
   // Ensure selects are loaded and visibility set when opening
   ensureEscuelasYCursosLoaded();
 });
 // Cerrar modal
-document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', function() { this.closest('.modal').classList.remove('active'); }));
+document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', function() {
+  const modal = this.closest('.modal');
+  if (modal) modal.classList.remove('active');
+  resetUsuarioModal();
+}));
 // Cerrar modal al hacer clic fuera
 document.querySelectorAll('.modal').forEach(modal => {
   modal.addEventListener('click', function(e) {
-    if (e.target === modal) modal.classList.remove('active');
+    if (e.target === modal) {
+      modal.classList.remove('active');
+      resetUsuarioModal();
+    }
   });
 });
 
-// Enviar nuevo usuario
+// Enviar nuevo usuario o editar usuario existente
 document.getElementById('formNuevoUsuario') && document.getElementById('formNuevoUsuario').addEventListener('submit', function(e) {
   e.preventDefault();
-  const formData = new FormData(this);
-  formData.append('crear_usuario', '1');
+  const form = this;
+  const editarId = document.getElementById('editar_id_usuario').value;
+  let formData;
+  
+  if (editarId) {
+    // Modo edición: crear FormData limpio con solo los campos editables
+    console.log('Modo EDICIÓN - ID:', editarId);
+    formData = new FormData();
+    formData.append('editar_id_usuario', editarId);
+    formData.append('editar_nombre', document.getElementById('nuevo_nombre').value);
+    formData.append('editar_apellido', document.getElementById('nuevo_apellido').value);
+    formData.append('editar_codigo_usuario', document.getElementById('editar_codigo_usuario').value);
+    formData.append('editar_cargo', document.getElementById('nuevo_cargo').value);
+    formData.append('editar_fecha_nacimiento', document.getElementById('nuevo_fecha_nacimiento').value);
+    formData.append('editar_genero', document.getElementById('nuevo_genero').value);
+    const pw = document.getElementById('nuevo_password').value;
+    if (pw) formData.append('editar_password', pw);
+    console.log('FormData edición:', Array.from(formData.entries()));
+  } else {
+    // Modo creación: usar FormData original del formulario
+    console.log('Modo CREACIÓN');
+    formData = new FormData(form);
+    // Remover campos de edición que no deben enviarse al crear
+    formData.delete('editar_id_usuario');
+    formData.delete('editar_codigo_usuario');
+    formData.append('crear_usuario', '1');
+    console.log('FormData creación:', Array.from(formData.entries()));
+  }
+
   fetch('api/usuarios.php', { method: 'POST', body: formData })
-    .then(res => res.json())
-    .then(data => { alert(data.Mensaje || 'Usuario creado'); buscarUsuariosAjax(); document.getElementById('modalNuevoUsuario').classList.remove('active'); })
-    .catch(err => { console.error(err); alert('Error al crear usuario'); });
+    .then(res => {
+      console.log('Respuesta status:', res.status);
+      return res.json();
+    })
+    .then(data => {
+      console.log('Respuesta del servidor:', data);
+      if (data.error) {
+        alert('Error: ' + (data.error + (data.message ? ' - ' + data.message : '')));
+      } else {
+        alert(data.Mensaje || data.mensaje || data.message || (editarId ? 'Usuario actualizado' : 'Usuario creado'));
+        buscarUsuariosAjax();
+        const modal = document.getElementById('modalNuevoUsuario');
+        if (modal) modal.classList.remove('active');
+        resetUsuarioModal();
+      }
+    })
+    .catch(err => { console.error('Error en fetch:', err); alert('Error al procesar usuario: ' + err.message); });
 });
+
+// Función para resetear el modal al estado de crear
+function resetUsuarioModal() {
+  console.log('Reseteando modal a modo CREAR');
+  const form = document.getElementById('formNuevoUsuario');
+  if (!form) return;
+  form.reset();
+  document.getElementById('editar_id_usuario').value = '';
+  document.getElementById('editar_codigo_usuario').value = '';
+  document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Nuevo Usuario';
+  document.getElementById('modalSubmitButton').textContent = 'Crear Usuario';
+  const pw = document.getElementById('nuevo_password');
+  if (pw) pw.required = true;
+  // Habilitar cargo de nuevo
+  const cargo = document.getElementById('nuevo_cargo');
+  if (cargo) cargo.disabled = false;
+  // Restaurar visibilidad de campos según cargo
+  try { ensureEscuelasYCursosLoaded(); } catch (e) {}
+}
 
 // Mostrar todos - limpia filtros y carga todos los usuarios
 document.getElementById('btnMostrarTodos') && document.getElementById('btnMostrarTodos').addEventListener('click', function() {
