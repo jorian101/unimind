@@ -22,29 +22,7 @@ renderPageHeader();
     </div>
 </div>
 
-<!-- Modal para ver detalles de la aplicación -->
-<div class="modal-overlay" id="detalleModal" style="display: none;">
-    <div class="modal-content-detalle">
-        <div class="modal-header">
-            <h2 id="modalTitle">Detalles de la Evaluación</h2>
-            <button class="modal-close" onclick="cerrarModal()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body" id="modalBody">
-            <div class="loading-spinner">
-                <i class="fas fa-spinner fa-spin"></i> Cargando detalles...
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-secondary" onclick="cerrarModal()">
-                <i class="fas fa-times"></i> Cerrar
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Toast notification: se mostrará al completar un test (reemplaza el modal anterior) -->
+<!-- Toast notification: se mostrará al completar un test -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -109,6 +87,21 @@ function renderTests(tests) {
         return;
     }
     
+    // Filtrar solo tests NO completados
+    const testsPendientes = tests.filter(test => {
+        return test.completado !== true && test.completado !== 1;
+    });
+    
+    if (testsPendientes.length === 0) {
+        container.innerHTML = `
+            <div class="no-tests">
+                <i class="fas fa-check-circle"></i>
+                <p>¡Felicidades! Has completado todas las evaluaciones sugeridas</p>
+            </div>
+        `;
+        return;
+    }
+    
     // Categorizar tests por tipo
     const testsPorTipo = {
         'estres': [],
@@ -118,7 +111,7 @@ function renderTests(tests) {
         'otros': []
     };
     
-    tests.forEach(test => {
+    testsPendientes.forEach(test => {
         const nombre = test.nombre.toLowerCase();
         if (nombre.includes('estrés') || nombre.includes('estres')) {
             testsPorTipo.estres.push(test);
@@ -150,31 +143,15 @@ function renderTests(tests) {
             icon = 'fa-fire';
         }
         
-        // Determinar si está completado
-        const completado = test.completado === true || test.completado === 1;
-        const completadoClass = completado ? 'test-completado' : '';
-        
-        // Definir el estado del test solo si está completado
-        let statusHTML = '';
-        if (completado) {
-            statusHTML = '<span class="status completed">Completado</span>';
-        }
-
-        const buttonText = completado ? 'Ver Detalles' : 'Iniciar Test';
-        const buttonIcon = completado ? 'fa-eye' : 'fa-play';
-        
-        // Ya no mostramos información de sugerencia (Sugerido por profesor)
-        let infoSugerencia = '';
+        // Solo mostramos tests pendientes, no hay necesidad de verificar estado completado
         
         return `
-            <div class="test-item ${completadoClass}">
+            <div class="test-item">
                 <div class="test-header">
                     <h3><i class="fas ${icon}"></i> ${escapeHtml(test.nombre)}</h3>
-                    ${statusHTML}
                 </div>
                 <div class="test-description">
                     <p>${escapeHtml(test.descripcion || 'Test de evaluación psicológica')}</p>
-                    ${infoSugerencia}
                     <div class="test-details">
                         <span class="detail"><i class="fas fa-list"></i> ${test.num_items} ítems</span>
                         <span class="detail"><i class="fas fa-clock"></i> ~${tiempoEstimado} min</span>
@@ -186,10 +163,8 @@ function renderTests(tests) {
                         data-id="${test.id_test}"
                         data-name="${escapeHtml(test.nombre)}"
                         data-questions="${test.num_items}"
-                        data-completado="${completado}"
-                        data-id-aplicacion="${test.id_aplicacion || ''}"
                         data-sugerencia="${test.id_sugerencia || ''}">
-                        <i class="fas ${buttonIcon}"></i> ${buttonText}
+                        <i class="fas fa-play"></i> Iniciar Test
                     </button>
                 </div>
             </div>
@@ -232,26 +207,14 @@ function renderTests(tests) {
             const testId = button.dataset.id;
             const testName = encodeURIComponent(button.dataset.name);
             const questions = button.dataset.questions;
-            const completado = button.dataset.completado === 'true';
-            const idAplicacion = button.dataset.idAplicacion || '';
             const sugerencia = button.dataset.sugerencia || '';
             
-            // Si ya está completado, mostrar detalles en modal; si no, iniciar test
-            if (completado) {
-                // Abrir modal con detalles de la aplicación
-                if (idAplicacion) {
-                    verDetalle(idAplicacion, testName);
-                } else {
-                    mostrarNotificacion('No se encontraron detalles para esta evaluación', 'warning');
-                }
-            } else {
-                // Redirige al formulario con los parámetros del test seleccionado
-                let url = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
-                if (sugerencia) {
-                    url += `&id_sugerencia=${sugerencia}`;
-                }
-                window.location.href = url;
+            // Redirigir al formulario para iniciar el test
+            let url = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
+            if (sugerencia) {
+                url += `&id_sugerencia=${sugerencia}`;
             }
+            window.location.href = url;
         });
     });
 }
@@ -359,138 +322,7 @@ function mostrarNotificacion(mensaje, tipo = 'info', actionLabel = null, actionC
     }
 }
 
-/**
- * Ver detalle de una aplicación en modal
- */
-async function verDetalle(idAplicacion, nombreTest) {
-    const modal = document.getElementById('detalleModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
-    
-    modalTitle.textContent = `Detalles: ${nombreTest}`;
-    modalBody.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Cargando detalles...</div>';
-    modal.style.display = 'flex';
-    
-    try {
-        const base = window.UNIMIND_BASE || '';
-        const baseUrl = window.location.origin && window.location.origin !== 'null' 
-            ? window.location.origin + base 
-            : base;
-            
-        const response = await fetch(
-            `${baseUrl}/controllers/AplicacionesController.php?action=getDetalleAplicacion&id_aplicacion=${idAplicacion}`,
-            {
-                method: 'GET',
-                headers: {'Content-Type': 'application/json'},
-                credentials: 'include'
-            }
-        );
-        
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-            renderDetalle(result.data);
-        } else {
-            modalBody.innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p>${result.message || 'No se pudieron cargar los detalles'}</p>
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Error al cargar detalles:', error);
-        modalBody.innerHTML = `
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <p>Error al cargar los detalles. Por favor, intenta de nuevo.</p>
-            </div>
-        `;
-    }
-}
 
-/**
- * Renderizar detalles de la aplicación en el modal
- */
-function renderDetalle(data) {
-    const modalBody = document.getElementById('modalBody');
-    
-    if (!data.respuestas || data.respuestas.length === 0) {
-        modalBody.innerHTML = '<p>No hay respuestas registradas para esta evaluación.</p>';
-        return;
-    }
-    
-    // Agrupar respuestas por subescala
-    const respuestasPorSubescala = {};
-    data.respuestas.forEach(respuesta => {
-        const subescala = respuesta.subescala || 'General';
-        if (!respuestasPorSubescala[subescala]) {
-            respuestasPorSubescala[subescala] = [];
-        }
-        respuestasPorSubescala[subescala].push(respuesta);
-    });
-    
-    let html = `
-        <div class="detalle-info">
-            <div class="detalle-header">
-                <div class="detalle-score">
-                    <span class="score-label">Puntuación Total</span>
-                    <span class="score-value">${data.puntaje_total}</span>
-                </div>
-                <div class="detalle-nivel">
-                    <span class="nivel-badge nivel-${data.nivel_resultado.toLowerCase()}">${data.nivel_resultado}</span>
-                </div>
-            </div>
-            <div class="detalle-fecha">
-                <i class="fas fa-calendar-alt"></i> 
-                Completado el ${formatearFecha(data.fecha_finalizacion)}
-            </div>
-        </div>
-        <div class="respuestas-container">
-    `;
-    
-    // Renderizar respuestas agrupadas por subescala
-    Object.keys(respuestasPorSubescala).forEach(subescala => {
-        const respuestas = respuestasPorSubescala[subescala];
-        html += `
-            <div class="subescala-section">
-                <h3 class="subescala-title">${subescala}</h3>
-                <div class="respuestas-list">
-        `;
-        
-        respuestas.forEach((respuesta, index) => {
-            html += `
-                <div class="respuesta-item">
-                    <div class="respuesta-numero">${index + 1}</div>
-                    <div class="respuesta-contenido">
-                        <p class="respuesta-pregunta">${escapeHtml(respuesta.texto_item)}</p>
-                        <p class="respuesta-respuesta">
-                            <strong>Respuesta:</strong> ${escapeHtml(respuesta.texto_opcion)}
-                            <span class="respuesta-puntos">(${respuesta.valor_puntuacion} pts)</span>
-                        </p>
-                    </div>
-                </div>
-            `;
-        });
-        
-        html += `
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    
-    modalBody.innerHTML = html;
-}
-
-/**
- * Cerrar modal
- */
-function cerrarModal() {
-    const modal = document.getElementById('detalleModal');
-    modal.style.display = 'none';
-}
 </script>
 
 <style>

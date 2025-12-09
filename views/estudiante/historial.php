@@ -104,52 +104,6 @@ renderPageHeader('Historial de evaluaciones', ['Dashboard', 'Historial de evalua
         </div>
     </section>
 
-    <section class="historial__card historial__card--stats">
-        <h2 class="historial__title">Estadísticas del Mes</h2>
-        <p class="historial__subtitle">Resumen de tu progreso mensual</p>
-
-        <div class="historial__stats-grid">
-            <div class="historial__stat-item">
-                <p class="historial__stat-label">Promedio de Estrés</p>
-                <p class="historial__stat-value" id="avg-stress">--%</p>
-            </div>
-            <div class="historial__stat-item">
-                <p class="historial__stat-label">Promedio de Ansiedad</p>
-                <p class="historial__stat-value" id="avg-anxiety">--%</p>
-            </div>
-            <div class="historial__stat-item">
-                <p class="historial__stat-label">Tendencia General</p>
-                <p class="historial__stat-value" id="trend">--</p>
-            </div>
-        </div>
-    </section>
-
-    <?php if (!empty($historial)): 
-        // Calcular estadísticas básicas
-        $total_evaluaciones = count($historial);
-        $suma_puntuaciones = array_sum(array_column($historial, 'puntuacion_total'));
-        $promedio = $total_evaluaciones > 0 ? round($suma_puntuaciones / $total_evaluaciones, 1) : 0;
-    ?>
-    <section class="historial__card historial__card--stats">
-        <h2 class="historial__title">Estadísticas</h2>
-        <p class="historial__subtitle">Resumen de tus evaluaciones</p>
-
-        <div class="historial__stats-grid">
-            <div class="historial__stat-item">
-                <p class="historial__stat-label">Total de Evaluaciones</p>
-                <p class="historial__stat-value"><?php echo $total_evaluaciones; ?></p>
-            </div>
-            <div class="historial__stat-item">
-                <p class="historial__stat-label">Puntuación Promedio</p>
-                <p class="historial__stat-value"><?php echo $promedio; ?></p>
-            </div>
-            <div class="historial__stat-item">
-                <p class="historial__stat-label">Última Evaluación</p>
-                <p class="historial__stat-value"><?php echo date('d/m/Y', strtotime($historial[0]['fecha_aplicacion'])); ?></p>
-            </div>
-        </div>
-    </section>
-    <?php endif; ?>
 </div>
 
 <!-- Modal para ver detalles de la aplicación -->
