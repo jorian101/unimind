@@ -22,6 +22,28 @@ renderPageHeader();
     </div>
 </div>
 
+<!-- Modal para ver detalles de la aplicación -->
+<div class="modal-overlay" id="detalleModal" style="display: none;">
+    <div class="modal-content-detalle">
+        <div class="modal-header">
+            <h2 id="modalTitle">Detalles de la Evaluación</h2>
+            <button class="modal-close" onclick="cerrarModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i> Cargando detalles...
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="cerrarModal()">
+                <i class="fas fa-times"></i> Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Toast notification: se mostrará al completar un test (reemplaza el modal anterior) -->
 
 <script>
@@ -132,13 +154,10 @@ function renderTests(tests) {
         const completado = test.completado === true || test.completado === 1;
         const completadoClass = completado ? 'test-completado' : '';
         
-        // Definir el estado del test
-        let statusText = 'Disponible';
-        let statusClass = 'pending';
-        
+        // Definir el estado del test solo si está completado
+        let statusHTML = '';
         if (completado) {
-            statusText = 'Completado';
-            statusClass = 'completed';
+            statusHTML = '<span class="status completed">Completado</span>';
         }
 
         const buttonText = completado ? 'Ver Detalles' : 'Iniciar Test';
@@ -151,7 +170,7 @@ function renderTests(tests) {
             <div class="test-item ${completadoClass}">
                 <div class="test-header">
                     <h3><i class="fas ${icon}"></i> ${escapeHtml(test.nombre)}</h3>
-                    <span class="status ${statusClass}">${statusText}</span>
+                    ${statusHTML}
                 </div>
                 <div class="test-description">
                     <p>${escapeHtml(test.descripcion || 'Test de evaluación psicológica')}</p>
@@ -217,14 +236,13 @@ function renderTests(tests) {
             const idAplicacion = button.dataset.idAplicacion || '';
             const sugerencia = button.dataset.sugerencia || '';
             
-            // Si ya está completado, ir a detalles; si no, iniciar test
+            // Si ya está completado, mostrar detalles en modal; si no, iniciar test
             if (completado) {
-                // Ir a la página de detalles con el id_aplicacion
+                // Abrir modal con detalles de la aplicación
                 if (idAplicacion) {
-                    window.location.href = `?role=estudiante&page=detalles&id=${idAplicacion}`;
+                    verDetalle(idAplicacion, testName);
                 } else {
-                    // Fallback al historial si no hay id_aplicacion
-                    window.location.href = `?role=estudiante&page=historial`;
+                    mostrarNotificacion('No se encontraron detalles para esta evaluación', 'warning');
                 }
             } else {
                 // Redirige al formulario con los parámetros del test seleccionado
@@ -339,6 +357,139 @@ function mostrarNotificacion(mensaje, tipo = 'info', actionLabel = null, actionC
     } else {
         console.warn('Toast no está disponible');
     }
+}
+
+/**
+ * Ver detalle de una aplicación en modal
+ */
+async function verDetalle(idAplicacion, nombreTest) {
+    const modal = document.getElementById('detalleModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    modalTitle.textContent = `Detalles: ${nombreTest}`;
+    modalBody.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Cargando detalles...</div>';
+    modal.style.display = 'flex';
+    
+    try {
+        const base = window.UNIMIND_BASE || '';
+        const baseUrl = window.location.origin && window.location.origin !== 'null' 
+            ? window.location.origin + base 
+            : base;
+            
+        const response = await fetch(
+            `${baseUrl}/controllers/AplicacionesController.php?action=getDetalleAplicacion&id_aplicacion=${idAplicacion}`,
+            {
+                method: 'GET',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include'
+            }
+        );
+        
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            renderDetalle(result.data);
+        } else {
+            modalBody.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>${result.message || 'No se pudieron cargar los detalles'}</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error al cargar detalles:', error);
+        modalBody.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>Error al cargar los detalles. Por favor, intenta de nuevo.</p>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Renderizar detalles de la aplicación en el modal
+ */
+function renderDetalle(data) {
+    const modalBody = document.getElementById('modalBody');
+    
+    if (!data.respuestas || data.respuestas.length === 0) {
+        modalBody.innerHTML = '<p>No hay respuestas registradas para esta evaluación.</p>';
+        return;
+    }
+    
+    // Agrupar respuestas por subescala
+    const respuestasPorSubescala = {};
+    data.respuestas.forEach(respuesta => {
+        const subescala = respuesta.subescala || 'General';
+        if (!respuestasPorSubescala[subescala]) {
+            respuestasPorSubescala[subescala] = [];
+        }
+        respuestasPorSubescala[subescala].push(respuesta);
+    });
+    
+    let html = `
+        <div class="detalle-info">
+            <div class="detalle-header">
+                <div class="detalle-score">
+                    <span class="score-label">Puntuación Total</span>
+                    <span class="score-value">${data.puntaje_total}</span>
+                </div>
+                <div class="detalle-nivel">
+                    <span class="nivel-badge nivel-${data.nivel_resultado.toLowerCase()}">${data.nivel_resultado}</span>
+                </div>
+            </div>
+            <div class="detalle-fecha">
+                <i class="fas fa-calendar-alt"></i> 
+                Completado el ${formatearFecha(data.fecha_finalizacion)}
+            </div>
+        </div>
+        <div class="respuestas-container">
+    `;
+    
+    // Renderizar respuestas agrupadas por subescala
+    Object.keys(respuestasPorSubescala).forEach(subescala => {
+        const respuestas = respuestasPorSubescala[subescala];
+        html += `
+            <div class="subescala-section">
+                <h3 class="subescala-title">${subescala}</h3>
+                <div class="respuestas-list">
+        `;
+        
+        respuestas.forEach((respuesta, index) => {
+            html += `
+                <div class="respuesta-item">
+                    <div class="respuesta-numero">${index + 1}</div>
+                    <div class="respuesta-contenido">
+                        <p class="respuesta-pregunta">${escapeHtml(respuesta.texto_item)}</p>
+                        <p class="respuesta-respuesta">
+                            <strong>Respuesta:</strong> ${escapeHtml(respuesta.texto_opcion)}
+                            <span class="respuesta-puntos">(${respuesta.valor_puntuacion} pts)</span>
+                        </p>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    
+    modalBody.innerHTML = html;
+}
+
+/**
+ * Cerrar modal
+ */
+function cerrarModal() {
+    const modal = document.getElementById('detalleModal');
+    modal.style.display = 'none';
 }
 </script>
 
