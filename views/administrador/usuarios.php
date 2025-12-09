@@ -104,10 +104,7 @@ $cargos = ['Estudiante','Docente','Administrador'];
           <label for="nuevo_apellido">Apellido</label>
           <input type="text" name="nuevo_apellido" id="nuevo_apellido" placeholder="Apellido" class="usuarios-search-input" required>
         </div>
-        <div>
-          <label for="nuevo_codigo_usuario">Código de Usuario</label>
-          <input type="text" name="nuevo_codigo_usuario" id="nuevo_codigo_usuario" placeholder="Código" class="usuarios-search-input" required>
-        </div>
+        <!-- Código de usuario ahora se genera automáticamente en el servidor -->
         <div>
           <label for="nuevo_cargo">Cargo</label>
           <select name="nuevo_cargo" id="nuevo_cargo" class="usuarios-filter-select" required>

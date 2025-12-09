@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_id_usuario']))
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_usuario'])) {
     $nombre = $_POST['nuevo_nombre'];
     $apellido = $_POST['nuevo_apellido'];
-    $codigo = $_POST['nuevo_codigo_usuario'];
+    // El código de usuario ya no se recibe desde el cliente; se generará automáticamente
     $cargo = $_POST['nuevo_cargo'];
     $fecha_nacimiento = $_POST['nuevo_fecha_nacimiento'] ?: null;
     $genero = $_POST['nuevo_genero'] ?: null;
@@ -72,10 +72,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_usuario'])) {
             exit;
         }
 
-        // Insert into Usuarios
+        // Insert into Usuarios (se deja codigo_usuario vacío y se actualizará tras obtener el ID)
         $insert = $conn->prepare('INSERT INTO Usuarios (nombre, apellido, codigo_usuario, password, cargo, fecha_nacimiento, genero, fecha_registro) VALUES (?,?,?,?,?,?,?, NOW())');
-        $insert->execute([$nombre, $apellido, $codigo, $password, $cargo, $fecha_nacimiento, $genero]);
+        $insert->execute([$nombre, $apellido, '', $password, $cargo, $fecha_nacimiento, $genero]);
         $nuevoId = intval($conn->lastInsertId());
+
+        // Generar codigo basado en año actual y secuencia del ID insertado
+        $year = date('Y');
+        $codigo_generado = $year . '-' . $nuevoId;
+        $upd = $conn->prepare('UPDATE Usuarios SET codigo_usuario = ? WHERE id_usuario = ?');
+        $upd->execute([$codigo_generado, $nuevoId]);
 
         // If student and course provided, enroll
         if ($cargo === 'Estudiante' && $id_curso) {
@@ -98,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_usuario'])) {
 
         $conn->commit();
 
-        echo json_encode(['Mensaje' => 'Usuario creado correctamente', 'Nuevo_ID_Usuario' => $nuevoId]);
+        echo json_encode(['Mensaje' => 'Usuario creado correctamente', 'Nuevo_ID_Usuario' => $nuevoId, 'Nuevo_Codigo_Usuario' => $codigo_generado]);
         exit;
     } catch (PDOException $e) {
         // Return the DB error message for debugging (can be sanitized in production)
