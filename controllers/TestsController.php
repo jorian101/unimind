@@ -3,6 +3,7 @@
  * TestsController - Refactorizado con ModelFactory
  */
 require_once __DIR__ . '/../utils/ModelFactory.php';
+require_once __DIR__ . '/../models/administrador/CursosModel.php';
 
 class TestsController {
     private $model;
