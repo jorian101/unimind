@@ -39,29 +39,41 @@ if ($method === 'POST' && isset($_POST['editar_id_usuario'])) {
         $id = intval($params['editar_id_usuario']);
         $fecha_nacimiento = $_POST['editar_fecha_nacimiento'] ?: null;
         $genero = $_POST['editar_genero'] ?: null;
-        $password = $_POST['editar_password'] ?: null;
+        $password = isset($_POST['editar_password']) && $_POST['editar_password'] !== '' 
+            ? $_POST['editar_password'] : null;
 
-        // Si no se envía password, obtener el actual
-        if (!$password) {
-            $stmt = $conn->prepare('SELECT password FROM Usuarios WHERE id_usuario = ?');
-            $stmt->execute([$id]);
-            $password = $stmt->fetchColumn();
+        // Construir query dinámicamente según si hay password o no
+        if ($password) {
+            $sql = 'UPDATE Usuarios SET nombre = ?, apellido = ?, codigo_usuario = ?, cargo = ?, fecha_nacimiento = ?, genero = ?, password = ? WHERE id_usuario = ?';
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([
+                $params['editar_nombre'],
+                $params['editar_apellido'],
+                $params['editar_codigo_usuario'],
+                $params['editar_cargo'],
+                $fecha_nacimiento,
+                $genero,
+                $password,
+                $id
+            ]);
+        } else {
+            $sql = 'UPDATE Usuarios SET nombre = ?, apellido = ?, codigo_usuario = ?, cargo = ?, fecha_nacimiento = ?, genero = ? WHERE id_usuario = ?';
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([
+                $params['editar_nombre'],
+                $params['editar_apellido'],
+                $params['editar_codigo_usuario'],
+                $params['editar_cargo'],
+                $fecha_nacimiento,
+                $genero,
+                $id
+            ]);
         }
-
-        $stmt = $conn->prepare('CALL sp_actualizar_usuario(?,?,?,?,?,?,?,?)');
-        $stmt->execute([
-            $id,
-            $params['editar_nombre'],
-            $params['editar_apellido'],
-            $params['editar_codigo_usuario'],
-            $params['editar_cargo'],
-            $fecha_nacimiento,
-            $genero,
-            $password
-        ]);
         
-        $msg = $stmt->fetch(PDO::FETCH_ASSOC);
-        APIFacade::sendSuccess($msg);
+        APIFacade::sendSuccess([
+            'Mensaje' => 'Usuario actualizado correctamente',
+            'id_usuario' => $id
+        ]);
     });
 }
 
@@ -69,8 +81,7 @@ if ($method === 'POST' && isset($_POST['editar_id_usuario'])) {
 // POST: Crear usuario
 if ($method === 'POST' && isset($_POST['crear_usuario'])) {
     $params = APIFacade::validateParams([
-        'nuevo_nombre', 'nuevo_apellido', 'nuevo_codigo_usuario', 
-        'nuevo_cargo', 'nuevo_password'
+        'nuevo_nombre', 'nuevo_apellido', 'nuevo_cargo', 'nuevo_password'
     ], $_POST);
     
     APIFacade::execute(function() use ($params) {
@@ -85,7 +96,7 @@ if ($method === 'POST' && isset($_POST['crear_usuario'])) {
 
         $conn->beginTransaction();
 
-        // Insert into Usuarios
+        // Insert into Usuarios (se deja codigo_usuario vacío y se actualizará tras obtener el ID)
         $insert = $conn->prepare(
             'INSERT INTO Usuarios (nombre, apellido, codigo_usuario, password, cargo, 
              fecha_nacimiento, genero, fecha_registro) 
@@ -94,13 +105,19 @@ if ($method === 'POST' && isset($_POST['crear_usuario'])) {
         $insert->execute([
             $params['nuevo_nombre'],
             $params['nuevo_apellido'],
-            $params['nuevo_codigo_usuario'],
+            '', // Se generará automáticamente
             $params['nuevo_password'],
             $params['nuevo_cargo'],
             $fecha_nacimiento,
             $genero
         ]);
         $nuevoId = intval($conn->lastInsertId());
+
+        // Generar codigo basado en año actual y secuencia del ID insertado
+        $year = date('Y');
+        $codigo_generado = $year . '-' . $nuevoId;
+        $upd = $conn->prepare('UPDATE Usuarios SET codigo_usuario = ? WHERE id_usuario = ?');
+        $upd->execute([$codigo_generado, $nuevoId]);
 
         // If student and course provided, enroll
         if ($params['nuevo_cargo'] === 'Estudiante' && $id_curso) {
@@ -121,9 +138,11 @@ if ($method === 'POST' && isset($_POST['crear_usuario'])) {
         }
 
         $conn->commit();
+        
         APIFacade::sendSuccess([
             'Mensaje' => 'Usuario creado correctamente', 
-            'Nuevo_ID_Usuario' => $nuevoId
+            'Nuevo_ID_Usuario' => $nuevoId,
+            'Nuevo_Codigo_Usuario' => $codigo_generado
         ]);
     });
 }
