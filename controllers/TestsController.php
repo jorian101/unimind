@@ -174,6 +174,7 @@ class TestsController {
         $descripcion = $_POST['descripcion'] ?? null;
         $num_items = $_POST['num_items'] ?? 0;
         $tipo_escala = $_POST['tipo_escala'] ?? 1; // Por defecto escala de frecuencia
+        $tipo_test = $_POST['tipo_test'] ?? 'estres';
         $items = json_decode($_POST['items'] ?? '[]', true);
 
         // Si no vienen por form-data, intentar leer JSON raw (usado por PWA offline sync)
@@ -186,11 +187,12 @@ class TestsController {
                 $descripcion = $json['descripcion'] ?? $descripcion;
                 $num_items = $json['num_items'] ?? $num_items;
                 $tipo_escala = $json['tipo_escala'] ?? $tipo_escala;
+                $tipo_test = $json['tipo_test'] ?? $tipo_test;
                 $items = $json['items'] ?? $items;
             }
         }
 
-        if (!$nombre || !$descripcion || $num_items <= 0 || !$tipo_escala) {
+        if (!$nombre || !$descripcion || $num_items <= 0 || !$tipo_escala || !$tipo_test) {
             $this->sendResponse(false, 'Datos incompletos o inválidos');
             return;
         }
@@ -202,7 +204,7 @@ class TestsController {
         }
 
         // Crear el test
-        $id_test = $this->model->createTest($nombre, $descripcion, $num_items, $tipo_escala);
+        $id_test = $this->model->createTest($nombre, $descripcion, $num_items, $tipo_escala, $tipo_test);
         
         if (!$id_test) {
             $err = $this->model->lastError ?? null;
@@ -248,9 +250,10 @@ class TestsController {
         $descripcion = $_POST['descripcion'] ?? null;
         $num_items = $_POST['num_items'] ?? 0;
         $tipo_escala = $_POST['tipo_escala'] ?? 1;
+        $tipo_test = $_POST['tipo_test'] ?? 'estres';
         $items = json_decode($_POST['items'] ?? '[]', true);
 
-        if (!$id_test || !$nombre || !$descripcion || $num_items <= 0 || !$tipo_escala) {
+        if (!$id_test || !$nombre || !$descripcion || $num_items <= 0 || !$tipo_escala || !$tipo_test) {
             $this->sendResponse(false, 'Datos incompletos o inválidos');
             return;
         }
@@ -262,7 +265,7 @@ class TestsController {
         }
 
         // Actualizar el test
-        $result = $this->model->updateTest($id_test, $nombre, $descripcion, $num_items, $tipo_escala);
+        $result = $this->model->updateTest($id_test, $nombre, $descripcion, $num_items, $tipo_escala, $tipo_test);
         
         if (!$result) {
             $this->sendResponse(false, 'Error al actualizar el test');

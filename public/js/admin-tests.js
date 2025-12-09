@@ -74,6 +74,12 @@ class AdminTestsManager {
       }
     });
 
+    // Asegurar existencia y escucha del select tipoTest si existe
+    const tipoTestSelect = document.getElementById("tipoTest");
+    if (tipoTestSelect) {
+      // no hay comportamiento especial por ahora, pero dejamos referencia
+    }
+
     // Botón junto al select para abrir modal de nueva escala
     const btnOpenScale = document.getElementById("btnOpenScaleModal");
     if (btnOpenScale) {
@@ -551,6 +557,9 @@ class AdminTestsManager {
 
     // Asegurarse que el botón guardar no quede en estado loading
     this.setSaveButtonLoading(false);
+    // Asegurar valor por defecto para tipoTest
+    const tipoTestEl = document.getElementById("tipoTest");
+    if (tipoTestEl) tipoTestEl.value = "estres";
     this.openModal();
   }
 
@@ -732,6 +741,11 @@ class AdminTestsManager {
     document.getElementById("nombreTest").value = test.nombre || "";
     document.getElementById("descripcionTest").value = test.descripcion || "";
 
+    // Establecer tipo de test (estres/ansiedad)
+    if (test.tipo_test) {
+      const tipoTestEl = document.getElementById("tipoTest");
+      if (tipoTestEl) tipoTestEl.value = test.tipo_test;
+    }
     // Establecer tipo de escala y cargar opciones
     if (test.tipo_escala) {
       document.getElementById("tipoEscala").value = test.tipo_escala;
@@ -947,10 +961,11 @@ class AdminTestsManager {
     const nombre = document.getElementById("nombreTest").value.trim();
     const descripcion = document.getElementById("descripcionTest").value.trim();
     const tipoEscala = document.getElementById("tipoEscala").value;
+    const tipoTest = (document.getElementById("tipoTest") || {}).value || "";
     // El número de ítems se calcula a partir de las tarjetas (no editable manualmente)
     const numItems = document.querySelectorAll(".item-card").length;
 
-    if (!nombre || !descripcion || !tipoEscala || numItems <= 0) {
+    if (!nombre || !descripcion || !tipoEscala || !tipoTest || numItems <= 0) {
       this.showFormStatus(
         "Por favor completa todos los campos obligatorios. Revisa el nombre, descripción, tipo de escala y agrega al menos 1 ítem.",
         "warning",
@@ -1006,6 +1021,7 @@ class AdminTestsManager {
 
     formData.append("nombre", nombre);
     formData.append("descripcion", descripcion);
+    formData.append("tipo_test", tipoTest);
     formData.append("num_items", numItems);
     formData.append("tipo_escala", tipoEscala);
     formData.append("items", JSON.stringify(items));

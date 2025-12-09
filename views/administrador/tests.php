@@ -79,6 +79,18 @@ renderPageHeader();
                 </div>
 
                 <div class="form-group">
+                    <label for="tipoTest">
+                        <i class="fas fa-tags"></i> Tipo de Test *
+                    </label>
+                    <select id="tipoTest" name="tipo_test" class="tipo-test-select" required>
+                        <option value="">Selecciona el tipo de test...</option>
+                        <option value="estres">Estrés</option>
+                        <option value="ansiedad">Ansiedad</option>
+                    </select>
+                    <small class="form-hint">Selecciona la categoría clínica del test psicológico</small>
+                </div>
+
+                <div class="form-group">
                     <label for="tipoEscala">
                         <i class="fas fa-list-check"></i> Tipo de Escala de Respuesta *
                     </label>
