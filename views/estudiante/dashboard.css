@@ -50,6 +50,57 @@
   line-height: 1.2;
 }
 
+.card .cambio {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.alerta-riesgo {
+  background: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  color: #856404;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-alerta {
+  background: #dc3545;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 3rem;
+  color: var(--var-500);
+}
+
+.loading-spinner i {
+  font-size: 2rem;
+  color: var(--pri-500);
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  text-align: center;
+  padding: 3rem;
+  color: #dc3545;
+}
+
+.error-message i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
 .bar {
   height: 10px;
   border-radius: 10px;

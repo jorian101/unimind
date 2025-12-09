@@ -38,17 +38,32 @@ if (file_exists($procFile)) {
     echo "Importando procedimientos desde procedures.sql...\n";
     $procSql = file_get_contents($procFile);
 
-    // Eliminar líneas DELIMITER y convertir delimitadores 'END //' a 'END;'
-    $procSql = preg_replace('/DELIMITER\s+\S+\s*/i', '', $procSql);
-    $procSql = str_replace("END //", "END;", $procSql);
+    // Eliminar líneas DELIMITER completamente
+    $procSql = preg_replace('/DELIMITER\s+\/\/\s*/i', '', $procSql);
+    $procSql = preg_replace('/DELIMITER\s+;\s*/i', '', $procSql);
+    
+    // Convertir todos los delimitadores '//' a ';'
+    $procSql = preg_replace('/\/\/\s*$/m', ';', $procSql);
+    $procSql = str_replace('END //', 'END;', $procSql);
 
-    // Antes de crear, eliminar procedimientos con el mismo nombre para evitar error "already exists"
-    preg_match_all('/CREATE\s+PROCEDURE\s+`?([a-zA-Z0-9_]+)`?/i', $procSql, $matches);
-    if (!empty($matches[1])) {
-        foreach ($matches[1] as $procName) {
+    // Antes de crear, eliminar procedimientos y funciones con el mismo nombre
+    preg_match_all('/CREATE\s+PROCEDURE\s+`?([a-zA-Z0-9_]+)`?/i', $procSql, $procMatches);
+    preg_match_all('/CREATE\s+FUNCTION\s+`?([a-zA-Z0-9_]+)`?/i', $procSql, $funcMatches);
+    
+    if (!empty($procMatches[1])) {
+        foreach ($procMatches[1] as $procName) {
             $dropSql = "DROP PROCEDURE IF EXISTS `" . $procName . "`;";
             if (!$mysqli->query($dropSql)) {
                 echo "Aviso: no se pudo eliminar procedimiento $procName: " . $mysqli->error . "\n";
+            }
+        }
+    }
+    
+    if (!empty($funcMatches[1])) {
+        foreach ($funcMatches[1] as $funcName) {
+            $dropSql = "DROP FUNCTION IF EXISTS `" . $funcName . "`;";
+            if (!$mysqli->query($dropSql)) {
+                echo "Aviso: no se pudo eliminar función $funcName: " . $mysqli->error . "\n";
             }
         }
     }

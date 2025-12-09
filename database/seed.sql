@@ -13,6 +13,10 @@ TRUNCATE TABLE `Opciones_Respuesta`;
 TRUNCATE TABLE `Tipos_Escalas`;
 TRUNCATE TABLE `Usuarios`;
 TRUNCATE TABLE `Escuelas`;
+-- Truncate nuevas tablas de métricas
+TRUNCATE TABLE `Agregaciones`;
+TRUNCATE TABLE `Estadisticas_Poblacionales`;
+TRUNCATE TABLE `Baremos`;
 SET FOREIGN_KEY_CHECKS=1;
 
 
@@ -26,6 +30,39 @@ INSERT INTO `Escuelas` (`id_escuela`, `nombre_escuela`, `telefono`) VALUES
 (6, 'Derecho', '555-6006'),
 (7, 'Medicina', '555-7007')
 ON DUPLICATE KEY UPDATE `nombre_escuela`=VALUES(`nombre_escuela`), `telefono`=VALUES(`telefono`);
+
+-- ============================================
+-- DATOS INICIALES: BAREMOS PSICOMÉTRICOS
+-- ============================================
+
+-- Baremos para ESTRÉS (intervalos semiabiertos)
+-- Importante: pct_min es INCLUSIVO, pct_max es EXCLUSIVO (excepto el último)
+INSERT INTO `Baremos` (`tipo_test`, `nivel`, `pct_min`, `pct_max`, `descripcion`, `color_hex`, `orden`, `activo`) VALUES
+('estres', 'normal',   0.00,  20.00, 'Nivel de estrés dentro de parámetros normales', '#28a745', 1, TRUE),
+('estres', 'leve',    20.00,  40.00, 'Estrés leve, manejable con técnicas de relajación', '#ffc107', 2, TRUE),
+('estres', 'moderado', 40.00, 60.00, 'Estrés moderado, requiere atención y manejo', '#fd7e14', 3, TRUE),
+('estres', 'alto',     60.00, 80.00, 'Estrés alto, se recomienda intervención profesional', '#dc3545', 4, TRUE),
+('estres', 'severo',   80.00, 100.01, 'Estrés severo, requiere atención inmediata', '#6f1e23', 5, TRUE)
+ON DUPLICATE KEY UPDATE 
+    `pct_min`=VALUES(`pct_min`), 
+    `pct_max`=VALUES(`pct_max`),
+    `descripcion`=VALUES(`descripcion`),
+    `color_hex`=VALUES(`color_hex`),
+    `orden`=VALUES(`orden`);
+
+-- Baremos para ANSIEDAD (umbrales más bajos, se manifiesta clínicamente antes)
+INSERT INTO `Baremos` (`tipo_test`, `nivel`, `pct_min`, `pct_max`, `descripcion`, `color_hex`, `orden`, `activo`) VALUES
+('ansiedad', 'normal',   0.00,  15.00, 'Nivel de ansiedad dentro de parámetros normales', '#28a745', 1, TRUE),
+('ansiedad', 'leve',    15.00,  35.00, 'Ansiedad leve, síntomas ocasionales', '#ffc107', 2, TRUE),
+('ansiedad', 'moderado', 35.00, 55.00, 'Ansiedad moderada, afecta funcionamiento diario', '#fd7e14', 3, TRUE),
+('ansiedad', 'alto',     55.00, 75.00, 'Ansiedad alta, interfiere significativamente', '#dc3545', 4, TRUE),
+('ansiedad', 'severo',   75.00, 100.01, 'Ansiedad severa, requiere intervención urgente', '#6f1e23', 5, TRUE)
+ON DUPLICATE KEY UPDATE 
+    `pct_min`=VALUES(`pct_min`), 
+    `pct_max`=VALUES(`pct_max`),
+    `descripcion`=VALUES(`descripcion`),
+    `color_hex`=VALUES(`color_hex`),
+    `orden`=VALUES(`orden`);
 
 -- 1.2 Opciones de Respuesta (Escala Likert 0-3)
 INSERT INTO `Opciones_Respuesta` (`id_opcion`, `texto_opcion`, `valor_puntuacion`) VALUES
