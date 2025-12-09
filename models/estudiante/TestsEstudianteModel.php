@@ -214,6 +214,83 @@ class TestsEstudianteModel extends BaseModel {
             $stmt->execute();
             $resultado = $stmt->fetch();
             $stmt->closeCursor();
+
+            // Si el resultado indica nivel Alto/Severo, notificar a los administradores
+            try {
+                $nivel = '';
+                if (is_array($resultado)) {
+                    if (isset($resultado['Nivel_Resultado'])) $nivel = $resultado['Nivel_Resultado'];
+                    elseif (isset($resultado['resultado_nivel'])) $nivel = $resultado['resultado_nivel'];
+                    elseif (isset($resultado['resultado'])) $nivel = $resultado['resultado'];
+                    elseif (isset($resultado['Nivel'])) $nivel = $resultado['Nivel'];
+                }
+
+                if ($nivel && (stripos($nivel, 'alto') !== false || stripos($nivel, 'severo') !== false)) {
+                    // Obtener id_usuario e id_test de la aplicación
+                    $q = $this->conn->prepare('SELECT id_usuario, id_test FROM Aplicaciones WHERE id_aplicacion = :id_aplicacion');
+                    $q->execute([':id_aplicacion' => $id_aplicacion]);
+                    $app = $q->fetch(PDO::FETCH_ASSOC);
+                    if ($app) {
+                        $id_usuario = (int)$app['id_usuario'];
+                        $id_test = (int)$app['id_test'];
+
+                        // Obtener nombre del estudiante
+                        $ust = $this->conn->prepare('SELECT nombre, apellido FROM Usuarios WHERE id_usuario = :id');
+                        $ust->execute([':id' => $id_usuario]);
+                        $urow = $ust->fetch(PDO::FETCH_ASSOC);
+                        $alumnoNombre = $urow ? trim(($urow['nombre'] ?? '') . ' ' . ($urow['apellido'] ?? '')) : 'Un estudiante';
+
+                        // Obtener nombre del test
+                        $tst = $this->conn->prepare('SELECT nombre FROM Tests WHERE id_test = :id_test');
+                        $tst->execute([':id_test' => $id_test]);
+                        $trow = $tst->fetch(PDO::FETCH_ASSOC);
+                        $testNombre = $trow ? $trow['nombre'] : 'un test';
+
+                        $mensaje = "Alerta: $alumnoNombre obtuvo nivel $nivel en el test $testNombre";
+                        $metadata = json_encode(['tipo' => 'alerta_nivel_alto', 'id_aplicacion' => $id_aplicacion, 'id_test' => $id_test, 'id_usuario' => $id_usuario]);
+
+                        // Insertar notificaciones para administradores
+                        $adminsStmt = $this->conn->prepare("SELECT id_usuario FROM Usuarios WHERE cargo = 'Administrador'");
+                        $adminsStmt->execute();
+                        $admins = $adminsStmt->fetchAll(PDO::FETCH_COLUMN, 0);
+
+                        if (!empty($admins)) {
+                            $ins = $this->conn->prepare('INSERT INTO Notificaciones (id_usuario_destino, mensaje, metadata, leido, creado_en) VALUES (:id_usuario, :mensaje, :metadata, 0, NOW())');
+                            foreach ($admins as $adm) {
+                                try {
+                                    $ins->execute([':id_usuario' => $adm, ':mensaje' => $mensaje, ':metadata' => $metadata]);
+                                } catch (PDOException $inner) {
+                                    // ignore per-admin errors
+                                }
+                            }
+                        }
+
+                        // Notificar a los profesores de los cursos donde está inscrito el alumno
+                        try {
+                            $profStmt = $this->conn->prepare("SELECT DISTINCT c.id_profesor FROM Usuario_Curso uc JOIN Cursos c ON uc.id_curso = c.id_curso WHERE uc.id_usuario = :id_usuario");
+                            $profStmt->execute([':id_usuario' => $id_usuario]);
+                            $profs = $profStmt->fetchAll(PDO::FETCH_COLUMN, 0);
+                            if (!empty($profs)) {
+                                $mensajeProf = "Alerta: $alumnoNombre obtuvo nivel $nivel en el test $testNombre";
+                                $metadataProf = json_encode(['tipo' => 'alerta_profesor', 'id_aplicacion' => $id_aplicacion, 'id_test' => $id_test, 'id_usuario' => $id_usuario]);
+                                $insProf = $this->conn->prepare('INSERT INTO Notificaciones (id_usuario_destino, mensaje, metadata, leido, creado_en) VALUES (:id_usuario, :mensaje, :metadata, 0, NOW())');
+                                foreach ($profs as $pid) {
+                                    try {
+                                        $insProf->execute([':id_usuario' => $pid, ':mensaje' => $mensajeProf, ':metadata' => $metadataProf]);
+                                    } catch (PDOException $inner2) {
+                                        // ignore per-professor errors
+                                    }
+                                }
+                            }
+                        } catch (Exception $e) {
+                            // no interrumpir flujo si falla notificación a profesores
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                // no interrumpir el flujo principal si falla la notificación
+            }
+
             return $resultado;
         } catch (PDOException $e) {
             error_log("Error en finalizarAplicacion: " . $e->getMessage());

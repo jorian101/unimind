@@ -68,6 +68,11 @@ return [
             'title' => 'Recomendaciones',
             'breadcrumb' => ['Inicio', 'Recomendaciones'],
         ],
+        'Notifiaciones' => [
+            'path' => 'administrador/notificaciones.php',
+            'title' => 'Notificaciones',
+            'breadcrumb' => ['Inicio', 'Notificaciones'],
+        ],
     ],
 
     // ========================================
@@ -88,6 +93,11 @@ return [
             'path' => 'profesor/sugerencias-profesor.php',
             'title' => 'Mis Sugerencias',
             'breadcrumb' => ['Inicio', 'Sugerencias'],
+        ],
+        'notificaciones' => [
+            'path' => 'profesor/notificaciones.php',
+            'title' => 'Notificaciones',
+            'breadcrumb' => ['Inicio', 'Notificaciones'],
         ],
     ],
 
@@ -181,6 +191,12 @@ return [
             'path' => 'estudiante/calendario-citas.php',
             'title' => 'Calendario de Citas',
             'breadcrumb' => ['Inicio', 'Calendario de Citas'],
+            'layout' => 'unimind',
+        ],
+        'notificaciones' => [
+            'path' => 'estudiante/notificaciones.php',
+            'title' => 'Notificaciones',
+            'breadcrumb' => ['Inicio', 'Notificaciones'],
             'layout' => 'unimind',
         ],
     ],

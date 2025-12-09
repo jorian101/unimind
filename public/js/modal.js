@@ -97,12 +97,13 @@ class Modal {
       const theme = Modal.THEMES[type] || Modal.THEMES.info;
 
       // Construir HTML del modal
+      const iconHtml = icon
+        ? `<div class="unimind-modal-icon"><i class="${icon}"></i></div>`
+        : "";
       const modalHTML = `
         <div class="unimind-modal ${theme} ${animate ? "modal-animate" : ""}" style="${width ? `max-width: ${width}` : ""}">
           <div class="unimind-modal-header">
-            <div class="unimind-modal-icon">
-              <i class="${icon}"></i>
-            </div>
+            ${iconHtml}
             <h2 class="unimind-modal-title">${this.escapeHtml(title)}</h2>
             <button class="unimind-modal-close" data-action="close">
               <i class="fas fa-times"></i>
@@ -382,7 +383,7 @@ Modal.ICONS = {
   success: "fas fa-check-circle",
   delete: "fas fa-trash-alt",
   info: "fas fa-info-circle",
-  custom: "fas fa-bell",
+  custom: "",
 };
 
 Modal.THEMES = {

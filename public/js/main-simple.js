@@ -9,8 +9,9 @@
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async () => {
     try {
-      // Registrar el Service Worker
-      const registration = await navigator.serviceWorker.register("/sw.js");
+      // Registrar el Service Worker (usar base si está definida)
+      const swPath = (window.UNIMIND_BASE || "") + "/sw.js";
+      const registration = await navigator.serviceWorker.register(swPath);
 
       console.log("[SW] Service Worker registrado exitosamente");
 
