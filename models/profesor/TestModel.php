@@ -1,12 +1,21 @@
 <?php
-require_once __DIR__ . '/../../database/Database.php';
+require_once __DIR__ . '/../BaseModel.php';
 
-class TestModel {
-    private $conn;
+class TestModel extends BaseModel {
+    protected function getTableName() {
+        return 'Tests';
+    }
 
-    public function __construct($db) {
-        // Se espera que $db sea una conexión PDO (Database->connect())
-        $this->conn = $db;
+    protected function getPrimaryKey() {
+        return 'id_test';
+    }
+
+    /**
+     * Constructor alternativo para retrocompatibilidad
+     * Acepta conexión opcional (ignorada, usa Singleton)
+     */
+    public function __construct($db = null) {
+        parent::__construct();
     }
 
     /**

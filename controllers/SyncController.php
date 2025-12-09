@@ -1,6 +1,9 @@
 <?php
+/**
+ * SyncController - Refactorizado con Database Singleton y ModelFactory
+ */
 session_start();
-require_once __DIR__ . '/../models/estudiante/TestsEstudianteModel.php';
+require_once __DIR__ . '/../utils/ModelFactory.php';
 require_once __DIR__ . '/../database/Database.php';
 
 /**
@@ -50,9 +53,9 @@ if (count($items) > $MAX_BATCH_ITEMS) {
     exit;
 }
 
-$db = new Database();
-$conn = $db->connect();
-$model = new TestsEstudianteModel();
+// Usar Database Singleton y ModelFactory
+$conn = Database::getInstance()->getConnection();
+$model = ModelFactory::create('estudiante', 'tests');
 
 $responses = [];
 $id_usuario = $_SESSION['id_usuario'];

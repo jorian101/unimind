@@ -1,38 +1,33 @@
 <?php
-header('Content-Type: application/json; charset=utf-8');
-session_start();
+/**
+ * API Endpoint: Sugerencias de Tests (Profesores)
+ * Refactorizado con APIFacade + Database Singleton
+ */
+require_once __DIR__ . '/../utils/APIFacade.php';
 require_once __DIR__ . '/../database/Database.php';
 
-$response = ['success' => false, 'message' => ''];
-
-// Verificar autenticación
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
-    http_response_code(401);
-    $response['message'] = 'No autenticado';
-    echo json_encode($response);
-    exit;
+// Verificar autenticación y rol
+$auth = APIFacade::checkAuth();
+if (!$auth['authenticated']) {
+    APIFacade::sendUnauthorized();
 }
 
-// Verificar que sea docente (comparación case-insensitive)
-if (!isset($_SESSION['user_role']) || strtolower($_SESSION['user_role']) !== 'docente') {
-    http_response_code(403);
-    $response['message'] = 'Acceso denegado. Solo docentes pueden acceder a esta función.';
-    echo json_encode($response);
-    exit;
+// Verificar que sea docente
+if (!isset($auth['role']) || strtolower($auth['role']) !== 'docente') {
+    APIFacade::sendError('Acceso denegado. Solo docentes pueden acceder a esta función.', 403);
 }
 
-$profesorId = (int) $_SESSION['user_id'];
+$profesorId = $auth['user_id'];
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
-try {
-    $db = new Database();
-    $conn = $db->connect();
+$conn = Database::getInstance()->getConnection();
 
-    // ===========================
-    // OBTENER SUGERENCIAS DEL PROFESOR
-    // ===========================
-    if ($method === 'GET' && $action === 'listar') {
+// ===========================
+// OBTENER SUGERENCIAS DEL PROFESOR
+// ===========================
+if ($method === 'GET' && $action === 'listar') {
+    APIFacade::execute(function() use ($conn, $profesorId) {
         $stmt = $conn->prepare("
             SELECT 
                 s.id_sugerencia,
@@ -106,26 +101,24 @@ try {
             $sug['nombre_curso'] = count($names) ? implode(', ', $names) : null;
         }
         
-        $response['success'] = true;
-        $response['message'] = 'Sugerencias obtenidas correctamente';
-        $response['data'] = $sugerencias;
-        echo json_encode($response);
-        exit;
-    }
+        APIFacade::sendSuccess([
+            'sugerencias' => $sugerencias
+        ], 'Sugerencias obtenidas correctamente');
+    });
+}
 
-    // ===========================
-    // ELIMINAR SUGERENCIA
-    // ===========================
-    if ($method === 'DELETE' || ($method === 'POST' && $action === 'eliminar')) {
-        $payload = json_decode(file_get_contents('php://input'), true);
-        $id_sugerencia = $payload['id_sugerencia'] ?? null;
+// ===========================
+// ELIMINAR SUGERENCIA
+// ===========================
+if ($method === 'DELETE' || ($method === 'POST' && $action === 'eliminar')) {
+    APIFacade::execute(function() use ($conn, $profesorId) {
+        $payload = APIFacade::getJsonBody();
         
-        if (!$id_sugerencia) {
-            http_response_code(400);
-            $response['message'] = 'ID de sugerencia no proporcionado';
-            echo json_encode($response);
-            exit;
+        if (!isset($payload['id_sugerencia'])) {
+            APIFacade::sendError('ID de sugerencia no proporcionado', 400);
         }
+        
+        $id_sugerencia = $payload['id_sugerencia'];
         
         // Verificar que la sugerencia pertenece al profesor
         $stmt = $conn->prepare("
@@ -137,10 +130,7 @@ try {
         $sugerencia = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$sugerencia) {
-            http_response_code(404);
-            $response['message'] = 'Sugerencia no encontrada';
-            echo json_encode($response);
-            exit;
+            APIFacade::sendNotFound('Sugerencia no encontrada');
         }
         
         $profesores_ids = json_decode($sugerencia['profesores_ids'], true);
@@ -148,10 +138,7 @@ try {
         
         // Verificar que el profesor actual esté en la lista
         if (!in_array($profesorId, $profesores_ids)) {
-            http_response_code(403);
-            $response['message'] = 'No autorizado para eliminar esta sugerencia';
-            echo json_encode($response);
-            exit;
+            APIFacade::sendError('No autorizado para eliminar esta sugerencia', 403);
         }
         
         // Si el profesor es el único que sugirió, eliminar completamente
@@ -159,8 +146,7 @@ try {
             $stmt = $conn->prepare("DELETE FROM Sugerencias WHERE id_sugerencia = ?");
             $stmt->execute([$id_sugerencia]);
             
-            $response['success'] = true;
-            $response['message'] = 'Sugerencia eliminada completamente';
+            APIFacade::sendSuccess([], 'Sugerencia eliminada completamente');
         } else {
             // Si hay múltiples profesores, solo remover este profesor de los arrays
             $nuevos_profesores = array_values(array_filter($profesores_ids, fn($id) => $id != $profesorId));
@@ -183,24 +169,10 @@ try {
                 $id_sugerencia
             ]);
             
-            $response['success'] = true;
-            $response['message'] = 'Tu sugerencia fue removida. Otros profesores aún tienen este test sugerido.';
+            APIFacade::sendSuccess([], 'Tu sugerencia fue removida. Otros profesores aún tienen este test sugerido.');
         }
-        
-        echo json_encode($response);
-        exit;
-    }
-
-    // Acción no reconocida
-    http_response_code(400);
-    $response['message'] = 'Acción no válida';
-    echo json_encode($response);
-    exit;
-
-} catch (PDOException $e) {
-    http_response_code(500);
-    $response['message'] = 'Error de servidor: ' . $e->getMessage();
-    echo json_encode($response);
-    exit;
+    });
 }
-?>
+
+// Acción no reconocida
+APIFacade::sendError('Acción no válida', 400);

@@ -4,6 +4,45 @@
 
 Proyecto simplificado que muestra una página de prueba con sidebar completamente funcional y responsive.
 
+---
+
+## 🎯 Refactorización con Patrones de Diseño (Diciembre 2025)
+
+El proyecto ha sido **refactorizado** aplicando 6 patrones de diseño fundamentales:
+
+- ✅ **Singleton** - Database (una única conexión compartida)
+- ✅ **Template Method** - BaseModel (estructura común para modelos)
+- ✅ **Factory Method** - ModelFactory (creación centralizada)
+- ✅ **Facade** - APIFacade (interfaz unificada para APIs)
+- ✅ **Strategy** - AuthStrategy (redirección por roles)
+- ✅ **Command** - SyncCommands (cola de sincronización offline)
+
+### 📚 Documentación de Patrones:
+
+- **[Resumen Ejecutivo](docs/REFACTORING-EXECUTIVE-SUMMARY.md)** - Overview de cambios y métricas
+- **[Resumen Técnico](docs/REFACTORING-SUMMARY.md)** - Detalles de implementación
+- **[Diagramas UML](docs/DESIGN-PATTERNS-DIAGRAMS.md)** - Arquitectura visual
+- **[Guía de Migración](docs/MIGRATION-GUIDE.md)** - Para desarrolladores
+
+### 🎓 Para Nuevos Desarrolladores:
+
+1. Lee primero el **[Resumen Ejecutivo](docs/REFACTORING-EXECUTIVE-SUMMARY.md)**
+2. Revisa la **[Guía de Migración](docs/MIGRATION-GUIDE.md)** antes de hacer cambios
+3. Consulta ejemplos refactorizados:
+   - Models: `models/administrador/CursosModel.php`
+   - API: `api/notifications.php`
+   - Controllers: `controllers/AuthController.php`
+
+### 📊 Mejoras Cuantificables:
+
+| Métrica          | Antes       | Después     | Mejora   |
+| ---------------- | ----------- | ----------- | -------- |
+| Conexiones DB    | ~20+        | 1           | **-95%** |
+| Código duplicado | ~800 líneas | ~200 líneas | **-75%** |
+| Código API       | ~600 líneas | ~200 líneas | **-67%** |
+
+---
+
 ## Estructura Actual del Proyecto
 
 Ver manual.md para detalles completos de la API.

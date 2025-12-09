@@ -1,56 +1,51 @@
 <?php
+/**
+ * AuthController - Refactorizado con Strategy Pattern
+ * 
+ * Usa AuthStrategy para manejar redirecciones basadas en roles
+ * Desacopla lógica de autenticación de lógica de redirección
+ */
 session_start();
 require_once __DIR__ . '/../database/Database.php';
+require_once __DIR__ . '/../utils/AuthStrategy.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $codigo_usuario = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
 
+    // Validar campos vacíos
     if (empty($codigo_usuario) || empty($password)) {
         header('Location: ../index.php?error=campos_vacios');
         exit;
     }
 
     try {
-        // Conectar a la base de datos
-        $database = new Database();
-        $conn = $database->connect();
+        // Validar credenciales usando AuthHelper
+        $usuario = AuthHelper::validateCredentials($codigo_usuario, $password);
 
-        $stmt = $conn->prepare("CALL sp_autenticar_usuario_por_codigo(:codigo_usuario)");
-        $stmt->bindParam(':codigo_usuario', $codigo_usuario, PDO::PARAM_STR);
-        $stmt->execute();
+        if ($usuario) {
+            // Configurar sesión
+            AuthHelper::setupSession($usuario);
 
-        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-        $stmt->closeCursor(); 
+            // Crear contexto de autenticación con Strategy pattern
+            $authContext = AuthenticationContext::createFromRole($usuario['cargo']);
 
-        if ($usuario && $password === $usuario['password']) {
-            // Mantener compatibilidad: algunos lugares usan 'user_id' y otros 'id_usuario'
-            $_SESSION['user_id'] = $usuario['id_usuario'];
-            $_SESSION['id_usuario'] = $usuario['id_usuario'];
-            $_SESSION['user_name'] = $usuario['nombre'] . ' ' . $usuario['apellido'];
-            $_SESSION['user_role'] = strtolower($usuario['cargo']);
-            $_SESSION['id_rol'] = strtolower($usuario['cargo']);
-            $_SESSION['cargo'] = $usuario['cargo'];
-
-            $role = strtolower($usuario['cargo']);
-            if ($role === 'estudiante') {
-                header('Location: ../index.php?role=estudiante&page=dashboard');
-            } elseif ($role === 'docente') {
-                header('Location: ../index.php?role=docente&page=dashboard-profesor');
-            } elseif ($role === 'administrador') {
-                header('Location: ../index.php?role=administrador&page=dashboard');
+            if ($authContext) {
+                // Redirigir usando la estrategia apropiada
+                $authContext->redirect();
             } else {
                 header('Location: ../index.php?error=rol_invalido');
+                exit;
             }
-            exit;
         } else {
             header('Location: ../index.php?error=credenciales_invalidas');
             exit;
         }
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         error_log("Error de autenticación: " . $e->getMessage());
         header('Location: ../index.php?error=error_servidor');
         exit;
     }
 }
 ?>
+

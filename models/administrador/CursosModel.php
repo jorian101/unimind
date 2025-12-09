@@ -1,12 +1,17 @@
 <?php
-require_once __DIR__ . '/../../database/Database.php';
+require_once __DIR__ . '/../BaseModel.php';
 
-class CursosModel {
-    private $conn;
+class CursosModel extends BaseModel {
+    protected function getTableName() {
+        return 'Cursos';
+    }
 
-    public function __construct() {
-        $db = new Database();
-        $this->conn = $db->connect();
+    protected function getPrimaryKey() {
+        return 'id_curso';
+    }
+
+    protected function getOrderBy() {
+        return 'nombre_curso ASC';
     }
 
     /**
@@ -27,19 +32,7 @@ class CursosModel {
         }
     }
 
-    /**
-     * Obtener un curso por ID
-     */
-    public function getById($id) {
-        try {
-            $stmt = $this->conn->prepare('SELECT * FROM Cursos WHERE id_curso = :id');
-            $stmt->execute([':id' => $id]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            error_log('CursosModel::getById error: ' . $e->getMessage());
-            return false;
-        }
-    }
+    // getById() heredado de BaseModel
 
     /**
      * Crear un nuevo curso
@@ -83,18 +76,7 @@ class CursosModel {
         }
     }
 
-    /**
-     * Eliminar un curso
-     */
-    public function delete($id) {
-        try {
-            $stmt = $this->conn->prepare('DELETE FROM Cursos WHERE id_curso = :id');
-            return $stmt->execute([':id' => $id]);
-        } catch (PDOException $e) {
-            error_log('CursosModel::delete error: ' . $e->getMessage());
-            return false;
-        }
-    }
+    // delete() heredado de BaseModel
 
     /**
      * Obtener todos los profesores (usuarios con rol profesor)

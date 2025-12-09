@@ -1,17 +1,17 @@
 <?php
-require_once __DIR__ . '/../../database/Database.php';
+require_once __DIR__ . '/../BaseModel.php';
 
+class TestsEstudianteModel extends BaseModel {
+    protected function getTableName() {
+        return 'Tests';
+    }
 
-class TestsEstudianteModel {
-    private $conn;
+    protected function getPrimaryKey() {
+        return 'id_test';
+    }
 
     public function getConn() {
         return $this->conn;
-    }
-
-    public function __construct() {
-        $database = new Database();
-        $this->conn = $database->connect();
     }
 
     /**

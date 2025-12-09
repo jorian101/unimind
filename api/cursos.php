@@ -1,37 +1,58 @@
 <?php
+/**
+ * API Endpoint: Cursos
+ * Refactorizado con APIFacade + Database Singleton
+ */
+require_once __DIR__ . '/../utils/APIFacade.php';
 require_once __DIR__ . '/../database/Database.php';
-$db = new Database();
-$conn = $db->connect();
-header('Content-Type: application/json');
 
-// Devolver lista de cursos (GET) - opcionalmente filtrar por escuela
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    if (isset($_GET['escuela_id']) && $_GET['escuela_id'] !== '') {
-        $id_escuela = intval($_GET['escuela_id']);
-        // La columna en la tabla es `nombre_curso`; devolverla como `nombre` para compatibilidad con el frontend
-        $stmt = $conn->prepare('SELECT id_curso, nombre_curso AS nombre, id_escuela, id_profesor FROM Cursos WHERE id_escuela = ? ORDER BY nombre_curso');
-        $stmt->execute([$id_escuela]);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($rows);
-        exit;
-    }
-    // devolver todos los cursos
-    $stmt = $conn->prepare('SELECT id_curso, nombre_curso AS nombre, id_escuela, id_profesor FROM Cursos ORDER BY nombre_curso');
-    $stmt->execute();
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode($rows);
-    exit;
+$method = $_SERVER['REQUEST_METHOD'];
+
+// GET: Listar cursos (opcionalmente filtrar por escuela)
+if ($method === 'GET') {
+    APIFacade::execute(function() {
+        $conn = Database::getInstance()->getConnection();
+        
+        if (isset($_GET['escuela_id']) && $_GET['escuela_id'] !== '') {
+            $id_escuela = intval($_GET['escuela_id']);
+            $stmt = $conn->prepare(
+                'SELECT id_curso, nombre_curso AS nombre, id_escuela, id_profesor 
+                 FROM Cursos 
+                 WHERE id_escuela = ? 
+                 ORDER BY nombre_curso'
+            );
+            $stmt->execute([$id_escuela]);
+        } else {
+            $stmt = $conn->prepare(
+                'SELECT id_curso, nombre_curso AS nombre, id_escuela, id_profesor 
+                 FROM Cursos 
+                 ORDER BY nombre_curso'
+            );
+            $stmt->execute();
+        }
+        
+        $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        APIFacade::sendSuccess($cursos);
+    });
 }
 
-// Crear curso
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_curso'])) {
-    $nombre = $_POST['nombre_curso'];
-    $id_escuela = intval($_POST['id_escuela']);
-    $id_profesor = intval($_POST['id_profesor']);
-    $stmt = $conn->prepare('CALL sp_crear_curso(?, ?, ?)');
-    $stmt->execute([$nombre, $id_escuela, $id_profesor]);
-    echo json_encode(['Mensaje'=>'Curso creado correctamente']);
-    exit;
+// POST: Crear curso
+if ($method === 'POST' && isset($_POST['crear_curso'])) {
+    $params = APIFacade::validateParams(['nombre_curso', 'id_escuela', 'id_profesor'], $_POST);
+    
+    APIFacade::execute(function() use ($params) {
+        $conn = Database::getInstance()->getConnection();
+        
+        $stmt = $conn->prepare('CALL sp_crear_curso(?, ?, ?)');
+        $stmt->execute([
+            $params['nombre_curso'],
+            intval($params['id_escuela']),
+            intval($params['id_profesor'])
+        ]);
+        
+        APIFacade::sendSuccess([], 'Curso creado correctamente');
+    });
 }
 
-echo json_encode(['error'=>'Acción no válida']);
+// Acción no válida
+APIFacade::sendError('Acción no válida', 400);

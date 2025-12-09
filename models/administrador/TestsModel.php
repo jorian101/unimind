@@ -1,17 +1,22 @@
 <?php
-require_once __DIR__ . '/../../database/Database.php';
+require_once __DIR__ . '/../BaseModel.php';
 
-class TestsModel {
-    private $conn;
-    public $lastError = null;
+class TestsModel extends BaseModel {
     private $table_tests = 'Tests';
     private $table_items = 'Items';
     private $table_opciones = 'Opciones_Respuesta';
     private $table_tipos_escalas = 'Tipos_Escalas';
 
-    public function __construct() {
-        $database = new Database();
-        $this->conn = $database->connect();
+    protected function getTableName() {
+        return 'Tests';
+    }
+
+    protected function getPrimaryKey() {
+        return 'id_test';
+    }
+
+    protected function getOrderBy() {
+        return 'nombre ASC';
     }
 
     /**

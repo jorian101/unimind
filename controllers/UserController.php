@@ -1,4 +1,7 @@
 <?php
+/**
+ * UserController - Refactorizado con Database Singleton
+ */
 require_once __DIR__ . '/../database/Database.php';
 
 class UserController {
@@ -7,8 +10,8 @@ class UserController {
     private $table = 'Usuarios';
 
     public function __construct() {
-        $database = new Database();
-        $this->conn = $database->connect();
+        // Usar Database Singleton
+        $this->conn = Database::getInstance()->getConnection();
     }
 
     // Obtener todos los usuarios

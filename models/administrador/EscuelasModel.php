@@ -1,40 +1,20 @@
 <?php
-require_once __DIR__ . '/../../database/Database.php';
+require_once __DIR__ . '/../BaseModel.php';
 
-class EscuelasModel {
-    private $conn;
-
-    public function __construct() {
-        $db = new Database();
-        $this->conn = $db->connect();
+class EscuelasModel extends BaseModel {
+    protected function getTableName() {
+        return 'Escuelas';
     }
 
-    /**
-     * Obtener todas las escuelas ordenadas por nombre
-     */
-    public function getAll() {
-        try {
-            $stmt = $this->conn->query('SELECT * FROM Escuelas ORDER BY nombre_escuela');
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            error_log('EscuelasModel::getAll error: ' . $e->getMessage());
-            return [];
-        }
+    protected function getPrimaryKey() {
+        return 'id_escuela';
     }
 
-    /**
-     * Obtener una escuela por ID
-     */
-    public function getById($id) {
-        try {
-            $stmt = $this->conn->prepare('SELECT * FROM Escuelas WHERE id_escuela = :id');
-            $stmt->execute([':id' => $id]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            error_log('EscuelasModel::getById error: ' . $e->getMessage());
-            return false;
-        }
+    protected function getOrderBy() {
+        return 'nombre_escuela ASC';
     }
+
+    // getAll() y getById() heredados de BaseModel
 
     /**
      * Crear una nueva escuela

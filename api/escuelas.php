@@ -1,33 +1,36 @@
 <?php
-require_once __DIR__ . '/../database/Database.php';
-$db = new Database();
-$conn = $db->connect();
-header('Content-Type: application/json');
+/**
+ * API Endpoint: Escuelas
+ * Refactorizado con APIFacade + ModelFactory
+ */
+require_once __DIR__ . '/../utils/APIFacade.php';
+require_once __DIR__ . '/../utils/ModelFactory.php';
 
-// Devolver lista de escuelas (GET)
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    try {
-        $stmt = $conn->prepare('SELECT id_escuela, nombre_escuela, telefono FROM Escuelas ORDER BY nombre_escuela');
-        $stmt->execute();
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($rows);
-        exit;
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['error' => 'Error al obtener escuelas']);
-        exit;
-    }
+$method = $_SERVER['REQUEST_METHOD'];
+
+// GET: Listar escuelas
+if ($method === 'GET') {
+    APIFacade::execute(function() {
+        $model = ModelFactory::createShared('escuelas');
+        $escuelas = $model->getAll();
+        APIFacade::sendSuccess($escuelas);
+    });
 }
 
-// Crear escuela
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear_escuela'])) {
-    $nombre = $_POST['nombre_escuela'];
-    $telefono = $_POST['telefono'] ?: null;
-    $stmt = $conn->prepare('CALL sp_crear_escuela(?, ?)');
-    $stmt->execute([$nombre, $telefono]);
-    echo json_encode(['Mensaje'=>'Escuela creada correctamente']);
-    exit;
+// POST: Crear escuela
+if ($method === 'POST' && isset($_POST['crear_escuela'])) {
+    $params = APIFacade::validateParams(['nombre_escuela'], $_POST);
+    
+    APIFacade::execute(function() use ($params) {
+        $conn = Database::getInstance()->getConnection();
+        
+        $telefono = $_POST['telefono'] ?? null;
+        $stmt = $conn->prepare('CALL sp_crear_escuela(?, ?)');
+        $stmt->execute([$params['nombre_escuela'], $telefono]);
+        
+        APIFacade::sendSuccess([], 'Escuela creada correctamente');
+    });
 }
 
-// Placeholder para editar/eliminar si se implementan más adelante
-echo json_encode(['error'=>'Acción no válida']);
+// Acción no válida
+APIFacade::sendError('Acción no válida', 400);

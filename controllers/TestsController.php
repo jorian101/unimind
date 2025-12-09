@@ -1,12 +1,15 @@
 <?php
-require_once __DIR__ . '/../models/administrador/TestsModel.php';
-require_once __DIR__ . '/../models/administrador/CursosModel.php';
+/**
+ * TestsController - Refactorizado con ModelFactory
+ */
+require_once __DIR__ . '/../utils/ModelFactory.php';
 
 class TestsController {
     private $model;
 
     public function __construct() {
-        $this->model = new TestsModel();
+        // Usar ModelFactory para crear el modelo
+        $this->model = ModelFactory::create('administrador', 'tests');
     }
 
     /**

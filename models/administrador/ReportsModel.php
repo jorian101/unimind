@@ -1,12 +1,13 @@
 <?php
-require_once __DIR__ . '/../../database/Database.php';
+require_once __DIR__ . '/../BaseModel.php';
 
-class ReportsModel {
-    private $conn;
+class ReportsModel extends BaseModel {
+    protected function getTableName() {
+        return 'Aplicaciones';
+    }
 
-    public function __construct() {
-        $db = new Database();
-        $this->conn = $db->connect();
+    protected function getPrimaryKey() {
+        return 'id_aplicacion';
     }
 
     public function getSummaryCounts() {
