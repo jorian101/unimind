@@ -48,14 +48,20 @@ class AdminTestsManager {
     });
 
     // Búsqueda de tests
-    document.getElementById("searchTest").addEventListener("input", (e) => {
-      this.filterTests(e.target.value);
-    });
+    const searchInput = document.getElementById("searchTest");
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        this.filterTests(e.target.value);
+      });
+    }
 
-    // Ordenamiento
-    document.getElementById("sortTests").addEventListener("change", (e) => {
-      this.sortTests(e.target.value);
-    });
+    // Ordenamiento (opcional, solo si existe el elemento)
+    const sortSelect = document.getElementById("sortTests");
+    if (sortSelect) {
+      sortSelect.addEventListener("change", (e) => {
+        this.sortTests(e.target.value);
+      });
+    }
 
     // Cambio de tipo de escala
     document.getElementById("tipoEscala").addEventListener("change", (e) => {
@@ -365,7 +371,7 @@ class AdminTestsManager {
   }
 
   /**
-   * Renderizar lista de tests
+   * Renderizar lista de tests como tabla
    */
   renderTests(tests) {
     const container = document.getElementById("testsGrid");
@@ -377,72 +383,132 @@ class AdminTestsManager {
     }
 
     emptyState.style.display = "none";
-    container.innerHTML = "";
 
-    tests.forEach((test) => {
-      const testCard = this.createTestCard(test);
-      container.appendChild(testCard);
-    });
+    // Construir filas de la tabla
+    const rowsHTML = tests.map((test) => this.createTestRow(test)).join("");
+
+    // Construir tabla completa
+    container.innerHTML = `
+      <table class="tests-table">
+        <thead class="tests-table-head">
+          <tr class="tests-table-row">
+            <th class="tests-table-header">Test</th>
+            <th class="tests-table-header">Items</th>
+            <th class="tests-table-header">Escala</th>
+            <th class="tests-table-header">Creado</th>
+            <th class="tests-table-header">Opciones</th>
+            <th class="tests-table-header">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHTML}
+        </tbody>
+      </table>
+    `;
   }
 
   /**
-   * Crear tarjeta de test
+   * Crear fila de test para tabla
    */
-  createTestCard(test) {
-    const card = document.createElement("div");
-    card.className = "test-card";
-    card.dataset.testId = test.id_test;
-    // Añadir created_at como atributo data para ordenar por fecha
-    if (test.created_at) {
-      card.dataset.created = test.created_at;
-    }
-    card.dataset.testName = test.nombre;
+  createTestRow(test) {
     const isLocal = test.isLocal || String(test.id_test).startsWith("local");
-    const actionsDisabled = isLocal
-      ? 'disabled style="opacity:0.5;cursor:not-allowed;pointer-events:none;"'
-      : "";
+
+    // Determinar icono según el tipo de test
+    let icon = "fa-clipboard-list";
+    const nombre = (test.nombre || "").toLowerCase();
+
+    if (nombre.includes("estrés") || nombre.includes("estres")) {
+      icon = "fa-chart-bar";
+    } else if (nombre.includes("ansiedad")) {
+      icon = "fa-brain";
+    } else if (nombre.includes("depresión") || nombre.includes("depresion")) {
+      icon = "fa-heart-broken";
+    } else if (nombre.includes("burnout")) {
+      icon = "fa-fire";
+    }
+
+    // Formatear fechas
+    const fechaCreacion = test.created_at
+      ? this.formatearFecha(test.created_at)
+      : "N/A";
+
+    // Construir tags de opciones de la escala (versión compacta)
+    let opcionesTags = "";
+    if (test.opciones && test.opciones.length > 0) {
+      opcionesTags = test.opciones
+        .map(
+          (opcion) =>
+            `<span class="option-tag-small" title="${this.escapeHtml(opcion.texto_opcion)}: ${opcion.valor_puntuacion}">
+              ${this.escapeHtml(opcion.texto_opcion.substring(0, 15))}${opcion.texto_opcion.length > 15 ? "..." : ""}
+            </span>`,
+        )
+        .join("");
+    } else {
+      opcionesTags = '<span class="option-tag-empty">N/A</span>';
+    }
+
     const syncBadge = isLocal
-      ? '<span class="sync-badge" style="color:#f59e0b;font-size:0.85em;margin-left:8px;" title="Pendiente de sincronización"><i class="fas fa-sync-alt"></i> Pendiente</span>'
+      ? '<span class="sync-badge" style="color:#f59e0b;font-size:0.75em;margin-left:4px;" title="Pendiente de sincronización"><i class="fas fa-sync-alt"></i></span>'
       : "";
 
-    card.innerHTML = `
-            <div class="test-card-header">
-                <h3>${this.escapeHtml(test.nombre)} ${syncBadge}</h3>
-                <div class="test-actions-inline">
-                    <button class="btn-icon" title="${isLocal ? "No disponible offline" : "Ver detalles"}" onclick="adminTests.viewTest('${test.id_test}')" ${actionsDisabled}>
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn-icon edit" title="${isLocal ? "No disponible offline" : "Editar"}" onclick="adminTests.editTest('${test.id_test}')" ${actionsDisabled}>
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-icon delete" title="${isLocal ? "No disponible offline" : "Eliminar"}" onclick="adminTests.deleteTest('${test.id_test}', '${this.escapeHtml(test.nombre)}')" ${actionsDisabled}>
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-            <p class="test-description">${this.escapeHtml(test.descripcion)}</p>
-            <div class="test-meta">
-                <div class="meta-item">
-                    <i class="fas fa-list-ol"></i>
-                    <span><strong>${test.num_items}</strong> ítems</span>
-                </div>
-                  <div class="meta-item">
-                    <i class="fas fa-calendar"></i>
-                    <span>${test.created_at ? new Date(test.created_at).toLocaleString() : "—"}</span>
-                  </div>
-                  ${
-                    test.updated_at
-                      ? `
-                  <div class="meta-item">
-                    <i class="fas fa-edit"></i>
-                    <span>Últ. edición: ${new Date(test.updated_at).toLocaleString()}</span>
-                  </div>`
-                      : ""
-                  }
-            </div>
-        `;
+    const actionsDisabled = isLocal
+      ? 'style="opacity:0.5;pointer-events:none;"'
+      : "";
 
-    return card;
+    return `
+      <tr class="tests-table-row" data-test-id="${test.id_test}">
+        <td class="tests-table-cell">
+          <div class="test-name-cell">
+            <div class="test-icon">
+              <i class="fas ${icon}"></i>
+            </div>
+            <div>
+              <div class="test-name">${this.escapeHtml(test.nombre)} ${syncBadge}</div>
+              <div class="test-description">${this.escapeHtml(test.descripcion || "")}</div>
+            </div>
+          </div>
+        </td>
+        <td class="tests-table-cell">
+          <span class="items-badge">
+            <i class="fas fa-list-ol"></i>
+            ${test.num_items || 0}
+          </span>
+        </td>
+        <td class="tests-table-cell">
+          <span class="escala-name">${this.escapeHtml(test.nombre_escala || "No definida")}</span>
+        </td>
+        <td class="tests-table-cell">
+          <div class="date-cell">${fechaCreacion}</div>
+        </td>
+        <td class="tests-table-cell">
+          <div class="opciones-compact">
+            ${opcionesTags}
+          </div>
+        </td>
+        <td class="tests-table-cell">
+          <div class="action-buttons" ${actionsDisabled}>
+            <button class="btn-action btn-edit" onclick="adminTests.editTest('${test.id_test}')" title="${isLocal ? "No disponible offline" : "Editar test"}">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-action btn-delete" onclick="adminTests.deleteTest('${test.id_test}', '${this.escapeHtml(test.nombre).replace(/'/g, "\\'")}')" title="${isLocal ? "No disponible offline" : "Eliminar test"}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  /**
+   * Formatear fecha a formato legible
+   */
+  formatearFecha(fecha) {
+    if (!fecha) return "N/A";
+    const date = new Date(fecha);
+    const dia = String(date.getDate()).padStart(2, "0");
+    const mes = String(date.getMonth() + 1).padStart(2, "0");
+    const anio = date.getFullYear();
+    return `${dia}/${mes}/${anio}`;
   }
 
   /**
@@ -1137,67 +1203,90 @@ class AdminTestsManager {
   }
 
   /**
-   * Filtrar tests por búsqueda
+   * Filtrar tests por búsqueda (trabaja con tabla)
    */
   filterTests(searchTerm) {
-    const cards = document.querySelectorAll(".test-card");
+    const rows = document.querySelectorAll(".tests-table-row");
     const term = searchTerm.toLowerCase();
     let visibleCount = 0;
 
-    cards.forEach((card) => {
-      const nombre = card.dataset.testName.toLowerCase();
-      const shouldShow = nombre.includes(term);
+    rows.forEach((row) => {
+      // Saltar el header
+      if (row.parentElement.tagName === "THEAD") return;
 
-      card.style.display = shouldShow ? "block" : "none";
+      const testId = row.dataset.testId;
+      if (!testId) return;
+
+      const nameCell = row.querySelector(".test-name");
+      const descCell = row.querySelector(".test-description");
+      const name = nameCell ? nameCell.textContent.toLowerCase() : "";
+      const desc = descCell ? descCell.textContent.toLowerCase() : "";
+
+      const shouldShow = name.includes(term) || desc.includes(term);
+      row.style.display = shouldShow ? "" : "none";
       if (shouldShow) visibleCount++;
     });
 
     // Mostrar estado vacío si no hay resultados
     const emptyState = document.getElementById("emptyState");
-    if (visibleCount === 0) {
-      emptyState.style.display = "block";
-      emptyState.querySelector("h3").textContent = "No se encontraron tests";
-      emptyState.querySelector("p").textContent = "Intenta con otra búsqueda";
+    const container = document.getElementById("testsGrid");
+    if (visibleCount === 0 && term) {
+      if (container) {
+        container.innerHTML = `
+          <div class="no-tests">
+            <i class="fas fa-search"></i>
+            <p>No se encontraron tests con "${this.escapeHtml(term)}"</p>
+          </div>
+        `;
+      }
+    } else if (visibleCount === 0) {
+      if (emptyState) {
+        emptyState.style.display = "block";
+      }
     } else {
-      emptyState.style.display = "none";
+      if (emptyState) {
+        emptyState.style.display = "none";
+      }
     }
   }
 
   /**
-   * Ordenar tests
+   * Ordenar tests (trabaja con tabla)
    */
   sortTests(sortBy) {
-    const container = document.getElementById("testsGrid");
-    const cards = Array.from(container.querySelectorAll(".test-card"));
-    // no-op: el contador de ítems es un display y se actualiza desde las tarjetas
-    cards.sort((a, b) => {
+    const tbody = document.querySelector(".tests-table tbody");
+    if (!tbody) return;
+
+    const rows = Array.from(tbody.querySelectorAll(".tests-table-row"));
+
+    rows.sort((a, b) => {
       switch (sortBy) {
         case "nombre":
-          return a.dataset.testName.localeCompare(b.dataset.testName);
+          const aName = a.querySelector(".test-name")?.textContent || "";
+          const bName = b.querySelector(".test-name")?.textContent || "";
+          return aName.localeCompare(bName);
         case "num_items":
           const itemsA = parseInt(
-            a.querySelector(".meta-item strong").textContent,
+            a.querySelector(".items-badge")?.textContent.replace(/\D/g, "") ||
+              "0",
           );
           const itemsB = parseInt(
-            b.querySelector(".meta-item strong").textContent,
+            b.querySelector(".items-badge")?.textContent.replace(/\D/g, "") ||
+              "0",
           );
           return itemsB - itemsA;
         case "fecha":
-          // Ordenar por fecha de creación (más recientes primero)
-          const dateA = a.dataset.created
-            ? new Date(a.dataset.created)
-            : new Date(0);
-          const dateB = b.dataset.created
-            ? new Date(b.dataset.created)
-            : new Date(0);
-          return dateB - dateA;
+          const dateA = a.querySelector(".date-cell")?.textContent || "";
+          const dateB = b.querySelector(".date-cell")?.textContent || "";
+          return dateB.localeCompare(dateA);
         default:
           return 0;
       }
     });
 
     // Reordenar en el DOM
-    cards.forEach((card) => container.appendChild(card));
+    tbody.innerHTML = "";
+    rows.forEach((row) => tbody.appendChild(row));
   }
 
   /**

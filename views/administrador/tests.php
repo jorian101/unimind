@@ -1,52 +1,47 @@
 <?php
 require_once dirname(__DIR__) . '/pageHeader.php';
+require_once __DIR__ . '/../../utils/asset-version.php';
 renderPageHeader();
 ?>
 
+<link rel="stylesheet" href="public/css/theme.css?v=<?php echo asset_version('public/css/theme.css'); ?>">
 <link rel="stylesheet" href="views/administrador/tests.css?v=<?php echo time(); ?>">
 
 <main class="admin-tests-container">
-    <div class="page-header">
-        <p>Crea, edita y administra los tests psicológicos del sistema</p>
-        <button class="btn-primary" id="btnNuevoTest">
-            <i class="fas fa-plus"></i> Nuevo Test
-        </button>
-    </div>
-
-    <!-- Filtros y búsqueda -->
-    <div class="filters-section">
-        <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchTest" name="searchTest" placeholder="Buscar por nombre del test...">
+    <section class="tests-card">
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:0.5rem;">
+            <div>
+                <h2 class="tests-title">Administrar Tests</h2>
+                <p class="tests-subtitle">Crea, edita y administra los tests psicológicos del sistema</p>
+            </div>
+            <div style="display:flex;gap:0.75rem;align-items:center;">
+                <div class="filters-section" style="margin:0; padding:0; border:none; background:transparent;">
+                    <div class="search-box" style="min-width:220px;">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchTest" name="searchTest" placeholder="Buscar por nombre del test...">
+                    </div>
+                </div>
+                <button class="btn-primary" id="btnNuevoTest">
+                    <i class="fas fa-plus"></i> Nuevo Test
+                </button>
+            </div>
         </div>
-        <div class="filter-group">
-            <label for="sortTests">Ordenar por:</label>
-            <select id="sortTests" name="sortTests">
-                <option value="nombre">Nombre</option>
-                <option value="num_items">Número de ítems</option>
-                <option value="fecha">Fecha de creación</option>
-            </select>
-        </div>
-    </div>
 
-    <!-- Lista de tests -->
-    <div class="tests-grid" id="testsGrid">
-        <!-- Los tests se cargan dinámicamente -->
-        <div class="loading-state">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Cargando tests...</p>
+        <div class="tests-table-container" id="testsGrid">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i> Cargando tests...
+            </div>
         </div>
-    </div>
 
-    <!-- Mensaje cuando no hay tests -->
-    <div class="empty-state" id="emptyState" style="display: none;">
-        <i class="fas fa-clipboard-list"></i>
-        <h3>No hay tests disponibles</h3>
-        <p>Comienza creando tu primer test psicológico</p>
-        <button class="btn-primary" onclick="document.getElementById('btnNuevoTest').click()">
-            <i class="fas fa-plus"></i> Crear Primer Test
-        </button>
-    </div>
+        <div class="empty-state" id="emptyState" style="display: none; margin-top:1rem;">
+            <i class="fas fa-clipboard-list"></i>
+            <h3>No hay tests disponibles</h3>
+            <p>Comienza creando tu primer test psicológico</p>
+            <button class="btn-primary" onclick="document.getElementById('btnNuevoTest').click()">
+                <i class="fas fa-plus"></i> Crear Primer Test
+            </button>
+        </div>
+    </section>
 </main>
 
 <!-- Modal para crear/editar test -->
