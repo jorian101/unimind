@@ -1,6 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/pageHeader.php';
-require_once __DIR__ . '/../../models/estudiante/TestsEstudianteModel.php';
+require_once __DIR__ . '/../../utils/ModelFactory.php';
 
 // Get test data from URL parameters
 $testId = $_GET['test_id'] ?? null;
@@ -10,8 +10,13 @@ if (!$testId) {
     exit;
 }
 
-// Cargar datos del test desde la base de datos
-$model = new TestsEstudianteModel();
+// Cargar datos del test usando ModelFactory
+$model = ModelFactory::create('estudiante', 'tests');
+if (!$model) {
+    require_once __DIR__ . '/../../models/estudiante/TestsEstudianteModel.php';
+    $model = new TestsEstudianteModel();
+}
+
 $testInfo = $model->getTestById($testId);
 
 if (!$testInfo) {

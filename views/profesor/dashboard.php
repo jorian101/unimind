@@ -5,36 +5,19 @@ if (!isset($prof_courses)) {
     if (session_status() !== PHP_SESSION_ACTIVE) {
         session_start();
     }
-    require_once __DIR__ . '/../../database/Database.php';
     $prof_courses = [];
+    $test_ids = ['estres' => 0, 'ansiedad' => 0];
+
     if (isset($_SESSION['user_id'])) {
         try {
-            $db = new Database();
-            $conn = $db->connect();
-            $stmt = $conn->prepare('CALL sp_obtener_cursos_por_profesor(:p_id_profesor)');
-            $stmt->bindValue(':p_id_profesor', (int) $_SESSION['user_id'], PDO::PARAM_INT);
-            $stmt->execute();
-            $prof_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            // consume remaining resultsets to avoid issues with subsequent queries
-            try {
-                while ($stmt->nextRowset()) { /* noop */ }
-            } catch (Throwable $e) {
-                // Some drivers may not support nextRowset; ignore silently
-            }
-            // Buscar los ids de test por tipo_test
-            $test_ids = ['estres' => 0, 'ansiedad' => 0];
-            try {
-                $q = $conn->prepare("SELECT id_test, tipo_test FROM Tests WHERE tipo_test IN ('estres','ansiedad') AND estado_test = 'activo'");
-                $q->execute();
-                $all = $q->fetchAll(PDO::FETCH_ASSOC);
-                foreach ($all as $r) {
-                    if ($r['tipo_test'] === 'estres') $test_ids['estres'] = (int)$r['id_test'];
-                    if ($r['tipo_test'] === 'ansiedad') $test_ids['ansiedad'] = (int)$r['id_test'];
-                }
-            } catch (Throwable $e) { /* ignore */ }
+            require_once __DIR__ . '/../../controllers/ProfesorDashboardController.php';
+            $pd = new ProfesorDashboardController();
+            $prof_courses = $pd->getCursosPorProfesor((int) $_SESSION['user_id']);
+            $test_ids = $pd->getTestIds();
         } catch (Exception $e) {
-            // on error leave $prof_courses as empty array
+            // fallback: dejar variables por defecto
             $prof_courses = [];
+            $test_ids = ['estres' => 0, 'ansiedad' => 0];
         }
     }
 }

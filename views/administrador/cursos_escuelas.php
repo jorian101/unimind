@@ -1,15 +1,15 @@
 <?php
-// Usar modelos en lugar de consultas directas (patrón MVC)
-require_once __DIR__ . '/../../models/administrador/EscuelasModel.php';
-require_once __DIR__ . '/../../models/administrador/CursosModel.php';
+// Usar controladores (patrón MVC completo)
+require_once __DIR__ . '/../../controllers/EscuelasController.php';
+require_once __DIR__ . '/../../controllers/CursosController.php';
 
-$escuelasModel = new EscuelasModel();
-$cursosModel = new CursosModel();
+$escuelasController = new EscuelasController();
+$cursosController = new CursosController();
 
-// Obtener datos desde los modelos
-$escuelas = $escuelasModel->getAll();
-$cursos = $cursosModel->getAllWithDetails();
-$profesores = $cursosModel->getProfesores();
+// Obtener datos desde los controladores
+$escuelas = $escuelasController->getEscuelas();
+$cursos = $cursosController->getCursos();
+$profesores = []; // Los profesores se obtienen via API en el frontend
 
 require_once dirname(__DIR__) . '/pageHeader.php';
 renderPageHeader();

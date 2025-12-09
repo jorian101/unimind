@@ -3,18 +3,19 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 require_once dirname(__DIR__) . '/pageHeader.php';
-require_once __DIR__ . '/../../database/Database.php';
-// Usar el modelo específico para tests (nombre: TestModel)
-require_once __DIR__ . '/../../models/profesor/TestModel.php';
+require_once __DIR__ . '/../../utils/ModelFactory.php';
 
-// Conectar a la base de datos
-$database = new Database();
-$conn = $database->connect();
-$model = new TestModel($conn);
-
+// Usar ModelFactory para obtener el modelo de tests según rol (profesor)
+$model = ModelFactory::createTestsModel();
 // Obtener todos los tests con detalles completos
-// Obtener todos los tests con detalles completos
-$tests = $model->getAllTestsConDetalles();
+$tests = [];
+if ($model) {
+    if (method_exists($model, 'getAllTestsConDetalles')) {
+        $tests = $model->getAllTestsConDetalles();
+    } elseif (method_exists($model, 'getAllTests')) {
+        $tests = $model->getAllTests();
+    }
+}
 
 // Nota: debug temporal removido
 

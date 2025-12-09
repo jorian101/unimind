@@ -2,15 +2,18 @@
 require_once dirname(__DIR__) . '/pageHeader.php';
 renderPageHeader();
 
-require_once __DIR__ . '/../../models/administrador/ReportsModel.php';
+require_once __DIR__ . '/../../controllers/ReportsController.php';
 
-$reportsModel = new ReportsModel();
-$summary = $reportsModel->getSummaryCounts();
+$reportsController = new ReportsController();
+$summary = $reportsController->getSummaryCounts();
 $usuarios = $summary['usuarios'] ?? 0;
 $cursos = $summary['cursos'] ?? 0;
 $escuelas = $summary['escuelas'] ?? 0;
 $tests = $summary['tests'] ?? 0;
-$actividad = $reportsModel->getActividadReciente(10);
+$actividad = $reportsController->getActividadReciente(10);
+// Datos adicionales se obtienen del modelo ya que ReportsController aún no expone todos los métodos
+require_once __DIR__ . '/../../models/administrador/ReportsModel.php';
+$reportsModel = new ReportsModel();
 $niveles = $reportsModel->getNivelesDistribucion();
 $escuelas_riesgo = $reportsModel->getEscuelasRiesgo();
 $puntuaciones_mes = $reportsModel->getPuntuacionesMes();
