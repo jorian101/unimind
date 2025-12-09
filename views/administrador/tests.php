@@ -9,22 +9,17 @@ renderPageHeader();
 
 <main class="admin-tests-container">
     <section class="tests-card">
-        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:0.5rem;">
-            <div>
-                <h2 class="tests-title">Administrar Tests</h2>
-                <p class="tests-subtitle">Crea, edita y administra los tests psicológicos del sistema</p>
+        <h2 class="tests-title">Administrar Tests</h2>
+        <p class="tests-subtitle">Crea, edita y administra los tests psicológicos del sistema</p>
+        
+        <div class="tests-actions">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchTest" name="searchTest" placeholder="Buscar por nombre del test...">
             </div>
-            <div style="display:flex;gap:0.75rem;align-items:center;">
-                <div class="filters-section" style="margin:0; padding:0; border:none; background:transparent;">
-                    <div class="search-box" style="min-width:220px;">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchTest" name="searchTest" placeholder="Buscar por nombre del test...">
-                    </div>
-                </div>
-                <button class="btn-primary" id="btnNuevoTest">
-                    <i class="fas fa-plus"></i> Nuevo Test
-                </button>
-            </div>
+            <button class="btn-primary" id="btnNuevoTest">
+                <i class="fas fa-plus"></i> <span>Nuevo Test</span>
+            </button>
         </div>
 
         <div class="tests-table-container" id="testsGrid">
