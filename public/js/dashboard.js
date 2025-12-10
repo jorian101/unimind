@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Cargar datos reales desde la API
+  // Cargar datos desde window.UnimindData (patrón MVC)
   cargarDatosDashboard();
 
   // Función auxiliar para obtener nivel legible
@@ -26,43 +26,21 @@ document.addEventListener("DOMContentLoaded", function () {
     return colores[nivel] || "#6c757d";
   }
 
-  // Función para cargar datos del dashboard
-  async function cargarDatosDashboard() {
+  // Función para cargar datos del dashboard desde window.UnimindData (patrón MVC)
+  function cargarDatosDashboard() {
     const container = document.getElementById("dashboard");
 
     if (!container) {
       return;
     }
 
-    // Mostrar loading
-    container.innerHTML =
-      '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
-
     try {
-      const base = window.UNIMIND_BASE || "";
-      const baseUrl =
-        window.location.origin && window.location.origin !== "null"
-          ? window.location.origin + base
-          : base;
-
-      const response = await fetch(
-        `${baseUrl}/api/dashboard-estudiante.php?action=estadisticas`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        },
-      );
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || "Error al cargar datos");
+      // Verificar que existan los datos en window.UnimindData
+      if (!window.UnimindData || !window.UnimindData.dashboard) {
+        throw new Error("No se encontraron datos del dashboard");
       }
 
-      const data = result.data;
+      const data = window.UnimindData.dashboard;
       renderDashboard(data);
     } catch (error) {
       // Marcar 'error' como usado para evitar eslint no-unused-vars
