@@ -208,11 +208,11 @@ function renderSugerencias() {
                 <td class="prof-sugerencias__cell">
                     <div class="prof-sugerencias__actions">
                         <button class="prof-sugerencias__btn-detalles" 
-                                aria-label="Ver detalles"
+                                aria-label="Ver"
                                 onclick="verDetalles(${sug.id_curso}, ${sug.id_test}, '${escapeHtml(sug.nombre_test).replace(/'/g, "\\'")}', '${escapeHtml(sug.nombre_curso || 'N/A').replace(/'/g, "\\'")}')"
-                                title="Ver progreso detallado">
+                                title="Ver">
                             <i class="fas fa-chart-bar"></i>
-                            <span style="margin-left:0.5rem;">Ver Detalles</span>
+                            <span style="margin-left:0.5rem;">Ver</span>
                         </button>
                         <button class="prof-sugerencias__btn-cancelar" 
                                 aria-label="Cancelar sugerencia"

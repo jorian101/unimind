@@ -324,9 +324,9 @@
   font-family: var(--font);
 }
 .prof-sugerencias__btn-detalles:hover {
-  background: var(--sec-600);
+  background: var(--pri-300);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .prof-sugerencias__btn-cancelar,
@@ -349,7 +349,7 @@
 .prof-sugerencias__btn-eliminar:hover {
   background: var(--pri-300);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Estilos para el modal de detalles - siguiendo diseño de tests.php */
