@@ -6,6 +6,14 @@ $currentPage = $_GET['page'] ?? ($currentRole === 'estudiante' ? 'inicio' : 'das
 $sidebarProps = getSidebarConfig($currentRole, $currentPage);
 
 $userName = session_status() === PHP_SESSION_ACTIVE ? ($_SESSION['user_name'] ?? 'Usuario Actual') : 'Usuario Actual';
+// Determinar rol mostrado: preferir la sesión, caer a la ruta actual
+$userRoleKey = session_status() === PHP_SESSION_ACTIVE ? ($_SESSION['user_role'] ?? $_SESSION['id_rol'] ?? $currentRole) : $currentRole;
+$roleLabels = [
+    'estudiante' => 'Estudiante',
+    'docente' => 'Docente',
+    'administrador' => 'Administrador',
+];
+$userRoleLabel = $roleLabels[$userRoleKey] ?? (is_string($userRoleKey) ? ucfirst($userRoleKey) : 'Usuario');
 ?>
 
 <header id="main-header" class="main-header">
@@ -17,6 +25,7 @@ $userName = session_status() === PHP_SESSION_ACTIVE ? ($_SESSION['user_name'] ??
 
         
         <div class="profile-menu-container" id="profileToggle"> 
+            <span class="profile-role"><?php echo htmlspecialchars($userRoleLabel); ?></span>
             <span class="profile-icon"><i class="fas fa-user"></i></span>
             <span class="dropdown-arrow">▼</span>
             
