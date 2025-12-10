@@ -63,7 +63,18 @@ class SugerenciasController {
                           AND a.puntuacion_total IS NOT NULL
                     ) THEN uc.id_usuario 
                 END) AS estudiantes_completados,
-                'Activo' AS estado
+                CASE 
+                    WHEN COUNT(DISTINCT uc.id_usuario) = COUNT(DISTINCT CASE 
+                        WHEN EXISTS (
+                            SELECT 1 FROM Aplicaciones a 
+                            WHERE a.id_usuario = uc.id_usuario 
+                              AND a.id_test = sc.id_test 
+                              AND a.puntuacion_total IS NOT NULL
+                        ) THEN uc.id_usuario 
+                    END) AND COUNT(DISTINCT uc.id_usuario) > 0 
+                    THEN 'Completado' 
+                    ELSE 'Activo' 
+                END AS estado
             FROM Sugerencias_Curso sc
             INNER JOIN Tests t ON sc.id_test = t.id_test
             INNER JOIN Cursos c ON sc.id_curso = c.id_curso
@@ -213,6 +224,159 @@ class SugerenciasController {
     }
 
     /**
+     * API: GET detalles del progreso de un curso en un test
+     */
+    public function handleApiDetalles(int $profesorId): void {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_GET['id_curso']) || !isset($_GET['id_test'])) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'ID de curso e ID de test son requeridos'
+                ]);
+                return;
+            }
+            
+            $id_curso = (int)$_GET['id_curso'];
+            $id_test = (int)$_GET['id_test'];
+            $conn = Database::getInstance()->getConnection();
+            
+            // Verificar que la sugerencia pertenece al profesor
+            $stmt = $conn->prepare("
+                SELECT id_sugerencia_curso 
+                FROM Sugerencias_Curso 
+                WHERE id_curso = ? AND id_test = ? AND id_profesor = ?
+            ");
+            $stmt->execute([$id_curso, $id_test, $profesorId]);
+            
+            if (!$stmt->fetch()) {
+                http_response_code(403);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'No autorizado para ver estos detalles'
+                ]);
+                return;
+            }
+            
+            // Obtener información general del curso y test
+            $stmt = $conn->prepare("
+                SELECT 
+                    c.nombre_curso,
+                    t.nombre AS nombre_test,
+                    t.descripcion AS descripcion_test,
+                    t.tipo_test,
+                    t.num_items,
+                    sc.fecha_sugerencia
+                FROM Sugerencias_Curso sc
+                INNER JOIN Cursos c ON sc.id_curso = c.id_curso
+                INNER JOIN Tests t ON sc.id_test = t.id_test
+                WHERE sc.id_curso = ? AND sc.id_test = ? AND sc.id_profesor = ?
+            ");
+            $stmt->execute([$id_curso, $id_test, $profesorId]);
+            $info_general = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Obtener lista de estudiantes con su progreso
+            $stmt = $conn->prepare("
+                SELECT 
+                    u.id_usuario,
+                    CONCAT(u.nombre, ' ', u.apellido) AS nombre_completo,
+                    u.codigo_usuario,
+                    u.genero,
+                    a.id_aplicacion,
+                    a.fecha_aplicacion,
+                    a.puntuacion_total,
+                    a.puntuacion_maxima,
+                    a.porcentaje_score,
+                    a.nivel_calculado,
+                    a.resultado_nivel,
+                    a.percentil,
+                    a.z_score,
+                    CASE WHEN a.id_aplicacion IS NOT NULL THEN TRUE ELSE FALSE END AS completado
+                FROM Usuario_Curso uc
+                INNER JOIN Usuarios u ON uc.id_usuario = u.id_usuario
+                LEFT JOIN Aplicaciones a ON a.id_usuario = u.id_usuario AND a.id_test = ?
+                WHERE uc.id_curso = ?
+                ORDER BY completado DESC, u.apellido ASC, u.nombre ASC
+            ");
+            $stmt->execute([$id_test, $id_curso]);
+            $estudiantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Calcular métricas agregadas
+            $total_estudiantes = count($estudiantes);
+            $completados = array_filter($estudiantes, fn($e) => $e['completado']);
+            $num_completados = count($completados);
+            $num_pendientes = $total_estudiantes - $num_completados;
+            
+            // Estadísticas de puntuaciones (solo completados)
+            $puntuaciones = array_map(fn($e) => (int)$e['puntuacion_total'], $completados);
+            $promedio = $num_completados > 0 ? round(array_sum($puntuaciones) / $num_completados, 2) : null;
+            $puntuacion_min = $num_completados > 0 ? min($puntuaciones) : null;
+            $puntuacion_max = $num_completados > 0 ? max($puntuaciones) : null;
+            
+            // Distribución por nivel
+            $niveles = ['normal' => 0, 'leve' => 0, 'moderado' => 0, 'alto' => 0, 'severo' => 0];
+            foreach ($completados as $est) {
+                $nivel = strtolower($est['nivel_calculado'] ?: $est['resultado_nivel'] ?: 'normal');
+                if (isset($niveles[$nivel])) {
+                    $niveles[$nivel]++;
+                }
+            }
+            
+            // Distribución por género (solo completados)
+            $generos = ['Masculino' => 0, 'Femenino' => 0, 'Otro' => 0];
+            foreach ($completados as $est) {
+                $genero = $est['genero'] ?: 'Otro';
+                if (isset($generos[$genero])) {
+                    $generos[$genero]++;
+                } else {
+                    $generos['Otro']++;
+                }
+            }
+            
+            // Formatear estudiantes
+            foreach ($estudiantes as &$est) {
+                $est['id_usuario'] = (int)$est['id_usuario'];
+                $est['completado'] = (bool)$est['completado'];
+                $est['puntuacion_total'] = $est['puntuacion_total'] ? (int)$est['puntuacion_total'] : null;
+                $est['porcentaje_score'] = $est['porcentaje_score'] ? (float)$est['porcentaje_score'] : null;
+                $est['percentil'] = $est['percentil'] ? (float)$est['percentil'] : null;
+                $est['z_score'] = $est['z_score'] ? (float)$est['z_score'] : null;
+            }
+            
+            $response = [
+                'success' => true,
+                'data' => [
+                    'info_general' => $info_general,
+                    'metricas' => [
+                        'total_estudiantes' => $total_estudiantes,
+                        'completados' => $num_completados,
+                        'pendientes' => $num_pendientes,
+                        'porcentaje_completado' => $total_estudiantes > 0 ? round(($num_completados / $total_estudiantes) * 100, 1) : 0,
+                        'promedio_puntuacion' => $promedio,
+                        'puntuacion_minima' => $puntuacion_min,
+                        'puntuacion_maxima' => $puntuacion_max
+                    ],
+                    'distribucion_niveles' => $niveles,
+                    'distribucion_genero' => $generos,
+                    'estudiantes' => $estudiantes
+                ],
+                'message' => 'Detalles obtenidos correctamente'
+            ];
+            
+            echo json_encode($response);
+            
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Error al obtener detalles: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * API: POST cancelar sugerencia por curso+test
      */
     public function handleApiCancelar(int $profesorId): void {
@@ -352,6 +516,12 @@ class SugerenciasController {
         // POST: Cancelar sugerencia por curso+test
         if ($method === 'POST' && $action === 'cancelar') {
             $this->handleApiCancelar($profesorId);
+            return;
+        }
+
+        // GET: Detalles del progreso
+        if ($method === 'GET' && $action === 'detalles') {
+            $this->handleApiDetalles($profesorId);
             return;
         }
 
