@@ -4,6 +4,12 @@ require_once __DIR__ . '/../../utils/asset-version.php';
 ?>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
 <link rel="stylesheet" href="views/administrador/citas.css?v=<?php echo asset_version('views/administrador/citas.css'); ?>">
+<style>
+	/* Asegurar que la tabla de citas del estudiante siempre sea visible */
+	#citas-table {
+		display: table !important;
+	}
+</style>
 
 <div class="admin-citas-container">
 	<div class="citas-title">
@@ -36,34 +42,27 @@ require_once __DIR__ . '/../../utils/asset-version.php';
 </div>
 
 <!-- Modal para agendar/editar cita -->
-<div class="modal" id="modal-cita" tabindex="-1" style="display:none;">
-<div class="modal" id="modal-cita" tabindex="-1" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:9999; align-items:center; justify-content:center;">
-  <div class="modal-dialog">
-	<div class="modal-content">
-	  <div class="modal-header">
-		<h5 class="modal-title" id="modal-cita-title">Agendar cita</h5>
-		<button type="button" class="close" id="modal-cita-close">&times;</button>
-	  </div>
-	  <div class="modal-body">
+<div id="modal-cita" class="modal">
+	<div class="modal-content" style="max-width:420px;">
+		<button class="close" id="close-modal-cita" aria-label="Cerrar">×</button>
+		<h3 id="modal-cita-title">Agendar cita</h3>
 		<form id="form-cita">
-		  <input type="hidden" id="cita-id" />
-		  <div class="form-group">
-			<label for="fecha-cita">Fecha y hora:</label>
-			<input type="datetime-local" id="fecha-cita" class="form-control" required />
-		  </div>
-		  <div class="form-group">
-			<label for="motivo-cita">Motivo:</label>
-			<input type="text" id="motivo-cita" class="form-control" maxlength="255" required />
-		  </div>
+			<input type="hidden" id="cita-id" />
+			<div>
+				<label for="fecha-cita">Fecha y hora</label>
+				<input type="datetime-local" id="fecha-cita" required />
+			</div>
+			<div>
+				<label for="motivo-cita">Motivo</label>
+				<input type="text" id="motivo-cita" maxlength="255" required />
+			</div>
+			<div id="cita-msg" class="modal-msg" style="display:none;"></div>
+			<div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1rem;">
+				<button type="button" id="btn-cita-cancel" class="citas-btn ghost">Cancelar</button>
+				<button type="submit" class="citas-btn primary">Guardar</button>
+			</div>
 		</form>
-				<div id="modal-cita-feedback" style="color:#c72344; font-weight:600; margin-top:8px; display:none;"></div>
-	  </div>
-	  <div class="modal-footer">
-		<button type="button" class="citas-btn primary" id="btn-cita-save">Guardar</button>
-		<button type="button" class="citas-btn ghost" id="btn-cita-cancel">Cancelar</button>
-	  </div>
 	</div>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
@@ -72,6 +71,7 @@ const calendarEl = document.getElementById('calendar');
 const citasTableBody = document.querySelector('#citas-table tbody');
 let eventosCitas = [];
 let diaSeleccionado = null;
+let calendar = null;
 
 function fetchCitas() {
 	return fetch('api/citas-estudiante.php?action=list')
@@ -91,7 +91,13 @@ function renderCalendar(events) {
 		title: cantidad + ' cita' + (cantidad > 1 ? 's' : ''),
 		start: fecha
 	}));
-	const calendar = new FullCalendar.Calendar(calendarEl, {
+	
+	// Destruir calendario anterior si existe
+	if (calendar) {
+		calendar.destroy();
+	}
+	
+	calendar = new FullCalendar.Calendar(calendarEl, {
 		initialView: 'dayGridMonth',
 		locale: 'es',
 		height: 600,
@@ -128,22 +134,41 @@ function mostrarCitasDelDia(fecha) {
 		const anio = hoy.getFullYear();
 		const primerDia = `${anio}-${mes.toString().padStart(2, '0')}-01`;
 		const ultimoDia = new Date(anio, mes, 0).getDate();
-		const ultimoDiaStr = `${anio}-${mes.toString().padStart(2, '0')}-${ultimoDia}`;
+		const ultimoDiaStr = `${anio}-${mes.toString().padStart(2, '0')}-${ultimoDia.toString().padStart(2, '0')}`;
 		const citasMes = eventosCitas.filter(c => c.fecha_cita >= primerDia && c.fecha_cita <= ultimoDiaStr);
 		renderCitasFiltradas(citasMes);
 		return;
 	}
-	const dia = fecha.toISOString().slice(0, 10);
+	const dia = typeof fecha === 'string' ? fecha : fecha.toISOString().slice(0, 10);
 	const citasDia = eventosCitas.filter(c => c.fecha_cita.startsWith(dia));
 	renderCitasFiltradas(citasDia);
 }
 
 function renderCitasFiltradas(citasDia) {
 	citasTableBody.innerHTML = '';
+	const detallesTitulo = document.querySelector('.citas-details-title');
+	
 	if (citasDia.length === 0) {
-		citasTableBody.innerHTML = '<tr><td colspan="4">No hay citas para este día.</td></tr>';
+		citasTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#999;">No hay citas para este período.</td></tr>';
+		if (detallesTitulo) {
+			detallesTitulo.textContent = 'Detalles de mis citas';
+		}
 		return;
 	}
+	
+	// Actualizar título si hay día seleccionado
+	if (detallesTitulo) {
+		if (diaSeleccionado) {
+			const fecha = new Date(diaSeleccionado + 'T00:00:00');
+			const formato = fecha.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+			detallesTitulo.textContent = `Citas del ${formato}`;
+		} else {
+			const hoy = new Date();
+			const mes = hoy.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+			detallesTitulo.textContent = `Citas de ${mes}`;
+		}
+	}
+	
 	for (const cita of citasDia) {
 		const hora = cita.fecha_cita.slice(11, 16);
 		const estadoClass = cita.estado === 'pendiente' ? 'estado-pendiente' : (cita.estado === 'confirmada' ? 'estado-confirmada' : 'estado-cancelada');
@@ -152,11 +177,40 @@ function renderCitasFiltradas(citasDia) {
 			<td>${cita.motivo}</td>
 			<td><span class="estado ${estadoClass}">${cita.estado.charAt(0).toUpperCase()+cita.estado.slice(1)}</span></td>
 			<td>
-				<button class="citas-btn info" onclick="abrirModalEditarCita(${cita.id_cita})">Editar</button>
-				<button class="citas-btn ghost" onclick="cancelarCita(${cita.id_cita})">Cancelar</button>
+				<button class="citas-btn ghost btn-editar-cita" data-id="${cita.id_cita}" data-fecha="${cita.fecha_cita}" data-motivo="${cita.motivo}">Editar</button>
+				<button class="citas-btn danger btn-eliminar-cita" data-id="${cita.id_cita}">Cancelar</button>
 			</td>
 		</tr>`;
 	}
+	// Asignar eventos a botones de editar
+	document.querySelectorAll('.btn-editar-cita').forEach(btn => {
+		btn.onclick = function() {
+			abrirModalEditarCita({
+				id_cita: btn.getAttribute('data-id'),
+				fecha_cita: btn.getAttribute('data-fecha'),
+				motivo: btn.getAttribute('data-motivo')
+			});
+		};
+	});
+	// Asignar eventos a botones de cancelar
+	document.querySelectorAll('.btn-eliminar-cita').forEach(btn => {
+		btn.onclick = function() {
+			abrirModalConfirmar('¿Deseas cancelar esta cita?', async function() {
+				await cancelarCita(btn.getAttribute('data-id'));
+			});
+		};
+	});
+}
+
+function abrirModalEditarCita(cita) {
+	document.getElementById('modal-cita-title').textContent = 'Editar cita';
+	document.getElementById('cita-id').value = cita.id_cita;
+	document.getElementById('fecha-cita').value = cita.fecha_cita.slice(0, 16);
+	document.getElementById('motivo-cita').value = cita.motivo;
+	document.getElementById('cita-msg').style.display = 'none';
+	document.getElementById('modal-cita').style.display = 'flex';
+	document.getElementById('modal-cita').classList.add('active');
+	document.body.style.overflow = 'hidden';
 }
 
 function abrirModalNuevaCita() {
@@ -164,70 +218,88 @@ function abrirModalNuevaCita() {
 	document.getElementById('cita-id').value = '';
 	document.getElementById('fecha-cita').value = '';
 	document.getElementById('motivo-cita').value = '';
-	document.getElementById('modal-cita').style.display = 'block';
-}
-
-function abrirModalEditarCita(id_cita) {
-	const cita = eventosCitas.find(c => c.id_cita === id_cita);
-	if (!cita) return;
-	document.getElementById('modal-cita-title').textContent = 'Editar cita';
-	document.getElementById('cita-id').value = cita.id_cita;
-	document.getElementById('fecha-cita').value = cita.fecha_cita.slice(0,16);
-	document.getElementById('motivo-cita').value = cita.motivo;
-	document.getElementById('modal-cita').style.display = 'block';
+	document.getElementById('cita-msg').style.display = 'none';
+	document.getElementById('modal-cita').style.display = 'flex';
+	document.getElementById('modal-cita').classList.add('active');
+	document.body.style.overflow = 'hidden';
 }
 
 function cerrarModalCita() {
 	document.getElementById('modal-cita').style.display = 'none';
+	document.getElementById('modal-cita').classList.remove('active');
+	document.body.style.overflow = '';
 }
 
-function guardarCita() {
-	const id_cita = document.getElementById('cita-id').value;
+function mostrarMsgCita(msg, tipo) {
+	const el = document.getElementById('cita-msg');
+	el.textContent = msg;
+	el.className = 'modal-msg ' + (tipo === 'error' ? 'error' : 'success');
+	el.style.display = 'block';
+}
+
+function abrirModalConfirmar(msg, onConfirm) {
+	if (confirm(msg)) {
+		if (typeof onConfirm === 'function') onConfirm();
+	}
+}
+
+async function guardarCita(e) {
+	e.preventDefault();
+	const id_cita = document.getElementById('cita-id').value.trim();
 	const fecha_cita = document.getElementById('fecha-cita').value;
-	const motivo = document.getElementById('motivo-cita').value;
+	const motivo = document.getElementById('motivo-cita').value.trim();
+	
 	if (!fecha_cita || !motivo) {
-		alert('Debes completar todos los campos.');
+		mostrarMsgCita('Debes completar todos los campos.', 'error');
 		return;
 	}
+	
 	const payload = { fecha_cita, motivo };
 	let url = 'api/citas-estudiante.php';
-	let method = 'POST';
 	let action = '';
+	
 	if (id_cita) {
 		payload.id_cita = id_cita;
 		action = '?action=editar';
 	}
-	fetch(url + action, {
-		method,
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(payload)
-	})
-	.then(res => res.json())
-	.then(data => {
+	
+	try {
+		const res = await fetch(url + action, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload)
+		});
+		const data = await res.json();
 		if (data.success) {
-			cerrarModalCita();
-			cargarCitas();
+			mostrarMsgCita('Cita guardada correctamente', 'success');
+			setTimeout(() => {
+				cerrarModalCita();
+				cargarCitas();
+			}, 800);
 		} else {
-			alert(data.message || 'Error al guardar la cita');
+			mostrarMsgCita(data.message || 'Error al guardar la cita', 'error');
 		}
-	});
+	} catch (err) {
+		mostrarMsgCita('Error de red o servidor', 'error');
+	}
 }
 
-function cancelarCita(id_cita) {
-	if (!confirm('¿Seguro que deseas cancelar esta cita?')) return;
-	fetch('api/citas-estudiante.php?action=cancelar', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ id_cita })
-	})
-	.then(res => res.json())
-	.then(data => {
+async function cancelarCita(id_cita) {
+	try {
+		const res = await fetch('api/citas-estudiante.php?action=cancelar', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id_cita })
+		});
+		const data = await res.json();
 		if (data.success) {
 			cargarCitas();
 		} else {
 			alert(data.message || 'Error al cancelar la cita');
 		}
-	});
+	} catch (err) {
+		alert('Error de red o servidor');
+	}
 }
 
 function cargarCitas() {
@@ -239,18 +311,20 @@ function cargarCitas() {
 	});
 }
 
-document.getElementById('btn-nueva-cita').onclick = abrirModalNuevaCita;
-document.getElementById('btn-hoy').onclick = function() {
-	const hoy = new Date();
-	resaltarDia(hoy);
-	mostrarCitasDelDia(hoy);
-};
-document.getElementById('btn-cita-save').onclick = guardarCita;
-document.getElementById('btn-cita-cancel').onclick = cerrarModalCita;
-document.getElementById('modal-cita-close').onclick = cerrarModalCita;
-
-// Inicializar
-cargarCitas();
+document.addEventListener('DOMContentLoaded', function() {
+	document.getElementById('btn-nueva-cita').onclick = abrirModalNuevaCita;
+	document.getElementById('btn-hoy').onclick = function() {
+		const hoy = new Date();
+		resaltarDia(hoy);
+		mostrarCitasDelDia(hoy);
+	};
+	document.getElementById('form-cita').onsubmit = guardarCita;
+	document.getElementById('close-modal-cita').onclick = cerrarModalCita;
+	document.getElementById('btn-cita-cancel').onclick = cerrarModalCita;
+	
+	// Inicializar
+	cargarCitas();
+});
 </script>
 <?php
 require_once __DIR__ . '/../footer.php';
