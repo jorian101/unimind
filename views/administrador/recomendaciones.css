@@ -5,7 +5,7 @@
   font-family: var(--font);
   color: var(--pri-500);
   max-width: 1400px;
-  padding: 1.25rem;
+  padding: 0;
   background: var(--bg-100);
   min-height: calc(100vh - 80px);
 }
@@ -18,6 +18,7 @@
   margin-bottom: 1.5rem;
   gap: 1rem;
   flex-wrap: wrap;
+  padding: 0;
 }
 
 .rec-header-content {
@@ -25,13 +26,13 @@
 }
 
 .rec-page-title {
-  font-size: 1.75rem;
+  font-size: calc(1.4rem + 0.8vw);
   font-weight: 700;
   color: var(--pri-500);
-  margin: 0 0 0.35rem 0;
+  margin: 0 0 0.25rem 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .rec-page-title i {
@@ -40,12 +41,12 @@
 
 .rec-page-subtitle {
   color: var(--var-700);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   margin: 0;
 }
 
 .rec-new-btn {
-  padding: 0.65rem 1.25rem;
+  padding: 0.6rem 1rem;
   border-radius: 8px;
   font-family: var(--font);
   font-size: 0.9rem;
@@ -54,7 +55,7 @@
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   background: var(--pri-500);
   color: var(--bg-100);
   border: none;

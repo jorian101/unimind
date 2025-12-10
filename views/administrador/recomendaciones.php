@@ -47,8 +47,8 @@ $baseUrl = unimind_detect_base();
 echo '<link rel="stylesheet" href="' . $baseUrl . '/public/css/theme.css">';
 echo '<link rel="stylesheet" href="' . $baseUrl . '/views/administrador/recomendaciones.css">';
 ?>
-<!-- Vista de Recomendaciones - Administrador -->
-<div class="recomendaciones-container">
+
+<main class="recomendaciones-container">
   
   <!-- Page Header -->
   <div class="rec-page-header">

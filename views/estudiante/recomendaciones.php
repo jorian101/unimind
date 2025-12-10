@@ -40,29 +40,7 @@ echo '<link rel="stylesheet" href="' . $baseUrl . '/public/css/theme.css">';
 
 <style>
 .recomendaciones-estudiante {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1.5rem;
-}
-
-.rec-intro {
-    background: linear-gradient(135deg, var(--pri-500) 0%, var(--sec-500) 100%);
-    color: white;
-    padding: 2rem;
-    border-radius: 12px;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.rec-intro h2 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.75rem;
-}
-
-.rec-intro p {
-    margin: 0;
-    opacity: 0.95;
-    font-size: 1rem;
+    padding: 0;
 }
 
 .rec-empty {
@@ -92,6 +70,7 @@ echo '<link rel="stylesheet" href="' . $baseUrl . '/public/css/theme.css">';
     display: grid;
     gap: 1.5rem;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    padding: 0;
 }
 
 .rec-card {
@@ -286,21 +265,10 @@ echo '<link rel="stylesheet" href="' . $baseUrl . '/public/css/theme.css">';
     .rec-grid {
         grid-template-columns: 1fr;
     }
-    
-    .recomendaciones-estudiante {
-        padding: 1rem;
-    }
 }
 </style>
 
 <div class="recomendaciones-estudiante">
-    
-    <!-- Intro -->
-    <div class="rec-intro">
-        <h2><i class="fa-solid fa-lightbulb"></i> Recomendaciones Personalizadas</h2>
-        <p>Basadas en tus últimos resultados de tests de estrés y ansiedad, aquí están las recomendaciones que pueden ayudarte.</p>
-    </div>
-
     <?php if (empty($recomendaciones)): ?>
         <!-- Estado vacío -->
         <div class="rec-empty">
@@ -397,13 +365,3 @@ echo '<link rel="stylesheet" href="' . $baseUrl . '/public/css/theme.css">';
     <?php endif; ?>
 
 </div>
-
-    background: var(--pri-500);
-    color: white;
-}
-
-.btn-secondary {
-    background: #95a5a6;
-    color: white;
-}
-</style>
