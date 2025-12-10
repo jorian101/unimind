@@ -8,36 +8,6 @@
   gap: 1rem;
 }
 
-/* ======== Header Section ======== */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.header-content h1 {
-  font-size: calc(1.5rem + 0.9vw);
-  font-weight: 700;
-  color: var(--pri-500);
-  margin: 0 0 0.5rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.header-content h1 i {
-  color: var(--acc-700);
-}
-
-.subtitle {
-  color: var(--var-700);
-  font-size: calc(0.875rem + 0.075vw);
-  margin: 0;
-}
-
 /* ======== Filters Section ======== */
 .filters-section {
   display: flex;
@@ -115,12 +85,122 @@
   border-color: var(--acc-700);
 }
 
+/* ======== Quick Filters ======== */
+.quick-filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-100);
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--bg-500);
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: calc(0.875rem + 0.075vw);
+  font-weight: 600;
+  color: var(--pri-500);
+}
+
+.filter-label i {
+  color: var(--acc-700);
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: var(--bg-300);
+  border: 1px solid var(--bg-500);
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: calc(0.875rem + 0.075vw);
+  font-weight: 500;
+  color: var(--var-700);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  background: var(--bg-400);
+  border-color: var(--acc-700);
+  color: var(--pri-700);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 129, 150, 0.2);
+}
+
+.filter-btn.active {
+  background: var(--acc-700);
+  border-color: var(--acc-700);
+  color: var(--bg-100);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 129, 150, 0.3);
+}
+
+.filter-btn.active:hover {
+  background: var(--acc-800);
+  border-color: var(--acc-800);
+  transform: translateY(-1px);
+}
+
+.filter-btn.active i {
+  color: var(--bg-100);
+}
+
+.filter-btn i {
+  font-size: 0.95em;
+  transition: transform 0.2s ease;
+}
+
+.filter-btn:hover i {
+  transform: scale(1.1);
+}
+
+.results-counter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--pri-100);
+  border-radius: 8px;
+  font-size: calc(0.875rem + 0.075vw);
+  font-weight: 600;
+  color: var(--pri-700);
+  margin-left: auto;
+}
+
+.results-counter i {
+  color: var(--acc-700);
+  font-size: 0.9em;
+}
+
+.results-counter span {
+  color: var(--acc-700);
+  font-size: 1.1em;
+}
+
 /* Table-based tests layout (copied from profesor/tests.css) */
 .tests-card {
   background: var(--bg-100);
   padding: 1.25rem;
   border: 1px solid var(--bg-500);
-  border-radius: 12px;
 }
 
 .tests-title {
@@ -1844,6 +1924,32 @@
   .search-box,
   .filter-group {
     width: 100%;
+  }
+
+  .quick-filters {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .filter-buttons {
+    width: 100%;
+  }
+
+  .filter-btn {
+    flex: 1;
+    justify-content: center;
+    min-width: calc(33.33% - 0.35rem);
+  }
+
+  .filter-btn span {
+    display: none;
+  }
+
+  .results-counter {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
   }
 
   .modal-content {

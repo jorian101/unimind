@@ -55,6 +55,19 @@ class AdminTestsManager {
       });
     }
 
+    // Filtros rápidos por tipo
+    const filterButtons = document.querySelectorAll(".filter-btn");
+    filterButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const filterValue = btn.dataset.filter;
+        this.applyQuickFilter(filterValue);
+
+        // Actualizar estado activo
+        filterButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
+    });
+
     // Ordenamiento (opcional, solo si existe el elemento)
     const sortSelect = document.getElementById("sortTests");
     if (sortSelect) {
@@ -412,6 +425,9 @@ class AdminTestsManager {
         </tbody>
       </table>
     `;
+
+    // Actualizar contador de resultados
+    this.updateResultsCounter(tests.length);
   }
 
   /**
@@ -463,7 +479,7 @@ class AdminTestsManager {
       : "";
 
     return `
-      <tr class="tests-table-row" data-test-id="${test.id_test}">
+      <tr class="tests-table-row" data-test-id="${test.id_test}" data-tipo="${test.tipo_test || "estres"}">
         <td class="tests-table-cell">
           <div class="test-name-cell">
             <div class="test-icon">
@@ -476,7 +492,7 @@ class AdminTestsManager {
           </div>
         </td>
         <td class="tests-table-cell">
-          <span class="tipo-badge tipo-${test.tipo_test || "estres"}">
+          <span class="tipo-badge test-type tipo-${test.tipo_test || "estres"}">
             ${test.tipo_test === "ansiedad" ? "Ansiedad" : "Estrés"}
           </span>
         </td>
@@ -1225,12 +1241,87 @@ class AdminTestsManager {
   }
 
   /**
+   * Aplicar filtro rápido por tipo de test
+   */
+  applyQuickFilter(filterType) {
+    const rows = document.querySelectorAll(".tests-table-row");
+    let visibleCount = 0;
+
+    // Obtener el término de búsqueda actual
+    const searchInput = document.getElementById("searchTest");
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+
+    rows.forEach((row) => {
+      // Saltar el header
+      if (row.parentElement.tagName === "THEAD") return;
+
+      const testId = row.dataset.testId;
+      if (!testId) return;
+
+      const tipo = row.dataset.tipo || "";
+      const nameCell = row.querySelector(".test-name");
+      const descCell = row.querySelector(".test-description");
+      const name = nameCell ? nameCell.textContent.toLowerCase() : "";
+      const desc = descCell ? descCell.textContent.toLowerCase() : "";
+
+      // Verificar si cumple con el filtro de tipo
+      let matchesFilter = false;
+      if (filterType === "todos") {
+        matchesFilter = true;
+      } else if (filterType === "estres") {
+        matchesFilter = tipo === "estres";
+      } else if (filterType === "ansiedad") {
+        matchesFilter = tipo === "ansiedad";
+      }
+
+      // Verificar si cumple con la búsqueda
+      const matchesSearch =
+        !searchTerm || name.includes(searchTerm) || desc.includes(searchTerm);
+
+      const shouldShow = matchesFilter && matchesSearch;
+      row.style.display = shouldShow ? "" : "none";
+      if (shouldShow) visibleCount++;
+    });
+
+    // Actualizar contador de resultados
+    this.updateResultsCounter(visibleCount);
+
+    // Mostrar estado vacío si no hay resultados
+    const emptyState = document.getElementById("emptyState");
+    const container = document.getElementById("testsGrid");
+    if (visibleCount === 0) {
+      if (container) {
+        const filterLabel =
+          filterType === "estres"
+            ? "Estrés"
+            : filterType === "ansiedad"
+              ? "Ansiedad"
+              : "";
+        container.innerHTML = `
+          <div class="no-tests">
+            <i class="fas fa-filter"></i>
+            <p>No hay tests de tipo <strong>${this.escapeHtml(filterLabel)}</strong></p>
+          </div>
+        `;
+      }
+    } else {
+      if (emptyState) {
+        emptyState.style.display = "none";
+      }
+    }
+  }
+
+  /**
    * Filtrar tests por búsqueda (trabaja con tabla)
    */
   filterTests(searchTerm) {
     const rows = document.querySelectorAll(".tests-table-row");
     const term = searchTerm.toLowerCase();
     let visibleCount = 0;
+
+    // Obtener el filtro activo actual
+    const activeFilter = document.querySelector(".filter-btn.active");
+    const currentFilter = activeFilter ? activeFilter.dataset.filter : "todos";
 
     rows.forEach((row) => {
       // Saltar el header
@@ -1241,13 +1332,30 @@ class AdminTestsManager {
 
       const nameCell = row.querySelector(".test-name");
       const descCell = row.querySelector(".test-description");
+      const tipo = row.dataset.tipo || "";
       const name = nameCell ? nameCell.textContent.toLowerCase() : "";
       const desc = descCell ? descCell.textContent.toLowerCase() : "";
 
-      const shouldShow = name.includes(term) || desc.includes(term);
+      // Verificar si cumple con la búsqueda
+      const matchesSearch = !term || name.includes(term) || desc.includes(term);
+
+      // Verificar si cumple con el filtro de tipo
+      let matchesFilter = true;
+      if (currentFilter !== "todos") {
+        if (currentFilter === "estres") {
+          matchesFilter = tipo === "estres";
+        } else if (currentFilter === "ansiedad") {
+          matchesFilter = tipo === "ansiedad";
+        }
+      }
+
+      const shouldShow = matchesSearch && matchesFilter;
       row.style.display = shouldShow ? "" : "none";
       if (shouldShow) visibleCount++;
     });
+
+    // Actualizar contador de resultados
+    this.updateResultsCounter(visibleCount);
 
     // Mostrar estado vacío si no hay resultados
     const emptyState = document.getElementById("emptyState");
@@ -1309,6 +1417,16 @@ class AdminTestsManager {
     // Reordenar en el DOM
     tbody.innerHTML = "";
     rows.forEach((row) => tbody.appendChild(row));
+  }
+
+  /**
+   * Actualizar contador de resultados
+   */
+  updateResultsCounter(count) {
+    const counterElement = document.getElementById("visibleCount");
+    if (counterElement) {
+      counterElement.textContent = count;
+    }
   }
 
   /**
@@ -1580,8 +1698,7 @@ class AdminTestsManager {
           "error",
         );
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       this.showScaleFormStatus("Error al conectar con el servidor", "error");
     } finally {
       this.setScaleSaveButtonLoading(false);
@@ -1676,8 +1793,16 @@ class AdminTestsManager {
         duration: 3000,
       });
     } else {
-      // Fallback: mostrar en consola
-      console.warn("Toast no está disponible:", message);
+      // Fallback: intentar mostrar en la UI si es posible, o usar alert como último recurso
+      if (this && typeof this.showScaleFormStatus === "function") {
+        try {
+          this.showScaleFormStatus(message, type);
+        } catch {
+          // ignore errors rendering fallback UI
+        }
+      } else if (typeof alert === "function") {
+        alert(message);
+      }
     }
   }
 

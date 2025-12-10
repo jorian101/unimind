@@ -22,6 +22,29 @@ renderPageHeader();
             </button>
         </div>
 
+        <!-- Filtros rápidos -->
+        <div class="quick-filters">
+            <div class="filter-label">
+                <i class="fas fa-filter"></i>
+                <span>Filtrar por tipo:</span>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="todos">
+                    <i class="fas fa-th"></i> Todos
+                </button>
+                <button class="filter-btn" data-filter="estres">
+                    <i class="fas fa-brain"></i> Estrés
+                </button>
+                <button class="filter-btn" data-filter="ansiedad">
+                    <i class="fas fa-heartbeat"></i> Ansiedad
+                </button>
+            </div>
+            <div class="results-counter" id="resultsCounter">
+                <i class="fas fa-list"></i>
+                <span id="visibleCount">0</span> tests
+            </div>
+        </div>
+
         <div class="tests-table-container" id="testsGrid">
             <div class="loading-spinner">
                 <i class="fas fa-spinner fa-spin"></i> Cargando tests...
