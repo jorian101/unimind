@@ -144,11 +144,12 @@ $cargos = $controller->getCargosDisponibles();
 
   <!-- Modal Ver Usuario -->
   <div id="modalVerUsuario" class="modal">
-    <div class="modal-content">
+    <div class="modal-content modal-ver-usuario">
       <div class="modal-header">
+        <h2><i class="fas fa-user"></i> Detalles del Usuario</h2>
         <button class="modal-close close-modal">&times;</button>
       </div>
-      <div id="verUsuarioContenido">
+      <div id="verUsuarioContenido" class="ver-usuario-grid">
         <!-- El contenido se llenará dinámicamente -->
       </div>
     </div>
@@ -285,62 +286,264 @@ function renderUsuariosTable(usuarios) {
         .then(res => res.json())
         .then(data => {
           if (!data) return alert('No se encontraron datos del usuario');
-          // Crear contenido del modal
+          const u = data;
+          
+          // Formatear fecha de nacimiento
+          let fechaNac = 'No especificada';
+          if (u.fecha_nacimiento) {
+            try {
+              const date = new Date(u.fecha_nacimiento);
+              fechaNac = date.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+            } catch(e) {
+              fechaNac = u.fecha_nacimiento;
+            }
+          }
+          
+          // Formatear fecha de registro
+          let fechaReg = 'No disponible';
+          if (u.fecha_registro) {
+            try {
+              const date = new Date(u.fecha_registro.replace(' ', 'T'));
+              fechaReg = date.toLocaleString('es-ES', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              });
+            } catch(e) {
+              fechaReg = u.fecha_registro;
+            }
+          }
+          
+          // Generar el HTML base con toda la información organizada
           let contenido = `
-            <div style="padding: 20px;">
-              <h3 style="margin-top: 0; color: var(--pri-500); border-bottom: 2px solid var(--bg-500); padding-bottom: 10px;">
-                <i class="fas fa-user-circle"></i> Información del Usuario
-              </h3>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
-                <div>
-                  <strong style="color: var(--var-700);">ID:</strong><br>
-                  <span>${data.id_usuario || 'N/A'}</span>
-                </div>
-                <div>
-                  <strong style="color: var(--var-700);">Código:</strong><br>
-                  <span>${data.codigo_usuario || 'N/A'}</span>
-                </div>
-                <div>
-                  <strong style="color: var(--var-700);">Nombre:</strong><br>
-                  <span>${data.nombre || 'N/A'}</span>
-                </div>
-                <div>
-                  <strong style="color: var(--var-700);">Apellido:</strong><br>
-                  <span>${data.apellido || 'N/A'}</span>
-                </div>
-                <div>
-                  <strong style="color: var(--var-700);">Cargo:</strong><br>
-                  <span>${data.cargo || 'N/A'}</span>
-                </div>
-                <div>
-                  <strong style="color: var(--var-700);">Género:</strong><br>
-                  <span>${data.genero || 'N/A'}</span>
-                </div>
-                <div>
-                  <strong style="color: var(--var-700);">Fecha de Nacimiento:</strong><br>
-                  <span>${data.fecha_nacimiento ? data.fecha_nacimiento.split(' ')[0] : 'N/A'}</span>
-                </div>
-                <div>
-                  <strong style="color: var(--var-700);">Fecha de Registro:</strong><br>
-                  <span>${data.fecha_registro ? new Date(data.fecha_registro.replace(' ', 'T')).toLocaleString('es-ES') : 'N/A'}</span>
-                </div>
+            <!-- Información Personal -->
+            <div class="ver-usuario-section">
+              <h3><i class="fas fa-id-card"></i> Información Personal</h3>
+              <div class="ver-usuario-field">
+                <label>Nombre Completo</label>
+                <p>${u.nombre || ''} ${u.apellido || ''}</p>
               </div>
-              <div style="margin-top: 24px; text-align: right;">
-                <button onclick="document.getElementById('modalVerUsuario').classList.remove('active')" class="btn-primary">
-                  Cerrar
-                </button>
+              <div class="ver-usuario-field">
+                <label>Código de Usuario</label>
+                <p>${u.codigo_usuario || 'No asignado'}</p>
+              </div>
+              <div class="ver-usuario-field">
+                <label>Género</label>
+                <p>${u.genero || 'No especificado'}</p>
+              </div>
+              <div class="ver-usuario-field">
+                <label>Fecha de Nacimiento</label>
+                <p>${fechaNac}</p>
+              </div>
+            </div>
+            
+            <!-- Información del Sistema -->
+            <div class="ver-usuario-section">
+              <h3><i class="fas fa-cog"></i> Información del Sistema</h3>
+              <div class="ver-usuario-field">
+                <label>ID de Usuario</label>
+                <p>${u.id_usuario || 'No disponible'}</p>
+              </div>
+              <div class="ver-usuario-field">
+                <label>Cargo</label>
+                <p><span class="ver-usuario-badge cargo">${u.cargo || 'No asignado'}</span></p>
+              </div>
+              <div class="ver-usuario-field">
+                <label>Fecha de Registro</label>
+                <p>${fechaReg}</p>
+              </div>
+            </div>
+            
+            <!-- Información Académica (si aplica) -->
+            ${(u.escuela_nombre || u.curso_nombre) ? `
+            <div class="ver-usuario-section ver-usuario-full">
+              <h3><i class="fas fa-graduation-cap"></i> Información Académica</h3>
+              ${u.escuela_nombre ? `
+              <div class="ver-usuario-field">
+                <label>Escuela</label>
+                <p>${u.escuela_nombre}</p>
+              </div>
+              ` : ''}
+              ${u.curso_nombre ? `
+              <div class="ver-usuario-field">
+                <label>Curso</label>
+                <p>${u.curso_nombre}</p>
+              </div>
+              ` : ''}
+            </div>
+            ` : ''}
+            
+            <!-- Información de Contacto -->
+            <div class="ver-usuario-section ver-usuario-full">
+              <h3><i class="fas fa-envelope"></i> Información de Contacto</h3>
+              <div class="ver-usuario-field">
+                <label>Correo Electrónico</label>
+                <p>${u.email || '<span class="empty">No registrado</span>'}</p>
               </div>
             </div>
           `;
+          
           // Mostrar en modal
           const modal = document.getElementById('modalVerUsuario');
           const contenidoDiv = document.getElementById('verUsuarioContenido');
           contenidoDiv.innerHTML = contenido;
           modal.classList.add('active');
+          
+          // Si es estudiante, cargar métricas
+          if (u.cargo === 'Estudiante') {
+            cargarMetricasEstudiante(u.id_usuario, contenidoDiv);
+          }
         })
         .catch(err => { console.error('Error al cargar usuario:', err); alert('Error al cargar datos del usuario'); });
     });
   });
+
+  // Función para cargar y mostrar métricas de estudiante
+  function cargarMetricasEstudiante(idEstudiante, contenidoDiv) {
+    fetch(`api/estudiante-metrics.php?id_estudiante=${idEstudiante}`)
+      .then(res => res.json())
+      .then(result => {
+        if (!result.success || !result.data.resumen.tiene_datos) {
+          // Agregar mensaje de no datos
+          const noDataHTML = `
+            <div class="ver-usuario-section metrics-section ver-usuario-full">
+              <h3><i class="fas fa-chart-line"></i> Métricas de Salud Mental</h3>
+              <div class="no-metrics-message">
+                <i class="fas fa-info-circle" style="font-size: 2rem; color: var(--var-700); margin-bottom: 0.5rem;"></i>
+                <p>Este estudiante aún no ha realizado evaluaciones de estrés o ansiedad.</p>
+              </div>
+            </div>
+          `;
+          contenidoDiv.innerHTML += noDataHTML;
+          return;
+        }
+        
+        const metrics = result.data;
+        
+        // Generar HTML para las métricas
+        const metricsHTML = `
+          <div class="ver-usuario-section metrics-section ver-usuario-full">
+            <h3><i class="fas fa-chart-line"></i> Métricas de Salud Mental</h3>
+            
+            <div class="metrics-grid">
+              <!-- Métrica de Estrés -->
+              <div class="metric-card">
+                <div class="metric-header">
+                  <span class="metric-title">
+                    <i class="fas fa-chart-bar"></i> Estrés Actual
+                  </span>
+                </div>
+                <div class="metric-value estres">${metrics.estres.actual}%</div>
+                <span class="metric-level ${metrics.estres.nivel.toLowerCase()}">${metrics.estres.nivel}</span>
+                <div class="metric-bar">
+                  <div class="metric-bar-fill estres" style="width: ${metrics.estres.actual}%"></div>
+                </div>
+                <div class="metric-comparison">
+                  <span>Promedio anterior: ${metrics.estres.promedio}%</span>
+                  <span class="metric-trend ${metrics.estres.tendencia}">
+                    ${metrics.estres.tendencia === 'mejorando' ? '<i class="fas fa-arrow-down"></i> Mejorando' : 
+                      metrics.estres.tendencia === 'aumentando' ? '<i class="fas fa-arrow-up"></i> Aumentando' : 
+                      '<i class="fas fa-minus"></i> Estable'}
+                  </span>
+                </div>
+                ${metrics.estres.historico.length > 0 ? `
+                <div class="metric-history">
+                  ${metrics.estres.historico.map(h => `
+                    <div class="history-bar estres" style="height: ${h.puntuacion}%">
+                      <div class="history-bar-tooltip">
+                        ${h.puntuacion}% - ${new Date(h.fecha).toLocaleDateString('es-ES', {day: '2-digit', month: 'short'})}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+                ` : ''}
+              </div>
+              
+              <!-- Métrica de Ansiedad -->
+              <div class="metric-card">
+                <div class="metric-header">
+                  <span class="metric-title">
+                    <i class="fas fa-brain"></i> Ansiedad Actual
+                  </span>
+                </div>
+                <div class="metric-value ansiedad">${metrics.ansiedad.actual}%</div>
+                <span class="metric-level ${metrics.ansiedad.nivel.toLowerCase()}">${metrics.ansiedad.nivel}</span>
+                <div class="metric-bar">
+                  <div class="metric-bar-fill ansiedad" style="width: ${metrics.ansiedad.actual}%"></div>
+                </div>
+                <div class="metric-comparison">
+                  <span>Promedio anterior: ${metrics.ansiedad.promedio}%</span>
+                  <span class="metric-trend ${metrics.ansiedad.tendencia}">
+                    ${metrics.ansiedad.tendencia === 'mejorando' ? '<i class="fas fa-arrow-down"></i> Mejorando' : 
+                      metrics.ansiedad.tendencia === 'aumentando' ? '<i class="fas fa-arrow-up"></i> Aumentando' : 
+                      '<i class="fas fa-minus"></i> Estable'}
+                  </span>
+                </div>
+                ${metrics.ansiedad.historico.length > 0 ? `
+                <div class="metric-history">
+                  ${metrics.ansiedad.historico.map(h => `
+                    <div class="history-bar ansiedad" style="height: ${h.puntuacion}%">
+                      <div class="history-bar-tooltip">
+                        ${h.puntuacion}% - ${new Date(h.fecha).toLocaleDateString('es-ES', {day: '2-digit', month: 'short'})}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+                ` : ''}
+              </div>
+            </div>
+            
+            <!-- Resumen -->
+            <div class="metrics-summary">
+              <div class="summary-item">
+                <div class="summary-value">${metrics.resumen.total_tests}</div>
+                <div class="summary-label">Tests Realizados</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-value">${metrics.resumen.dias_ultimo_test}</div>
+                <div class="summary-label">Días desde último test</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-value">
+                  ${metrics.estres.historico.length + metrics.ansiedad.historico.length}
+                </div>
+                <div class="summary-label">Evaluaciones registradas</div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        contenidoDiv.innerHTML += metricsHTML;
+        
+        // Animar las barras después de agregar al DOM
+        setTimeout(() => {
+          const barFills = contenidoDiv.querySelectorAll('.metric-bar-fill');
+          barFills.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+              bar.style.width = width;
+            }, 100);
+          });
+        }, 50);
+      })
+      .catch(err => {
+        console.error('Error al cargar métricas:', err);
+        // Agregar mensaje de error
+        const errorHTML = `
+          <div class="ver-usuario-section metrics-section ver-usuario-full">
+            <h3><i class="fas fa-chart-line"></i> Métricas de Salud Mental</h3>
+            <div class="no-metrics-message">
+              <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: var(--pri-500); margin-bottom: 0.5rem;"></i>
+              <p>No se pudieron cargar las métricas. Intente nuevamente más tarde.</p>
+            </div>
+          </div>
+        `;
+        contenidoDiv.innerHTML += errorHTML;
+      });
+  }
 }
 
 busquedaInput && busquedaInput.addEventListener('input', function() {
