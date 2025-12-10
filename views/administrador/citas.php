@@ -37,6 +37,7 @@ require_once __DIR__ . '/../../utils/asset-version.php';
     <!-- Calendario en la parte superior -->
     <div class="citas-calendar-section">
         <div class="citas-calendar">
+            <!-- Título y botones de mes eliminados -->
             <div id="calendar"></div>
         </div>
     </div>
@@ -75,15 +76,7 @@ const appointmentsGrid = document.getElementById('appointments-grid');
 let eventosCitas = [];
 let diaSeleccionado = null;
 
-// Datos de prueba si la BD está vacía
-const datosPrueba = [
-    { id: 1, title: 'Juan Pérez', start: '2025-11-30T10:00:00', motivo: 'Orientación académica', estado: 'pendiente' },
-    { id: 2, title: 'Lucía Gómez', start: '2025-11-30T12:30:00', motivo: 'Problema personal', estado: 'confirmada' },
-    { id: 3, title: 'Pedro Díaz', start: '2025-12-01T09:00:00', motivo: 'Revisión de test', estado: 'pendiente' },
-    { id: 4, title: 'Sofía Mora', start: '2025-12-01T11:00:00', motivo: 'Consulta de resultados', estado: 'cancelada' },
-    { id: 5, title: 'Elena Vargas', start: '2025-12-02T14:00:00', motivo: 'Seguimiento académico', estado: 'pendiente' },
-    { id: 6, title: 'David Rios', start: '2025-12-02T16:00:00', motivo: 'Problema familiar', estado: 'confirmada' }
-];
+
 
 function getCalendarHeight() {
     const w = window.innerWidth;
@@ -130,23 +123,34 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
     height: getCalendarHeight(),
     contentHeight: getCalendarHeight(),
     aspectRatio: getAspectRatio(),
-    headerToolbar: getToolbarConfig(),
+    headerToolbar: false,
     dayMaxEventRows: getDayMaxEventRows(),
     events: function(fetchInfo, successCallback, failureCallback) {
-        fetch('api/citas-admin.php?fecha=' + fetchInfo.startStr)
+        // Obtener todas las citas del rango del mes
+        const start = fetchInfo.startStr;
+        const end = fetchInfo.endStr;
+        fetch(`api/citas-admin.php?desde=${start}&hasta=${end}`)
             .then(res => res.json())
             .then(data => {
-                if (Array.isArray(data) && data.length > 0) {
-                    eventosCitas = data;
-                    successCallback(data);
-                } else {
-                    eventosCitas = datosPrueba;
-                    successCallback(datosPrueba);
+                // Agrupar por día y contar
+                const conteoPorDia = {};
+                if (Array.isArray(data)) {
+                    data.forEach(cita => {
+                        const fecha = cita.start.slice(0, 10);
+                        conteoPorDia[fecha] = (conteoPorDia[fecha] || 0) + 1;
+                    });
                 }
+                // Generar eventos: solo cantidad por día
+                const eventos = Object.entries(conteoPorDia).map(([fecha, cantidad]) => ({
+                    title: cantidad + ' cita' + (cantidad > 1 ? 's' : ''),
+                    start: fecha
+                }));
+                eventosCitas = eventos;
+                successCallback(eventos);
             })
             .catch(() => {
-                eventosCitas = datosPrueba;
-                successCallback(datosPrueba);
+                eventosCitas = [];
+                successCallback([]);
             });
     },
     eventClick: function(info) {
@@ -159,6 +163,7 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
         mostrarCitasDelDia(info.date);
     },
 });
+
 calendar.render();
 
 // Update calendar height on resize to keep it large on wide screens
@@ -187,18 +192,33 @@ function resaltarDia(fecha) {
 }
 
 function mostrarCitasDelDia(fecha) {
+    if (!fecha) {
+        // Mostrar todas las citas del mes actual
+        const hoy = new Date();
+        const mes = hoy.getMonth() + 1;
+        const anio = hoy.getFullYear();
+        // Buscar el primer y último día del mes
+        const primerDia = `${anio}-${mes.toString().padStart(2, '0')}-01`;
+        const ultimoDia = new Date(anio, mes, 0).getDate();
+        const ultimoDiaStr = `${anio}-${mes.toString().padStart(2, '0')}-${ultimoDia}`;
+        fetch(`api/citas-admin.php?desde=${primerDia}&hasta=${ultimoDiaStr}`)
+            .then(res => res.json())
+            .then(citasMes => {
+                renderCitasFiltradas(Array.isArray(citasMes) ? citasMes : []);
+            })
+            .catch(() => {
+                renderCitasFiltradas([]);
+            });
+        return;
+    }
     const dia = fecha.toISOString().slice(0, 10);
     fetch('api/citas-admin.php?fecha=' + dia)
         .then(res => res.json())
         .then(citasDia => {
-            if (!Array.isArray(citasDia) || citasDia.length === 0) {
-                renderCitasFiltradas(datosPrueba.filter(c => c.start.startsWith(dia)));
-            } else {
-                renderCitasFiltradas(citasDia);
-            }
+            renderCitasFiltradas(Array.isArray(citasDia) ? citasDia : []);
         })
         .catch(() => {
-            renderCitasFiltradas(datosPrueba.filter(c => c.start.startsWith(dia)));
+            renderCitasFiltradas([]);
         });
 }
 
@@ -267,10 +287,8 @@ document.getElementById('btn-hoy').onclick = function() {
     calendar.gotoDate(hoy);
 };
 
-// Mostrar citas del día actual al cargar y resaltar
-const hoy = new Date();
-resaltarDia(hoy);
-mostrarCitasDelDia(hoy);
+// Mostrar todas las citas del mes al cargar (sin selección)
+mostrarCitasDelDia(null);
 </script>
 <?php
 require_once __DIR__ . '/../footer.php';
