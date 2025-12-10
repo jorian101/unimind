@@ -152,7 +152,7 @@ function renderTests(tests) {
     }
     
     // Construir filas de la tabla
-    const rowsHTML = tests.map(test => {
+    const rowsHTML = tests.map((test, index) => {
         // Determinar icono según el tipo de test
         let icon = 'fa-clipboard-list';
         const nombre = test.nombre.toLowerCase();
@@ -171,20 +171,11 @@ function renderTests(tests) {
         const fechaCreacion = test.created_at ? formatearFecha(test.created_at) : 'N/A';
         const fechaActualizacion = test.updated_at ? formatearFecha(test.updated_at) : 'N/A';
         
-        // Construir tags de opciones de la escala (versión compacta)
-        let opcionesTags = '';
-        if (test.opciones && test.opciones.length > 0) {
-            opcionesTags = test.opciones.map(opcion => 
-                `<span class="option-tag-small" title="${escapeHtml(opcion.texto_opcion)}: ${opcion.valor_puntuacion}">
-                    ${escapeHtml(opcion.texto_opcion.substring(0, 15))}${opcion.texto_opcion.length > 15 ? '...' : ''}
-                </span>`
-            ).join('');
-        } else {
-            opcionesTags = '<span class="option-tag-empty">N/A</span>';
-        }
-        
         return `
             <tr class="tests-table-row">
+                <td class="tests-table-cell">
+                    <span class="row-number">${index + 1}</span>
+                </td>
                 <td class="tests-table-cell">
                     <div class="test-name-cell">
                         <div class="test-icon">
@@ -214,12 +205,7 @@ function renderTests(tests) {
                     <div class="date-cell">${fechaCreacion}</div>
                 </td>
                 <td class="tests-table-cell">
-                    <div class="opciones-compact">
-                        ${opcionesTags}
-                    </div>
-                </td>
-                <td class="tests-table-cell">
-                    <button class="btn-sugerir" onclick="abrirModalSugerir(${test.id_test}, '${escapeHtml(test.nombre).replace(/'/g, "\\'")}', '${escapeHtml(test.descripcion || '').replace(/'/g, "\\'")}')">
+                    <button class="btn-sugerir" onclick="abrirModalSugerir(${test.id_test}, '${escapeHtml(test.nombre).replace(/'/g, "\\'")}'}, '${escapeHtml(test.descripcion || '').replace(/'/g, "\\'")}')">
                         <i class="fas fa-paper-plane"></i>
                         <span>Sugerir</span>
                     </button>
@@ -233,12 +219,12 @@ function renderTests(tests) {
         <table class="tests-table">
             <thead class="tests-table-head">
                 <tr class="tests-table-row">
+                    <th class="tests-table-header">#</th>
                     <th class="tests-table-header">Test</th>
                     <th class="tests-table-header">Tipo</th>
                     <th class="tests-table-header">Items</th>
                     <th class="tests-table-header">Escala</th>
                     <th class="tests-table-header">Creado</th>
-                    <th class="tests-table-header">Opciones</th>
                     <th class="tests-table-header">Acción</th>
                 </tr>
             </thead>

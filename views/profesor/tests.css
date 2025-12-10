@@ -178,30 +178,10 @@
   white-space: nowrap;
 }
 
-.opciones-compact {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  max-width: 250px;
-}
-
-.option-tag-small {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 400;
-  color: var(--bg-100);
-  text-align: center;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  vertical-align: middle;
-  flex-shrink: 0;
-  background: var(--sec-500);
-}
-
-.option-tag-small:hover {
-  background: var(--sec-700);
+.row-number {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--var-700);
 }
 
 .btn-sugerir {
@@ -227,12 +207,6 @@
 
 .btn-sugerir i {
   font-size: 1rem;
-}
-
-.option-tag-empty {
-  color: var(--var-500);
-  font-size: 0.75rem;
-  font-style: italic;
 }
 
 .loading-container,
@@ -486,8 +460,7 @@
     line-height: 1.4;
   }
 
-  .items-badge,
-  .option-tag-small {
+  .items-badge {
     font-size: 0.6rem;
     padding: 0.15rem 0.4rem;
     border-radius: 12px;
@@ -514,7 +487,11 @@
     font-size: 0.85rem;
   }
 
-  /* Ocultar columnas en móviles pequeños (mostrar solo Test, Tipo, Items y Acción) */
+  .row-number {
+    font-size: 0.75rem;
+  }
+
+  /* Ocultar columnas en móviles pequeños (mostrar solo #, Test, Tipo y Acción) */
   .tests-table-header:nth-child(4),
   .tests-table-header:nth-child(5),
   .tests-table-header:nth-child(6),
@@ -540,8 +517,7 @@
     padding: 0.75rem 0.5rem;
   }
 
-  .items-badge,
-  .option-tag-small {
+  .items-badge {
     font-size: 0.65rem;
     padding: 0.2rem 0.5rem;
   }
@@ -556,11 +532,13 @@
     padding: 0.2rem 0.5rem;
   }
 
-  /* Ocultar columnas en móviles (mostrar solo Test, Tipo, Items y Acción) */
-  .tests-table-header:nth-child(4),
+  .row-number {
+    font-size: 0.8rem;
+  }
+
+  /* Ocultar columnas en móviles (mostrar solo #, Test, Tipo, Items y Acción) */
   .tests-table-header:nth-child(5),
   .tests-table-header:nth-child(6),
-  .tests-table-cell:nth-child(4),
   .tests-table-cell:nth-child(5),
   .tests-table-cell:nth-child(6) {
     display: none;
@@ -582,8 +560,7 @@
     padding: 0.875rem 0.625rem;
   }
 
-  .items-badge,
-  .option-tag-small {
+  .items-badge {
     font-size: 0.7rem;
     padding: 0.2rem 0.6rem;
   }
@@ -593,10 +570,8 @@
     padding: 0.2rem 0.6rem;
   }
 
-  /* Ocultar algunas columnas en tablet (mostrar Test, Tipo, Items, Escala, Acción) */
-  .tests-table-header:nth-child(5),
+  /* Ocultar algunas columnas en tablet (mostrar #, Test, Tipo, Items, Escala, Acción) */
   .tests-table-header:nth-child(6),
-  .tests-table-cell:nth-child(5),
   .tests-table-cell:nth-child(6) {
     display: none;
   }
@@ -607,20 +582,12 @@
   .test-description {
     max-width: 250px;
   }
-
-  .opciones-compact {
-    max-width: 200px;
-  }
 }
 
 /* Desktop Large (≥ 1440px) */
 @media (min-width: 1440px) {
   .test-description {
     max-width: 350px;
-  }
-
-  .opciones-compact {
-    max-width: 300px;
   }
 }
 
@@ -702,10 +669,13 @@
     break-inside: avoid;
   }
 
-  .items-badge,
-  .option-tag-small {
+  .items-badge {
     border: 1px solid #000;
     color: #000 !important;
     background: transparent !important;
+  }
+
+  .row-number {
+    color: #000 !important;
   }
 }

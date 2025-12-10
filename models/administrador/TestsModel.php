@@ -24,7 +24,10 @@ class TestsModel extends BaseModel {
      */
     public function getAllTests() {
         try {
-            $query = "SELECT * FROM {$this->table_tests} ORDER BY nombre ASC";
+            $query = "SELECT t.*, te.nombre as nombre_escala
+                     FROM {$this->table_tests} t
+                     LEFT JOIN {$this->table_tipos_escalas} te ON t.id_tipo_escala = te.id_tipo_escala
+                     ORDER BY t.nombre ASC";
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -39,8 +42,11 @@ class TestsModel extends BaseModel {
      */
     public function getTestById($id_test) {
         try {
-            // Obtener información del test
-            $query = "SELECT * FROM {$this->table_tests} WHERE id_test = :id_test";
+            // Obtener información del test con el nombre de la escala
+            $query = "SELECT t.*, te.nombre as nombre_escala, t.id_tipo_escala as tipo_escala
+                     FROM {$this->table_tests} t
+                     LEFT JOIN {$this->table_tipos_escalas} te ON t.id_tipo_escala = te.id_tipo_escala
+                     WHERE t.id_test = :id_test";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':id_test', $id_test, PDO::PARAM_INT);
             $stmt->execute();
@@ -49,6 +55,13 @@ class TestsModel extends BaseModel {
             if ($test) {
                 // Obtener items del test
                 $test['items'] = $this->getItemsByTestId($id_test);
+                
+                // Obtener opciones de la escala
+                if ($test['tipo_escala']) {
+                    $test['opciones'] = $this->getOpcionesByTipoEscala($test['tipo_escala']);
+                } else {
+                    $test['opciones'] = [];
+                }
             }
 
             return $test;
@@ -199,22 +212,14 @@ class TestsModel extends BaseModel {
      */
     public function getOpcionesByTipoEscala($tipo_escala) {
         try {
-            // Obtener los IDs de opciones del tipo de escala
-            $query = "SELECT opciones_ids FROM {$this->table_tipos_escalas} WHERE id_tipo_escala = :tipo_escala";
+            // Usar la tabla intermedia TiposEscala_Opciones para obtener las opciones
+            $query = "SELECT o.* 
+                     FROM Opciones_Respuesta o
+                     INNER JOIN TiposEscala_Opciones teo ON o.id_opcion = teo.id_opcion
+                     WHERE teo.id_tipo_escala = :tipo_escala
+                     ORDER BY o.valor_puntuacion ASC";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':tipo_escala', $tipo_escala, PDO::PARAM_INT);
-            $stmt->execute();
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$result || !$result['opciones_ids']) {
-                return [];
-            }
-            
-            $opciones_ids = $result['opciones_ids'];
-            
-            // Obtener las opciones correspondientes
-            $query = "SELECT * FROM {$this->table_opciones} WHERE id_opcion IN ({$opciones_ids}) ORDER BY valor_puntuacion ASC";
-            $stmt = $this->conn->prepare($query);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {

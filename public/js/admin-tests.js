@@ -6,6 +6,7 @@
 class AdminTestsManager {
   constructor() {
     this.currentTestId = null;
+    this.currentViewTestId = null;
     this.opcionesDisponibles = [];
     this.tiposEscalas = [];
     this.itemCount = 0;
@@ -119,6 +120,36 @@ class AdminTestsManager {
       .getElementById("btnConfirmarDelete")
       .addEventListener("click", () => {
         this.confirmDelete();
+      });
+
+    // Modal de detalles
+    document
+      .getElementById("closeDetailsModal")
+      .addEventListener("click", () => {
+        this.closeDetailsModal();
+      });
+
+    document.getElementById("btnCloseDetails").addEventListener("click", () => {
+      this.closeDetailsModal();
+    });
+
+    document
+      .getElementById("btnEditFromDetails")
+      .addEventListener("click", () => {
+        const testId = this.currentViewTestId;
+        this.closeDetailsModal();
+        if (testId) {
+          this.editTest(testId);
+        }
+      });
+
+    // Cerrar modal de detalles al hacer clic fuera
+    document
+      .getElementById("viewDetailsModal")
+      .addEventListener("click", (e) => {
+        if (e.target.id === "viewDetailsModal") {
+          this.closeDetailsModal();
+        }
       });
 
     // Modal de nueva escala
@@ -416,7 +447,6 @@ class AdminTestsManager {
             <th class="tests-table-header">Items</th>
             <th class="tests-table-header">Escala</th>
             <th class="tests-table-header">Creado</th>
-            <th class="tests-table-header">Opciones</th>
             <th class="tests-table-header">Acciones</th>
           </tr>
         </thead>
@@ -454,21 +484,6 @@ class AdminTestsManager {
     const fechaCreacion = test.created_at
       ? this.formatearFecha(test.created_at)
       : "N/A";
-
-    // Construir tags de opciones de la escala (versión compacta)
-    let opcionesTags = "";
-    if (test.opciones && test.opciones.length > 0) {
-      opcionesTags = test.opciones
-        .map(
-          (opcion) =>
-            `<span class="option-tag-small" title="${this.escapeHtml(opcion.texto_opcion)}: ${opcion.valor_puntuacion}">
-              ${this.escapeHtml(opcion.texto_opcion.substring(0, 15))}${opcion.texto_opcion.length > 15 ? "..." : ""}
-            </span>`,
-        )
-        .join("");
-    } else {
-      opcionesTags = '<span class="option-tag-empty">N/A</span>';
-    }
 
     const syncBadge = isLocal
       ? '<span class="sync-badge" style="color:#f59e0b;font-size:0.75em;margin-left:4px;" title="Pendiente de sincronización"><i class="fas fa-sync-alt"></i></span>'
@@ -509,12 +524,10 @@ class AdminTestsManager {
           <div class="date-cell">${fechaCreacion}</div>
         </td>
         <td class="tests-table-cell">
-          <div class="opciones-compact">
-            ${opcionesTags}
-          </div>
-        </td>
-        <td class="tests-table-cell">
           <div class="action-buttons" ${actionsDisabled}>
+            <button class="btn-action btn-view" onclick="adminTests.viewTestDetails('${test.id_test}')" title="${isLocal ? "No disponible offline" : "Ver detalles"}">
+              <i class="fas fa-eye"></i>
+            </button>
             <button class="btn-action btn-edit" onclick="adminTests.editTest('${test.id_test}')" title="${isLocal ? "No disponible offline" : "Editar test"}">
               <i class="fas fa-edit"></i>
             </button>
@@ -580,9 +593,9 @@ class AdminTestsManager {
   }
 
   /**
-   * Ver detalles de un test
+   * Ver detalles de un test en el modal de detalles
    */
-  async viewTest(id_test) {
+  async viewTestDetails(id_test) {
     if (String(id_test).startsWith("local")) {
       this.showNotification(
         "No se puede ver un test pendiente de sincronización",
@@ -603,13 +616,97 @@ class AdminTestsManager {
       const data = await response.json();
 
       if (data.success) {
-        this.openViewModal(data.data);
+        this.openDetailsModal(data.data);
       } else {
         this.showNotification("Error al cargar el test", "error");
       }
     } catch {
       this.showNotification("Error al cargar el test", "error");
     }
+  }
+
+  /**
+   * Abrir modal de detalles (vista completa de solo lectura)
+   */
+  openDetailsModal(test) {
+    this.currentViewTestId = test.id_test;
+
+    // Actualizar título
+    document.getElementById("detailsModalTitle").innerHTML =
+      `<i class="fas fa-clipboard-list"></i> ${this.escapeHtml(test.nombre)}`;
+
+    // Información general
+    document.getElementById("detailNombre").textContent = test.nombre;
+    document.getElementById("detailTipo").innerHTML = `
+      <span class="tipo-badge tipo-${test.tipo_test || "estres"}">
+        ${test.tipo_test === "ansiedad" ? "Ansiedad" : "Estrés"}
+      </span>
+    `;
+    document.getElementById("detailDescripcion").textContent =
+      test.descripcion || "Sin descripción";
+
+    // Configuración
+    document.getElementById("detailEscala").textContent =
+      test.nombre_escala || "No definida";
+    document.getElementById("detailNumItems").innerHTML = `
+      <span class="items-badge">
+        <i class="fas fa-list-ol"></i> ${test.num_items || 0}
+      </span>
+    `;
+
+    // Opciones de respuesta
+    const opcionesContainer = document.getElementById("detailOpciones");
+    if (test.opciones && test.opciones.length > 0) {
+      opcionesContainer.innerHTML = test.opciones
+        .map(
+          (opcion) => `
+          <div class="detail-opcion-tag">
+            <span class="opcion-text">${this.escapeHtml(opcion.texto_opcion)}</span>
+            <span class="opcion-value">${opcion.valor_puntuacion} pts</span>
+          </div>
+        `,
+        )
+        .join("");
+    } else {
+      opcionesContainer.innerHTML =
+        '<span class="detail-empty"><i class="fas fa-inbox"></i> No hay opciones definidas</span>';
+    }
+
+    // Ítems del test
+    const itemsCountBadge = document.getElementById("detailItemsCount");
+    itemsCountBadge.textContent = `${test.items?.length || 0} ítems`;
+
+    const itemsList = document.getElementById("detailItemsList");
+    if (test.items && test.items.length > 0) {
+      itemsList.innerHTML = test.items
+        .map(
+          (item) => `
+          <div class="detail-item-card">
+            <span class="detail-item-number">${item.orden}.</span>
+            <span class="detail-item-text">${this.escapeHtml(item.texto_item)}</span>
+          </div>
+        `,
+        )
+        .join("");
+    } else {
+      itemsList.innerHTML = `
+        <div class="detail-empty">
+          <i class="fas fa-inbox"></i>
+          <p>No hay ítems definidos para este test</p>
+        </div>
+      `;
+    }
+
+    // Mostrar modal
+    document.getElementById("viewDetailsModal").classList.add("active");
+  }
+
+  /**
+   * Cerrar modal de detalles
+   */
+  closeDetailsModal() {
+    document.getElementById("viewDetailsModal").classList.remove("active");
+    this.currentViewTestId = null;
   }
 
   /**
@@ -1699,6 +1796,7 @@ class AdminTestsManager {
         );
       }
     } catch {
+      // console.error(err);
       this.showScaleFormStatus("Error al conectar con el servidor", "error");
     } finally {
       this.setScaleSaveButtonLoading(false);
@@ -1793,16 +1891,8 @@ class AdminTestsManager {
         duration: 3000,
       });
     } else {
-      // Fallback: intentar mostrar en la UI si es posible, o usar alert como último recurso
-      if (this && typeof this.showScaleFormStatus === "function") {
-        try {
-          this.showScaleFormStatus(message, type);
-        } catch {
-          // ignore errors rendering fallback UI
-        }
-      } else if (typeof alert === "function") {
-        alert(message);
-      }
+      // Fallback: mostrar en consola
+      // console.warn("Toast no está disponible:", message);
     }
   }
 

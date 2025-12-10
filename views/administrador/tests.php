@@ -189,6 +189,89 @@ renderPageHeader();
     </div>
 </div>
 
+<!-- Modal para ver detalles del test -->
+<div class="modal" id="viewDetailsModal">
+    <div class="modal-content modal-details">
+        <div class="modal-header">
+            <h2 id="detailsModalTitle">
+                <i class="fas fa-clipboard-list"></i> Detalles del Test
+            </h2>
+            <button class="modal-close" id="closeDetailsModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="details-container">
+            <!-- Información general -->
+            <div class="details-section">
+                <h3 class="details-section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Información General
+                </h3>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Nombre</span>
+                        <span class="detail-value" id="detailNombre">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Tipo</span>
+                        <span class="detail-value" id="detailTipo">-</span>
+                    </div>
+                    <div class="detail-item full-width">
+                        <span class="detail-label">Descripción</span>
+                        <span class="detail-value" id="detailDescripcion">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración -->
+            <div class="details-section">
+                <h3 class="details-section-title">
+                    <i class="fas fa-cog"></i>
+                    Configuración
+                </h3>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Escala de Respuesta</span>
+                        <span class="detail-value" id="detailEscala">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Total de Ítems</span>
+                        <span class="detail-value" id="detailNumItems">-</span>
+                    </div>
+                    <div class="detail-item full-width" id="detailOpcionesContainer">
+                        <span class="detail-label">Opciones de Respuesta</span>
+                        <div class="detail-opciones" id="detailOpciones"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ítems del test -->
+            <div class="details-section">
+                <div class="details-section-header">
+                    <h3 class="details-section-title">
+                        <i class="fas fa-list-ol"></i>
+                        Ítems del Test
+                    </h3>
+                    <span class="items-count-badge" id="detailItemsCount">0 ítems</span>
+                </div>
+                <div class="details-items-list" id="detailItemsList">
+                    <!-- Los ítems se cargarán dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer-actions">
+            <button type="button" class="btn-secondary" id="btnCloseDetails">
+                <i class="fas fa-times"></i> Cerrar
+            </button>
+            <button type="button" class="btn-primary" id="btnEditFromDetails">
+                <i class="fas fa-edit"></i> Editar Test
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal de confirmación para eliminar -->
 <div class="modal" id="deleteModal">
     <div class="modal-content modal-small">
