@@ -497,9 +497,33 @@ class SugerenciasController {
     public function handleApiRequest(): void {
         $auth = $this->requireProfesorAuth();
         $profesorId = $auth['user_id'];
-        
+
         $method = $_SERVER['REQUEST_METHOD'];
         $action = $_GET['action'] ?? '';
+
+        // POST: Sugerir test a curso (usado por el modal)
+        if ($method === 'POST' && empty($action)) {
+            header('Content-Type: application/json');
+            $payload = json_decode(file_get_contents('php://input'), true);
+            $curso_id = isset($payload['curso_id']) ? (int)$payload['curso_id'] : 0;
+            $id_test = isset($payload['id_test']) ? (int)$payload['id_test'] : 0;
+            if (!$curso_id || !$id_test) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'mensaje' => 'Curso y test son requeridos.']);
+                return;
+            }
+            try {
+                $conn = Database::getInstance()->getConnection();
+                // Llama al procedimiento almacenado para sugerir test
+                $stmt = $conn->prepare('CALL sp_sugerir_test(?, ?, ?)');
+                $stmt->execute([$curso_id, $id_test, $profesorId]);
+                echo json_encode(['success' => true, 'mensaje' => 'Sugerencia enviada correctamente.']);
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'mensaje' => 'Error al sugerir test: ' . $e->getMessage()]);
+            }
+            return;
+        }
 
         // GET: Listar sugerencias
         if ($method === 'GET' && $action === 'listar') {

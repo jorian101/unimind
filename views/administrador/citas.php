@@ -47,6 +47,9 @@ require_once __DIR__ . '/../../utils/asset-version.php';
         <div class="citas-details" id="citas-details">
             <div class="citas-details-title">Detalles de las citas del día</div>
 
+            <!-- Botón para crear nueva cita -->
+            <button id="btn-nueva-cita" class="citas-btn primary" style="margin-bottom:1rem;">Nueva Cita</button>
+
             <!-- Grid de tarjetas para pantallas medianas/grandes -->
             <div class="appointments-grid" id="appointments-grid"></div>
 
@@ -58,12 +61,185 @@ require_once __DIR__ . '/../../utils/asset-version.php';
                         <th>Alumno</th>
                         <th>Motivo</th>
                         <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     <!-- Las filas se llenan dinámicamente -->
                 </tbody>
             </table>
+        </div>
+
+        <!-- Modal para crear/editar cita -->
+        <div id="modal-cita" class="modal">
+            <div class="modal-content" style="max-width:420px;">
+                <button class="close" id="close-modal-cita" aria-label="Cerrar">×</button>
+                <h3 id="modal-cita-title">Nueva Cita</h3>
+                <form id="form-cita">
+                    <input type="hidden" id="cita-id" name="id_cita" />
+                    <div>
+                        <label for="cita-alumno">Alumno (ID o nombre)</label>
+                        <input type="text" id="cita-alumno" name="alumno" required autocomplete="off" />
+                    </div>
+                    <div>
+                        <label for="cita-fecha">Fecha y hora</label>
+                        <input type="datetime-local" id="cita-fecha" name="fecha_cita" required />
+                    </div>
+                    <div>
+                        <label for="cita-motivo">Motivo</label>
+                        <input type="text" id="cita-motivo" name="motivo" required />
+                    </div>
+                    <div>
+                        <label for="cita-estado">Estado</label>
+                        <select id="cita-estado" name="estado">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="confirmada">Confirmada</option>
+                            <option value="cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                    <div id="cita-msg" class="modal-msg" style="display:none;"></div>
+                    <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1rem;">
+                        <button type="button" id="cancelar-modal-cita" class="citas-btn ghost">Cancelar</button>
+                        <button type="submit" class="citas-btn primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal de confirmación para eliminar/cancelar -->
+        <div id="modal-confirmar" class="modal">
+            <div class="modal-content" style="max-width:340px;">
+                <button class="close" id="close-modal-confirmar" aria-label="Cerrar">×</button>
+                <h3 id="modal-confirmar-title">¿Confirmar acción?</h3>
+                <div id="modal-confirmar-msg">¿Estás seguro de que deseas continuar?</div>
+                <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1rem;">
+                    <button type="button" id="cancelar-modal-confirmar" class="citas-btn ghost">Cancelar</button>
+                    <button type="button" id="confirmar-modal-confirmar" class="citas-btn danger">Sí, continuar</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        // Lógica JS para CRUD de citas (solo estructura, AJAX a implementar)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Botón nueva cita
+            document.getElementById('btn-nueva-cita').onclick = function() {
+                abrirModalCita();
+            };
+            // Cerrar modal cita
+            document.getElementById('close-modal-cita').onclick = cerrarModalCita;
+            document.getElementById('cancelar-modal-cita').onclick = cerrarModalCita;
+            // Cerrar modal confirmar
+            document.getElementById('close-modal-confirmar').onclick = cerrarModalConfirmar;
+            document.getElementById('cancelar-modal-confirmar').onclick = cerrarModalConfirmar;
+            // Guardar cita (crear/editar)
+            document.getElementById('form-cita').onsubmit = async function(e) {
+                e.preventDefault();
+                const idCita = document.getElementById('cita-id').value.trim();
+                const alumnoInput = document.getElementById('cita-alumno').value.trim();
+                const fechaCita = document.getElementById('cita-fecha').value;
+                const motivo = document.getElementById('cita-motivo').value.trim();
+                // Permitir ID o nombre, pero para backend necesitamos ID
+                let idAlumno = alumnoInput;
+                if (isNaN(Number(idAlumno))) {
+                    // Buscar ID por nombre (simple fetch, solo si no es número)
+                    idAlumno = await buscarIdAlumnoPorNombre(alumnoInput);
+                    if (!idAlumno) {
+                        mostrarMsgCita('No se encontró el alumno especificado.', 'error');
+                        return;
+                    }
+                }
+                const payload = {
+                    id_alumno: idAlumno,
+                    fecha_cita: fechaCita,
+                    motivo: motivo
+                };
+                let url = 'api/citas-admin.php?action=crear';
+                let successMsg = 'Cita creada correctamente';
+                if (idCita) {
+                    payload.id_cita = idCita;
+                    url = 'api/citas-admin.php?action=editar';
+                    successMsg = 'Cita actualizada correctamente';
+                }
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        mostrarMsgCita(successMsg, 'success');
+                        setTimeout(() => {
+                            cerrarModalCita();
+                            if (diaSeleccionado) {
+                                mostrarCitasDelDia(new Date(diaSeleccionado));
+                            } else {
+                                mostrarCitasDelDia(new Date());
+                            }
+                        }, 800);
+                    } else {
+                        mostrarMsgCita(data.message || 'Error al guardar cita', 'error');
+                    }
+                } catch (err) {
+                    mostrarMsgCita('Error de red o servidor', 'error');
+                }
+            };
+        });
+
+        // Buscar ID de alumno por nombre (simple, solo para demo; en producción usar autocomplete)
+        async function buscarIdAlumnoPorNombre(nombre) {
+            if (!nombre) return null;
+            // Buscar por nombre exacto (puede mejorarse con endpoint dedicado)
+            try {
+                const res = await fetch('api/usuarios-buscar.php?nombre=' + encodeURIComponent(nombre));
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    return data[0].id_usuario;
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function abrirModalCita(cita = null) {
+            document.getElementById('modal-cita-title').textContent = cita ? 'Editar Cita' : 'Nueva Cita';
+            document.getElementById('cita-id').value = cita?.id || '';
+            document.getElementById('cita-alumno').value = cita?.alumno || '';
+            document.getElementById('cita-fecha').value = cita?.fecha_cita || '';
+            document.getElementById('cita-motivo').value = cita?.motivo || '';
+            document.getElementById('cita-estado').value = cita?.estado || 'pendiente';
+            document.getElementById('cita-msg').style.display = 'none';
+            document.getElementById('modal-cita').style.display = 'flex';
+            document.getElementById('modal-cita').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function cerrarModalCita() {
+            document.getElementById('modal-cita').style.display = 'none';
+            document.getElementById('modal-cita').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        function mostrarMsgCita(msg, tipo) {
+            const el = document.getElementById('cita-msg');
+            el.textContent = msg;
+            el.className = 'modal-msg ' + (tipo === 'error' ? 'error' : 'success');
+            el.style.display = 'block';
+        }
+        function abrirModalConfirmar(msg, onConfirm) {
+            document.getElementById('modal-confirmar-msg').textContent = msg;
+            document.getElementById('modal-confirmar').style.display = 'flex';
+            document.getElementById('modal-confirmar').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('confirmar-modal-confirmar').onclick = function() {
+                cerrarModalConfirmar();
+                if (typeof onConfirm === 'function') onConfirm();
+            };
+        }
+        function cerrarModalConfirmar() {
+            document.getElementById('modal-confirmar').style.display = 'none';
+            document.getElementById('modal-confirmar').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        </script>
         </div>
     </div>
 </div>
@@ -241,14 +417,18 @@ function renderCitasFiltradas(citasDia) {
     for (const cita of filtradas) {
         const hora = cita.start.slice(11, 16);
         const estadoClass = cita.estado === 'pendiente' ? 'estado-pendiente' : (cita.estado === 'confirmada' ? 'estado-confirmada' : 'estado-cancelada');
-        // Table row
+        // Table row con acciones
         citasTableBody.innerHTML += `<tr>
             <td>${hora}</td>
             <td>${cita.title}</td>
             <td>${cita.motivo}</td>
             <td><span class="estado ${estadoClass}">${cita.estado.charAt(0).toUpperCase()+cita.estado.slice(1)}</span></td>
+            <td>
+                <button class="citas-btn ghost btn-editar-cita" data-id="${cita.id}" data-alumno="${cita.title}" data-fecha="${cita.start}" data-motivo="${cita.motivo}" data-estado="${cita.estado}">Editar</button>
+                <button class="citas-btn danger btn-eliminar-cita" data-id="${cita.id}">Eliminar</button>
+            </td>
         </tr>`;
-        // Card markup
+        // Card markup con acciones
         cardsHtml += `<div class="cita-card">
             <div class="cita-card-header">
                 <div class="cita-time">${hora}</div>
@@ -256,10 +436,63 @@ function renderCitasFiltradas(citasDia) {
             </div>
             <div class="cita-motivo">${cita.motivo}</div>
             <div class="cita-estado ${estadoClass}">${cita.estado.charAt(0).toUpperCase()+cita.estado.slice(1)}</div>
+            <div class="cita-actions">
+                <button class="citas-btn ghost btn-editar-cita" data-id="${cita.id}" data-alumno="${cita.title}" data-fecha="${cita.start}" data-motivo="${cita.motivo}" data-estado="${cita.estado}">Editar</button>
+                <button class="citas-btn danger btn-eliminar-cita" data-id="${cita.id}">Eliminar</button>
+            </div>
         </div>`;
     }
 
     appointmentsGrid.innerHTML = cardsHtml;
+
+    // Asignar eventos a los botones de editar y eliminar
+    document.querySelectorAll('.btn-editar-cita').forEach(btn => {
+        btn.onclick = function() {
+            abrirModalCita({
+                id: btn.getAttribute('data-id'),
+                alumno: btn.getAttribute('data-alumno'),
+                fecha_cita: btn.getAttribute('data-fecha')?.slice(0,16),
+                motivo: btn.getAttribute('data-motivo'),
+                estado: btn.getAttribute('data-estado')
+            });
+        };
+    });
+    document.querySelectorAll('.btn-eliminar-cita').forEach(btn => {
+        btn.onclick = function() {
+            const idCita = btn.getAttribute('data-id');
+            const alumnoNombre = btn.getAttribute('data-alumno');
+            abrirModalConfirmar('¿Eliminar esta cita?', async function() {
+                // Buscar ID de alumno por nombre (igual que en editar)
+                let idAlumno = alumnoNombre;
+                if (isNaN(Number(idAlumno))) {
+                    idAlumno = await buscarIdAlumnoPorNombre(alumnoNombre);
+                    if (!idAlumno) {
+                        alert('No se encontró el alumno para eliminar.');
+                        return;
+                    }
+                }
+                try {
+                    const res = await fetch('api/citas-admin.php?action=eliminar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_cita: idCita, id_alumno: idAlumno })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        if (diaSeleccionado) {
+                            mostrarCitasDelDia(new Date(diaSeleccionado));
+                        } else {
+                            mostrarCitasDelDia(new Date());
+                        }
+                    } else {
+                        alert(data.message || 'No se pudo eliminar la cita');
+                    }
+                } catch (err) {
+                    alert('Error de red o servidor al eliminar cita');
+                }
+            });
+        };
+    });
 }
 
 document.getElementById('btn-filtrar').onclick = function() {
