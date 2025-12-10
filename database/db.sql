@@ -246,6 +246,25 @@ CREATE TABLE `Notificaciones` (
     FOREIGN KEY (`id_usuario`) REFERENCES `Usuarios`(`id_usuario`) ON DELETE CASCADE
 );
 
+-- Tabla para recomendaciones según niveles de estrés/ansiedad
+CREATE TABLE `Recomendaciones` (
+    `id_recomendacion` INT NOT NULL AUTO_INCREMENT,
+    `titulo` VARCHAR(255) NOT NULL,
+    `descripcion` TEXT NOT NULL,
+    `categoria` ENUM('mental', 'profesional', 'fisica', 'academica', 'social') NOT NULL,
+    `tipo_test` ENUM('estres', 'ansiedad', 'ambos') NOT NULL DEFAULT 'ambos' COMMENT 'A qué tipo de test aplica',
+    `nivel_minimo` INT NOT NULL DEFAULT 1 COMMENT 'Nivel mínimo para mostrar (1-5)',
+    `nivel_maximo` INT NOT NULL DEFAULT 5 COMMENT 'Nivel máximo para mostrar (1-5)',
+    `prioridad` INT NOT NULL DEFAULT 3 COMMENT 'Prioridad de la recomendación (1=baja, 5=crítica)',
+    `activa` BOOLEAN DEFAULT TRUE COMMENT 'Si está activa para mostrar',
+    `fecha_creacion` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `fecha_actualizacion` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id_recomendacion`),
+    INDEX idx_categoria_nivel (categoria, nivel_minimo, nivel_maximo),
+    INDEX idx_tipo_nivel (tipo_test, nivel_minimo, nivel_maximo),
+    INDEX idx_activa (activa)
+) COMMENT='Recomendaciones personalizadas según niveles de estrés/ansiedad';
+
 -- ============================================
 -- TABLAS PARA SISTEMA DE MÉTRICAS PSICOMÉTRICAS
 -- ============================================

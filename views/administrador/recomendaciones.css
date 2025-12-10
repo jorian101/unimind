@@ -507,6 +507,17 @@
   transform: translateY(-1px);
 }
 
+.rec-btn-view {
+  color: var(--sec-500);
+  border: 1px solid var(--sec-500);
+}
+
+.rec-btn-view:hover {
+  background: var(--sec-500);
+  color: var(--bg-100);
+  transform: translateY(-1px);
+}
+
 .rec-btn-delete {
   color: var(--pri-500);
   border: 1px solid var(--pri-500);

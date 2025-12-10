@@ -13,6 +13,8 @@ TRUNCATE TABLE `Opciones_Respuesta`;
 TRUNCATE TABLE `Tipos_Escalas`;
 TRUNCATE TABLE `Usuarios`;
 TRUNCATE TABLE `Escuelas`;
+TRUNCATE TABLE `Recomendaciones`;
+TRUNCATE TABLE `Notificaciones`;
 -- Truncate nuevas tablas de métricas
 TRUNCATE TABLE `Agregaciones`;
 TRUNCATE TABLE `Estadisticas_Poblacionales`;
@@ -643,5 +645,40 @@ INSERT INTO `Notificaciones` (`id_usuario`, `titulo`, `mensaje`, `tipo`, `estado
 (9, 'Cita agendada', 'Tu cita con orientación está confirmada para el lunes.', 'success', 'nueva', NOW()),
 (10, 'Material nuevo', 'Hay nuevo material disponible en tu curso de Estadística.', 'info', 'nueva', NOW())
 ON DUPLICATE KEY UPDATE `mensaje`=VALUES(`mensaje`), `tipo`=VALUES(`tipo`), `estado`=VALUES(`estado`), `fecha_creacion`=VALUES(`fecha_creacion`);
+
+-- Recomendaciones personalizadas según niveles de estrés/ansiedad
+INSERT INTO `Recomendaciones` (`titulo`, `descripcion`, `categoria`, `tipo_test`, `nivel_minimo`, `nivel_maximo`, `prioridad`, `activa`) VALUES
+-- Nivel 1-2: Normal/Leve
+('Sesión de Mindfulness y Respiración', 'Practica técnicas de respiración profunda durante 10 minutos al día. Enfócate en inhalar por 4 segundos, mantener por 4, y exhalar por 6 segundos. Esto ayuda a reducir la activación del sistema nervioso y promueve la calma.', 'mental', 'ambos', 1, 2, 2, TRUE),
+('Actividad Física Regular', 'Realiza al menos 30 minutos de ejercicio cardiovascular 3 veces por semana. El gimnasio del campus tiene horarios flexibles. El ejercicio libera endorfinas que mejoran el estado de ánimo.', 'fisica', 'ambos', 1, 2, 2, TRUE),
+('Grupo de Apoyo Estudiantil', 'Únete a las sesiones de grupo de apoyo donde puedes compartir experiencias con otros estudiantes en situaciones similares. Las reuniones son los martes y jueves a las 5pm.', 'social', 'ambos', 1, 2, 1, TRUE),
+
+-- Nivel 3: Moderado
+('Taller de Gestión del Tiempo', 'Asiste al taller semanal sobre técnicas de organización y priorización de tareas académicas. Aprenderás métodos como Pomodoro, Eisenhower Matrix y técnicas de planificación efectiva. Se realiza los miércoles a las 4pm.', 'academica', 'estres', 2, 3, 3, TRUE),
+('Sesiones de Relajación Guiada', 'Participa en sesiones de relajación muscular progresiva y visualización guiada. Estas técnicas han demostrado reducir significativamente los niveles de ansiedad. Disponible en el Centro de Bienestar, lunes y viernes a las 3pm.', 'mental', 'ansiedad', 2, 3, 3, TRUE),
+('Asesoría Académica Personalizada', 'Agenda sesiones con tu asesor académico para revisar tu carga de trabajo y establecer metas realistas. Pueden ayudarte a reorganizar tu horario y priorizar actividades.', 'academica', 'ambos', 2, 4, 3, TRUE),
+('Yoga y Meditación', 'Únete a las clases de yoga enfocadas en reducción de estrés. Combina posturas físicas con técnicas de respiración y meditación. Clases disponibles martes y jueves a las 6am y 7pm.', 'fisica', 'ambos', 2, 3, 2, TRUE),
+
+-- Nivel 4: Alto
+('Consulta Psicológica', 'Agenda una cita con el servicio de orientación psicológica del campus. Un profesional evaluará tu situación y te brindará estrategias específicas. Disponible de lunes a viernes de 8am a 6pm. Llama al ext. 5500.', 'profesional', 'ambos', 3, 4, 4, TRUE),
+('Taller de Manejo de Ansiedad', 'Participa en el taller intensivo de técnicas cognitivo-conductuales para el manejo de la ansiedad. Aprenderás a identificar pensamientos automáticos negativos y reestructurarlos. Duración: 4 sesiones de 2 horas.', 'mental', 'ansiedad', 3, 4, 4, TRUE),
+('Programa de Resiliencia', 'Inscríbete en el programa de 6 semanas para desarrollar habilidades de afrontamiento y resiliencia frente al estrés académico. Incluye técnicas de resolución de problemas y autoeficacia.', 'mental', 'estres', 3, 4, 4, TRUE),
+('Revisión de Hábitos de Sueño', 'Consulta con el especialista en higiene del sueño. El sueño inadecuado amplifica el estrés y la ansiedad. Recibirás un plan personalizado para mejorar tu calidad de sueño.', 'fisica', 'ambos', 3, 5, 3, TRUE),
+
+-- Nivel 5: Severo/Crítico
+('Consulta de Urgencia con Psicólogo', 'Se recomienda agendar una cita de urgencia con el psicólogo del campus. Tu nivel requiere atención inmediata. Disponible de lunes a viernes de 8am a 6pm. Para emergencias fuera de horario, contacta a la línea de crisis estudiantil 24/7 al 1-800-AYUDA.', 'profesional', 'ambos', 4, 5, 5, TRUE),
+('Evaluación Psiquiátrica', 'Considera una evaluación con el psiquiatra del servicio de salud estudiantil para determinar si requieres apoyo farmacológico complementario. Esta evaluación es confidencial y profesional.', 'profesional', 'ambos', 5, 5, 5, TRUE),
+('Reducción Temporal de Carga Académica', 'Consulta con tu asesor académico sobre la posibilidad de reducir temporalmente tu carga de cursos o solicitar extensiones en tus trabajos. Tu bienestar es prioridad.', 'academica', 'ambos', 4, 5, 5, TRUE),
+('Terapia Individual Intensiva', 'Inicia terapia psicológica individual con frecuencia de 2 sesiones por semana. El servicio de salud mental puede ayudarte a procesar y manejar la situación actual de manera efectiva.', 'profesional', 'ambos', 4, 5, 5, TRUE),
+('Red de Apoyo Familiar', 'Considera involucrar a tu red de apoyo familiar o personas cercanas. Hablar con tus seres queridos sobre lo que estás experimentando puede ser muy beneficioso. El servicio de orientación puede facilitarte guías de comunicación.', 'social', 'ambos', 4, 5, 4, TRUE),
+('Plan de Autocuidado Inmediato', 'Implementa un plan de autocuidado diario que incluya: 8 horas de sueño, alimentación balanceada, 30 min de actividad física ligera, descansos frecuentes de 10 min cada 2 horas de estudio, y evitar estimulantes como cafeína.', 'fisica', 'ambos', 4, 5, 4, TRUE)
+ON DUPLICATE KEY UPDATE 
+    `descripcion`=VALUES(`descripcion`), 
+    `categoria`=VALUES(`categoria`),
+    `tipo_test`=VALUES(`tipo_test`),
+    `nivel_minimo`=VALUES(`nivel_minimo`),
+    `nivel_maximo`=VALUES(`nivel_maximo`),
+    `prioridad`=VALUES(`prioridad`),
+    `activa`=VALUES(`activa`);
 
 -- End of additional seed data
