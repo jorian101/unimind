@@ -55,14 +55,29 @@ END //
 -- =============================================
 
 -- Inicia una aplicación de test para un usuario
+-- Ahora acepta un parámetro opcional de origen para tracking
 CREATE PROCEDURE `sp_iniciar_aplicacion`(
     IN p_id_usuario INT,
     IN p_id_test INT,
     OUT p_id_aplicacion INT
 )
 BEGIN
-    INSERT INTO `Aplicaciones` (`id_usuario`, `id_test`)
-    VALUES (p_id_usuario, p_id_test);
+    DECLARE v_origen ENUM('estudiante_voluntario','profesor_sugerencia','sistema_automatico');
+    
+    -- Determinar origen: si existe una sugerencia pendiente, es por sugerencia de profesor
+    SET v_origen = 'estudiante_voluntario';
+    
+    IF EXISTS (
+        SELECT 1 FROM Sugerencias 
+        WHERE id_estudiante = p_id_usuario 
+        AND id_test = p_id_test 
+        AND estado = 'pendiente'
+    ) THEN
+        SET v_origen = 'profesor_sugerencia';
+    END IF;
+    
+    INSERT INTO `Aplicaciones` (`id_usuario`, `id_test`, `origen`)
+    VALUES (p_id_usuario, p_id_test, v_origen);
 
     SET p_id_aplicacion = LAST_INSERT_ID();
     
@@ -647,4 +662,554 @@ BEGIN
         )
     
     ORDER BY es_sugerido DESC, fecha_ultima_sugerencia DESC, nombre ASC;
+END //
+
+-- =============================================
+-- ### PROCEDIMIENTOS PARA SISTEMA DE MÉTRICAS PSICOMÉTRICAS
+-- =============================================
+
+-- Función auxiliar para calcular percentil desde z-score
+-- Aproximación usando distribución normal: percentil ≈ 50 + (z × 19.1)
+DROP FUNCTION IF EXISTS `fn_calcular_percentil` //
+CREATE FUNCTION `fn_calcular_percentil`(p_z_score DECIMAL(10,4))
+RETURNS DECIMAL(5,2)
+DETERMINISTIC
+BEGIN
+    DECLARE v_percentil DECIMAL(5,2);
+    
+    IF p_z_score IS NULL THEN
+        RETURN NULL;
+    END IF;
+    
+    -- Fórmula de aproximación normal
+    SET v_percentil = 50 + (p_z_score * 19.1);
+    
+    -- Limitar entre 0.01 y 99.99
+    IF v_percentil < 0.01 THEN
+        SET v_percentil = 0.01;
+    ELSEIF v_percentil > 99.99 THEN
+        SET v_percentil = 99.99;
+    END IF;
+    
+    RETURN ROUND(v_percentil, 2);
+END //
+
+-- Procedimiento principal: Procesa una aplicación completada
+-- Reemplaza a: sp_finalizar_aplicacion_y_calcular_puntuacion
+DROP PROCEDURE IF EXISTS `sp_procesar_aplicacion` //
+CREATE PROCEDURE `sp_procesar_aplicacion`(
+    IN p_id_aplicacion INT
+)
+BEGIN
+    -- Variables para datos base
+    DECLARE v_id_test INT;
+    DECLARE v_id_usuario INT;
+    DECLARE v_tipo_test ENUM('estres','ansiedad');
+    DECLARE v_num_items INT;
+    DECLARE v_id_tipo_escala INT;
+    DECLARE v_max_valor_escala INT;
+    
+    -- Variables para cálculos
+    DECLARE v_puntuacion_bruta INT;
+    DECLARE v_puntuacion_maxima INT;
+    DECLARE v_porcentaje_score DECIMAL(5,2);
+    DECLARE v_nivel_calculado ENUM('normal','leve','moderado','alto','severo');
+    DECLARE v_resultado_nivel_texto VARCHAR(50);
+    DECLARE v_orden_nivel INT;
+    
+    -- Variables para estadísticas
+    DECLARE v_media DECIMAL(10,2);
+    DECLARE v_desviacion DECIMAL(10,2);
+    DECLARE v_z_score DECIMAL(10,4);
+    DECLARE v_percentil DECIMAL(5,2);
+    
+    -- Variables para cambios
+    DECLARE v_punt_anterior INT;
+    DECLARE v_pct_anterior DECIMAL(5,2);
+    DECLARE v_nivel_anterior ENUM('normal','leve','moderado','alto','severo');
+    DECLARE v_orden_anterior INT;
+    DECLARE v_fecha_anterior DATETIME;
+    DECLARE v_cambio_absoluto INT;
+    DECLARE v_cambio_pct DECIMAL(6,2);
+    DECLARE v_dias_diferencia INT;
+    DECLARE v_es_primera BOOLEAN;
+    
+    -- Variables para notas
+    DECLARE v_notas TEXT;
+    DECLARE v_tiene_riesgo_emergente BOOLEAN DEFAULT FALSE;
+    
+    -- PASO 1: Obtener datos base
+    SELECT a.id_test, a.id_usuario, t.tipo_test, t.num_items, t.id_tipo_escala
+    INTO v_id_test, v_id_usuario, v_tipo_test, v_num_items, v_id_tipo_escala
+    FROM Aplicaciones a
+    JOIN Tests t ON a.id_test = t.id_test
+    WHERE a.id_aplicacion = p_id_aplicacion;
+    
+    IF v_id_test IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Aplicación no encontrada';
+    END IF;
+    
+    -- Obtener valor máximo de la escala
+    SELECT MAX(o.valor_puntuacion) INTO v_max_valor_escala
+    FROM TiposEscala_Opciones teo
+    JOIN Opciones_Respuesta o ON teo.id_opcion = o.id_opcion
+    WHERE teo.id_tipo_escala = v_id_tipo_escala;
+    
+    IF v_max_valor_escala IS NULL THEN
+        SET v_max_valor_escala = 4; -- Fallback por si no hay escala definida
+    END IF;
+    
+    -- PASO 2: Calcular puntuación bruta y porcentaje
+    SELECT SUM(ra.puntuacion_obtenida) INTO v_puntuacion_bruta
+    FROM Respuestas_Aplicacion ra
+    WHERE ra.id_aplicacion = p_id_aplicacion;
+    
+    IF v_puntuacion_bruta IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se encontraron respuestas para esta aplicación';
+    END IF;
+    
+    SET v_puntuacion_maxima = v_num_items * v_max_valor_escala;
+    SET v_porcentaje_score = ROUND((v_puntuacion_bruta / v_puntuacion_maxima) * 100, 2);
+    
+    -- PASO 3: Determinar nivel por baremo (intervalo semiabierto)
+    SELECT b.nivel, b.orden 
+    INTO v_nivel_calculado, v_orden_nivel
+    FROM Baremos b
+    WHERE b.tipo_test = v_tipo_test
+      AND b.activo = TRUE
+      AND v_porcentaje_score >= b.pct_min 
+      AND v_porcentaje_score < b.pct_max
+    ORDER BY b.pct_min ASC
+    LIMIT 1;
+    
+    -- Si es exactamente 100.00, buscar el baremo con pct_max = 100.01
+    IF v_nivel_calculado IS NULL AND v_porcentaje_score >= 100.00 THEN
+        SELECT b.nivel, b.orden 
+        INTO v_nivel_calculado, v_orden_nivel
+        FROM Baremos b
+        WHERE b.tipo_test = v_tipo_test
+          AND b.activo = TRUE
+          AND b.pct_max >= 100.00
+        ORDER BY b.orden DESC
+        LIMIT 1;
+    END IF;
+    
+    -- Convertir ENUM a texto para compatibilidad
+    SET v_resultado_nivel_texto = v_nivel_calculado;
+    
+    -- PASO 4: Calcular z-score y percentil
+    SELECT e.media, e.desviacion INTO v_media, v_desviacion
+    FROM Estadisticas_Poblacionales e
+    WHERE e.tipo_test = v_tipo_test
+      AND e.id_escuela IS NULL  -- Usar estadística global
+      AND e.activo = TRUE
+    LIMIT 1;
+    
+    IF v_media IS NOT NULL AND v_desviacion IS NOT NULL AND v_desviacion >= 0.01 THEN
+        SET v_z_score = ROUND((v_puntuacion_bruta - v_media) / v_desviacion, 4);
+        SET v_percentil = fn_calcular_percentil(v_z_score);
+    ELSE
+        SET v_z_score = NULL;
+        SET v_percentil = NULL;
+    END IF;
+    
+    -- PASO 5: Calcular cambio vs aplicación anterior del MISMO tipo
+    SELECT a.puntuacion_total, a.porcentaje_score, a.nivel_calculado, a.fecha_finalizacion,
+           b.orden
+    INTO v_punt_anterior, v_pct_anterior, v_nivel_anterior, v_fecha_anterior,
+         v_orden_anterior
+    FROM Aplicaciones a
+    JOIN Tests t ON a.id_test = t.id_test
+    LEFT JOIN Baremos b ON b.tipo_test = t.tipo_test AND b.nivel = a.nivel_calculado AND b.activo = TRUE
+    WHERE a.id_usuario = v_id_usuario
+      AND t.tipo_test = v_tipo_test
+      AND a.fecha_finalizacion IS NOT NULL
+      AND a.id_aplicacion != p_id_aplicacion
+      AND a.completo = TRUE
+    ORDER BY a.fecha_finalizacion DESC
+    LIMIT 1;
+    
+    IF v_punt_anterior IS NOT NULL THEN
+        SET v_es_primera = FALSE;
+        SET v_cambio_absoluto = v_puntuacion_bruta - v_punt_anterior;
+        SET v_cambio_pct = ROUND(v_porcentaje_score - v_pct_anterior, 2);
+        SET v_dias_diferencia = DATEDIFF(NOW(), v_fecha_anterior);
+    ELSE
+        SET v_es_primera = TRUE;
+        SET v_cambio_absoluto = NULL;
+        SET v_cambio_pct = NULL;
+        SET v_dias_diferencia = NULL;
+    END IF;
+    
+    -- PASO 6: Detectar riesgo emergente
+    IF v_es_primera = FALSE AND v_nivel_anterior IS NOT NULL AND v_orden_anterior IS NOT NULL THEN
+        -- Condición 1: Salto de normal/leve a alto/severo en <14 días
+        IF v_orden_anterior <= 2 AND v_orden_nivel >= 4 AND v_dias_diferencia < 14 THEN
+            SET v_tiene_riesgo_emergente = TRUE;
+        END IF;
+        
+        -- Condición 2: Salto de 2+ niveles
+        IF (v_orden_nivel - v_orden_anterior) >= 2 THEN
+            SET v_tiene_riesgo_emergente = TRUE;
+        END IF;
+    END IF;
+    
+    -- PASO 7: Construir notas de cálculo
+    SET v_notas = CONCAT(
+        'Baremo: ', IFNULL(v_nivel_calculado, 'N/A'),
+        ' | Z-score: ', IFNULL(CAST(v_z_score AS CHAR), 'N/A'),
+        ' | Percentil: ', IFNULL(CAST(v_percentil AS CHAR), 'N/A')
+    );
+    
+    IF v_tiene_riesgo_emergente THEN
+        SET v_notas = CONCAT(v_notas, ' | ⚠️ RIESGO_EMERGENTE');
+    END IF;
+    
+    -- PASO 8: Actualizar aplicación
+    UPDATE Aplicaciones
+    SET 
+        puntuacion_total = v_puntuacion_bruta,
+        puntuacion_maxima = v_puntuacion_maxima,
+        porcentaje_score = v_porcentaje_score,
+        resultado_nivel = v_resultado_nivel_texto,
+        nivel_calculado = v_nivel_calculado,
+        z_score = v_z_score,
+        percentil = v_percentil,
+        cambio_pct = v_cambio_pct,
+        cambio_absoluto = v_cambio_absoluto,
+        es_primera_aplicacion = v_es_primera,
+        completo = TRUE,
+        fecha_finalizacion = NOW(),
+        notas_calculo = v_notas
+    WHERE id_aplicacion = p_id_aplicacion;
+    
+    -- PASO 9: Marcar sugerencia como completada
+    UPDATE Sugerencias
+    SET estado = 'visto'
+    WHERE id_estudiante = v_id_usuario
+      AND id_test = v_id_test
+      AND estado = 'pendiente';
+    
+    -- PASO 10: Retornar resultado
+    SELECT 
+        'Aplicación procesada exitosamente' AS Mensaje,
+        v_puntuacion_bruta AS Puntuacion_Final,
+        v_resultado_nivel_texto AS Nivel_Resultado,
+        v_porcentaje_score AS Porcentaje,
+        v_z_score AS Z_Score,
+        v_percentil AS Percentil,
+        v_cambio_pct AS Cambio_Porcentual,
+        v_tiene_riesgo_emergente AS Riesgo_Emergente;
+END //
+
+-- Procedimiento para actualizar estadísticas poblacionales
+-- Ejecutar semanalmente vía cron job
+DROP PROCEDURE IF EXISTS `sp_actualizar_estadisticas_poblacionales` //
+CREATE PROCEDURE `sp_actualizar_estadisticas_poblacionales`()
+BEGIN
+    DECLARE v_tipo ENUM('estres','ansiedad');
+    DECLARE v_media DECIMAL(10,2);
+    DECLARE v_desviacion DECIMAL(10,2);
+    DECLARE v_n_muestral INT;
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE cur CURSOR FOR SELECT 'estres' UNION SELECT 'ansiedad';
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    
+    OPEN cur;
+    
+    read_loop: LOOP
+        FETCH cur INTO v_tipo;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        
+        -- Calcular estadísticas para este tipo_test
+        SELECT 
+            AVG(a.puntuacion_total),
+            STDDEV(a.puntuacion_total),
+            COUNT(*)
+        INTO v_media, v_desviacion, v_n_muestral
+        FROM Aplicaciones a
+        JOIN Tests t ON a.id_test = t.id_test
+        WHERE t.tipo_test = v_tipo
+          AND a.completo = TRUE
+          AND a.fecha_finalizacion >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+          AND a.fecha_finalizacion IS NOT NULL;
+        
+        -- Solo insertar si hay suficiente muestra (n >= 30)
+        IF v_n_muestral >= 30 AND v_desviacion IS NOT NULL THEN
+            -- Desactivar estadística anterior
+            UPDATE Estadisticas_Poblacionales
+            SET activo = FALSE
+            WHERE tipo_test = v_tipo 
+              AND id_escuela IS NULL
+              AND activo = TRUE;
+            
+            -- Insertar nueva estadística
+            INSERT INTO Estadisticas_Poblacionales 
+                (tipo_test, id_escuela, media, desviacion, n_muestral, activo, fecha_calculo)
+            VALUES 
+                (v_tipo, NULL, v_media, v_desviacion, v_n_muestral, TRUE, NOW());
+        END IF;
+    END LOOP;
+    
+    CLOSE cur;
+    
+    SELECT 'Estadísticas actualizadas' AS Mensaje;
+END //
+
+-- Procedimiento para dashboard de estudiante
+DROP PROCEDURE IF EXISTS `sp_dashboard_estudiante` //
+CREATE PROCEDURE `sp_dashboard_estudiante`(
+    IN p_id_usuario INT
+)
+BEGIN
+    -- Última aplicación de ESTRÉS
+    SELECT 
+        a.id_aplicacion,
+        t.nombre AS test_nombre,
+        a.puntuacion_total,
+        a.puntuacion_maxima,
+        a.porcentaje_score,
+        a.nivel_calculado,
+        a.z_score,
+        a.percentil,
+        a.cambio_pct,
+        a.cambio_absoluto,
+        a.es_primera_aplicacion,
+        a.fecha_finalizacion,
+        'estres' AS tipo_test
+    FROM Aplicaciones a
+    JOIN Tests t ON a.id_test = t.id_test
+    WHERE a.id_usuario = p_id_usuario
+      AND t.tipo_test = 'estres'
+      AND a.completo = TRUE
+      AND a.fecha_finalizacion IS NOT NULL
+    ORDER BY a.fecha_finalizacion DESC
+    LIMIT 1;
+    
+    -- Última aplicación de ANSIEDAD
+    SELECT 
+        a.id_aplicacion,
+        t.nombre AS test_nombre,
+        a.puntuacion_total,
+        a.puntuacion_maxima,
+        a.porcentaje_score,
+        a.nivel_calculado,
+        a.z_score,
+        a.percentil,
+        a.cambio_pct,
+        a.cambio_absoluto,
+        a.es_primera_aplicacion,
+        a.fecha_finalizacion,
+        'ansiedad' AS tipo_test
+    FROM Aplicaciones a
+    JOIN Tests t ON a.id_test = t.id_test
+    WHERE a.id_usuario = p_id_usuario
+      AND t.tipo_test = 'ansiedad'
+      AND a.completo = TRUE
+      AND a.fecha_finalizacion IS NOT NULL
+    ORDER BY a.fecha_finalizacion DESC
+    LIMIT 1;
+    
+    -- Estadísticas globales del estudiante
+    SELECT 
+        COUNT(DISTINCT a.id_aplicacion) AS total_tests,
+        DATEDIFF(NOW(), MAX(a.fecha_finalizacion)) AS dias_ultimo_test,
+        (SELECT COUNT(*) FROM Aplicaciones a2 
+         JOIN Tests t2 ON a2.id_test = t2.id_test
+         WHERE a2.id_usuario = p_id_usuario 
+           AND a2.completo = TRUE
+           AND t2.tipo_test = 'estres') AS total_tests_estres,
+        (SELECT COUNT(*) FROM Aplicaciones a3
+         JOIN Tests t3 ON a3.id_test = t3.id_test
+         WHERE a3.id_usuario = p_id_usuario 
+           AND a3.completo = TRUE
+           AND t3.tipo_test = 'ansiedad') AS total_tests_ansiedad
+    FROM Aplicaciones a
+    WHERE a.id_usuario = p_id_usuario
+      AND a.completo = TRUE
+      AND a.fecha_finalizacion IS NOT NULL;
+END //
+
+-- Procedimiento para obtener historial detallado de un estudiante
+DROP PROCEDURE IF EXISTS `sp_historial_estudiante` //
+CREATE PROCEDURE `sp_historial_estudiante`(
+    IN p_id_usuario INT,
+    IN p_tipo_test ENUM('estres','ansiedad'),
+    IN p_fecha_inicio DATE,
+    IN p_fecha_fin DATE
+)
+BEGIN
+    SELECT 
+        a.id_aplicacion,
+        a.fecha_finalizacion,
+        t.nombre AS test_nombre,
+        a.puntuacion_total,
+        a.puntuacion_maxima,
+        a.porcentaje_score,
+        a.nivel_calculado,
+        a.z_score,
+        a.percentil,
+        a.cambio_pct,
+        a.cambio_absoluto,
+        a.es_primera_aplicacion,
+        a.notas_calculo
+    FROM Aplicaciones a
+    JOIN Tests t ON a.id_test = t.id_test
+    WHERE a.id_usuario = p_id_usuario
+      AND t.tipo_test = p_tipo_test
+      AND a.fecha_finalizacion BETWEEN p_fecha_inicio AND p_fecha_fin
+      AND a.completo = TRUE
+    ORDER BY a.fecha_finalizacion DESC;
+END //
+
+-- Mantener compatibilidad: alias al procedimiento antiguo
+DROP PROCEDURE IF EXISTS `sp_finalizar_aplicacion_y_calcular_puntuacion` //
+CREATE PROCEDURE `sp_finalizar_aplicacion_y_calcular_puntuacion`(
+    IN p_id_aplicacion INT
+)
+BEGIN
+    CALL sp_procesar_aplicacion(p_id_aplicacion);
+END //
+
+-- =============================================
+-- ### Grupo 10: Reportes y Métricas de Profesor
+-- =============================================
+
+-- Procedimiento para obtener historial de sugerencias realizadas por un profesor
+-- Muestra qué tests ha sugerido, a qué cursos, y cuántos estudiantes lo completaron
+DROP PROCEDURE IF EXISTS `sp_obtener_historial_sugerencias_profesor` //
+CREATE PROCEDURE `sp_obtener_historial_sugerencias_profesor`(
+    IN p_id_profesor INT,
+    IN p_limite INT
+)
+BEGIN
+    -- Obtener el historial de sugerencias agrupado por curso, test y fecha
+    SELECT 
+        c.nombre_curso,
+        t.nombre AS nombre_test,
+        t.tipo_test,
+        COUNT(DISTINCT s.id_estudiante) AS estudiantes_sugeridos,
+        COUNT(DISTINCT CASE 
+            WHEN EXISTS (
+                SELECT 1 FROM Aplicaciones a2
+                WHERE a2.id_usuario = s.id_estudiante
+                AND a2.id_test = s.id_test
+                AND a2.completo = TRUE
+                AND a2.fecha_finalizacion >= s.fecha_ultima_sugerencia
+            ) THEN s.id_estudiante 
+        END) AS estudiantes_completaron,
+        MIN(s.fecha_sugerencia) AS primera_sugerencia,
+        MAX(s.fecha_ultima_sugerencia) AS ultima_sugerencia,
+        s.estado
+    FROM Sugerencias s
+    INNER JOIN Tests t ON s.id_test = t.id_test
+    INNER JOIN Usuarios u ON s.id_estudiante = u.id_usuario
+    INNER JOIN Usuario_Curso uc ON u.id_usuario = uc.id_usuario
+    INNER JOIN Cursos c ON uc.id_curso = c.id_curso
+    WHERE c.id_profesor = p_id_profesor
+        AND JSON_CONTAINS(s.profesores_ids, CAST(p_id_profesor AS CHAR), '$')
+    GROUP BY c.id_curso, c.nombre_curso, t.id_test, t.nombre, t.tipo_test, s.estado
+    ORDER BY ultima_sugerencia DESC
+    LIMIT p_limite;
+END //
+
+-- Procedimiento para obtener promedios por curso del profesor
+-- Útil para la tarjeta de "Cursos con niveles altos"
+DROP PROCEDURE IF EXISTS `sp_obtener_promedios_cursos_profesor` //
+CREATE PROCEDURE `sp_obtener_promedios_cursos_profesor`(
+    IN p_id_profesor INT
+)
+BEGIN
+    SELECT 
+        c.id_curso,
+        c.nombre_curso,
+        -- Promedio de estrés
+        (SELECT ROUND(AVG(a.puntuacion_total), 1)
+         FROM Aplicaciones a
+         JOIN Tests t ON a.id_test = t.id_test
+         JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+         WHERE uc.id_curso = c.id_curso
+           AND t.tipo_test = 'estres'
+           AND t.estado_test = 'activo'
+           AND a.completo = TRUE
+           AND a.fecha_finalizacion IS NOT NULL
+        ) AS promedio_estres,
+        -- Promedio de ansiedad
+        (SELECT ROUND(AVG(a.puntuacion_total), 1)
+         FROM Aplicaciones a
+         JOIN Tests t ON a.id_test = t.id_test
+         JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+         WHERE uc.id_curso = c.id_curso
+           AND t.tipo_test = 'ansiedad'
+           AND t.estado_test = 'activo'
+           AND a.completo = TRUE
+           AND a.fecha_finalizacion IS NOT NULL
+        ) AS promedio_ansiedad,
+        -- Conteo de estudiantes del curso
+        (SELECT COUNT(DISTINCT uc2.id_usuario)
+         FROM Usuario_Curso uc2
+         WHERE uc2.id_curso = c.id_curso
+        ) AS total_estudiantes,
+        -- Conteo de estudiantes con nivel alto o severo
+        (SELECT COUNT(DISTINCT a2.id_usuario)
+         FROM Aplicaciones a2
+         JOIN Usuario_Curso uc2 ON a2.id_usuario = uc2.id_usuario
+         WHERE uc2.id_curso = c.id_curso
+           AND a2.nivel_calculado IN ('alto', 'severo')
+           AND a2.completo = TRUE
+        ) AS estudiantes_riesgo
+    FROM Cursos c
+    WHERE c.id_profesor = p_id_profesor
+    ORDER BY 
+        GREATEST(
+            COALESCE((SELECT AVG(a.puntuacion_total)
+                     FROM Aplicaciones a
+                     JOIN Tests t ON a.id_test = t.id_test
+                     JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+                     WHERE uc.id_curso = c.id_curso
+                       AND t.tipo_test = 'estres'
+                       AND t.estado_test = 'activo'
+                       AND a.completo = TRUE), 0),
+            COALESCE((SELECT AVG(a.puntuacion_total)
+                     FROM Aplicaciones a
+                     JOIN Tests t ON a.id_test = t.id_test
+                     JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+                     WHERE uc.id_curso = c.id_curso
+                       AND t.tipo_test = 'ansiedad'
+                       AND t.estado_test = 'activo'
+                       AND a.completo = TRUE), 0)
+        ) DESC
+    LIMIT 10;
+END //
+
+-- Procedimiento para obtener estadísticas por escuela/facultad del profesor
+-- Devuelve promedios agrupados por facultad para el gráfico de barras
+DROP PROCEDURE IF EXISTS `sp_obtener_metricas_facultades_profesor` //
+CREATE PROCEDURE `sp_obtener_metricas_facultades_profesor`(
+    IN p_id_profesor INT
+)
+BEGIN
+    SELECT 
+        e.id_escuela,
+        e.nombre_escuela,
+        -- Promedio de estrés en la facultad
+        ROUND(AVG(CASE WHEN t.tipo_test = 'estres' THEN a.puntuacion_total END), 1) AS avg_estres,
+        COUNT(DISTINCT CASE WHEN t.tipo_test = 'estres' THEN a.id_aplicacion END) AS count_estres,
+        -- Promedio de ansiedad en la facultad
+        ROUND(AVG(CASE WHEN t.tipo_test = 'ansiedad' THEN a.puntuacion_total END), 1) AS avg_ansiedad,
+        COUNT(DISTINCT CASE WHEN t.tipo_test = 'ansiedad' THEN a.id_aplicacion END) AS count_ansiedad
+    FROM Escuelas e
+    JOIN Cursos c ON c.id_escuela = e.id_escuela
+    JOIN Usuario_Curso uc ON uc.id_curso = c.id_curso
+    JOIN Aplicaciones a ON a.id_usuario = uc.id_usuario
+    JOIN Tests t ON a.id_test = t.id_test
+    WHERE c.id_profesor = p_id_profesor
+      AND a.completo = TRUE
+      AND a.fecha_finalizacion IS NOT NULL
+      AND t.estado_test = 'activo'
+      AND t.tipo_test IN ('estres', 'ansiedad')
+    GROUP BY e.id_escuela, e.nombre_escuela
+    ORDER BY e.nombre_escuela;
 END //

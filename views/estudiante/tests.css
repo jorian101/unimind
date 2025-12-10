@@ -1,4 +1,32 @@
 .tests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.test-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section-title {
+  color: var(--pri-700);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--pri-200);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.section-title i {
+  font-size: 1.25rem;
+}
+
+.test-section-content {
   display: grid;
   gap: 1rem;
 }
@@ -63,48 +91,6 @@
 .status.pending {
   background: var(--sec-100);
   color: var(--sec-700);
-}
-
-.status.completed {
-  background: var(--acc-100);
-  color: var(--acc-700);
-}
-
-/* Removed suggestion-specific styles (sugerido por profesor) */
-
-/* Estilo para tests completados (descolorido) */
-.test-item.test-completado {
-  opacity: 0.6;
-  filter: grayscale(50%);
-  position: relative;
-}
-
-.test-item.test-completado::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.3);
-  pointer-events: none;
-}
-
-.test-item.test-completado:hover {
-  opacity: 0.8;
-  filter: grayscale(30%);
-}
-
-.test-item.test-completado h3 {
-  color: var(--var-500);
-}
-
-.test-item.test-completado .btn-primary {
-  background: var(--var-500);
-}
-
-.test-item.test-completado .btn-primary:hover {
-  background: var(--var-600);
 }
 
 .test-actions {

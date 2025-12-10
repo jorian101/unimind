@@ -118,15 +118,47 @@ CREATE TABLE `Aplicaciones` (
     `id_test` INT NOT NULL,
     `client_uuid` VARCHAR(36) NULL DEFAULT NULL,
     `fecha_aplicacion` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Campos originales (mantener compatibilidad)
     `puntuacion_total` INT,
-    `resultado_nivel` VARCHAR(50),
+    `resultado_nivel` VARCHAR(50) COMMENT 'Texto libre para compatibilidad',
+    
+    -- Campos de cálculo dinámico
+    `puntuacion_maxima` INT NULL COMMENT 'Puntuación máxima posible: num_items × max_valor_escala',
+    `porcentaje_score` DECIMAL(5,2) NULL COMMENT 'Porcentaje para cálculo de nivel (0.00-100.00)',
+    `nivel_calculado` ENUM('normal','leve','moderado','alto','severo') NULL COMMENT 'Nivel según baremo',
+    
+    -- Estadísticas comparativas
+    `z_score` DECIMAL(10,4) NULL COMMENT 'Puntuación estandarizada (puede ser NULL si SD < 0.01)',
+    `percentil` DECIMAL(5,2) NULL COMMENT 'Posición en distribución poblacional (0.00-100.00)',
+    
+    -- Métricas de cambio
+    `cambio_pct` DECIMAL(6,2) NULL COMMENT 'Diferencia de porcentajes vs aplicación anterior del MISMO tipo',
+    `cambio_absoluto` INT NULL COMMENT 'Diferencia en puntos brutos vs aplicación anterior',
+    
+    -- Flags de validación
+    `completo` BOOLEAN DEFAULT TRUE COMMENT 'Siempre TRUE (formulario valida 100% respuestas)',
+    `es_primera_aplicacion` BOOLEAN DEFAULT FALSE COMMENT 'TRUE si es la primera del tipo_test',
+    
+    -- Metadatos de origen
+    `origen` ENUM('estudiante_voluntario','profesor_sugerencia','sistema_automatico') DEFAULT 'estudiante_voluntario' COMMENT 'Origen de la aplicación del test',
+    `fecha_finalizacion` DATETIME NULL COMMENT 'Fecha de finalización del test',
+    `notas_calculo` TEXT NULL COMMENT 'Log breve de cálculos: baremo usado, z-score, flags especiales',
+    
     PRIMARY KEY (`id_aplicacion`),
     UNIQUE KEY `idx_aplicaciones_client_uuid` (`client_uuid`),
     FOREIGN KEY (`id_usuario`) REFERENCES `Usuarios`(`id_usuario`)
         ON DELETE CASCADE,
     FOREIGN KEY (`id_test`) REFERENCES `Tests`(`id_test`)
-        ON DELETE RESTRICT
-);
+        ON DELETE RESTRICT,
+    
+    -- Índices para reportes rápidos
+    INDEX idx_usuario_test_fecha (id_usuario, id_test, fecha_finalizacion),
+    INDEX idx_test_porcentaje (id_test, porcentaje_score),
+    INDEX idx_fecha (fecha_finalizacion),
+    INDEX idx_nivel (nivel_calculado),
+    INDEX idx_tipo_completo (id_test, completo, fecha_finalizacion)
+) COMMENT='Aplicaciones de tests con métricas psicométricas completas';
 
 CREATE TABLE `Respuestas_Aplicacion` (
     `id_respuesta` INT NOT NULL AUTO_INCREMENT,
@@ -188,7 +220,7 @@ CREATE TABLE IF NOT EXISTS `Citas` (
 );
 
 -- Tabla para notificaciones de usuario
-CREATE TABLE IF NOT EXISTS `Notificaciones` (
+CREATE TABLE `Notificaciones` (
     `id_notificacion` INT NOT NULL AUTO_INCREMENT,
     `id_usuario` INT NOT NULL, -- Usuario destinatario
     `titulo` VARCHAR(255) NOT NULL,
@@ -199,3 +231,79 @@ CREATE TABLE IF NOT EXISTS `Notificaciones` (
     PRIMARY KEY (`id_notificacion`),
     FOREIGN KEY (`id_usuario`) REFERENCES `Usuarios`(`id_usuario`) ON DELETE CASCADE
 );
+
+-- ============================================
+-- TABLAS PARA SISTEMA DE MÉTRICAS PSICOMÉTRICAS
+-- ============================================
+
+-- Tabla de Baremos: Define rangos clínicos basados en porcentaje de puntuación
+-- Funciona con CUALQUIER test sin importar escala o número de ítems
+CREATE TABLE IF NOT EXISTS `Baremos` (
+    `id_baremo` INT AUTO_INCREMENT PRIMARY KEY,
+    `tipo_test` ENUM('estres','ansiedad') NOT NULL,
+    `nivel` ENUM('normal','leve','moderado','alto','severo') NOT NULL,
+    `pct_min` DECIMAL(5,2) NOT NULL COMMENT 'Porcentaje mínimo (0.00-100.00) - INCLUSIVO',
+    `pct_max` DECIMAL(5,2) NOT NULL COMMENT 'Porcentaje máximo (0.00-100.01) - EXCLUSIVO excepto último',
+    `descripcion` TEXT NULL,
+    `color_hex` VARCHAR(7) NULL COMMENT 'Color para visualización #RRGGBB',
+    `orden` INT NOT NULL COMMENT 'Orden de severidad: 1=normal, 5=severo',
+    `activo` BOOLEAN DEFAULT TRUE,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_tipo_porcentaje (tipo_test, pct_min, pct_max),
+    UNIQUE KEY uk_tipo_nivel_activo (tipo_test, nivel, activo)
+) COMMENT='Baremos por porcentaje para cálculo dinámico de niveles clínicos';
+
+-- Tabla de Estadísticas Poblacionales: Para calcular z-scores y percentiles
+-- Se actualiza automáticamente cada semana/mes
+CREATE TABLE IF NOT EXISTS `Estadisticas_Poblacionales` (
+    `id_estadistica` INT AUTO_INCREMENT PRIMARY KEY,
+    `tipo_test` ENUM('estres','ansiedad') NOT NULL,
+    `id_escuela` INT NULL COMMENT 'NULL = global, específico = por escuela',
+    `media` DECIMAL(10,2) NOT NULL,
+    `desviacion` DECIMAL(10,2) NOT NULL,
+    `n_muestral` INT NOT NULL COMMENT 'Tamaño de muestra (mínimo 30 para validez)',
+    `fecha_calculo` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `activo` BOOLEAN DEFAULT TRUE COMMENT 'Solo una estadística activa por tipo_test',
+    FOREIGN KEY (`id_escuela`) REFERENCES `Escuelas`(`id_escuela`) ON DELETE CASCADE,
+    INDEX idx_tipo_activo (tipo_test, activo),
+    UNIQUE KEY uk_tipo_escuela_activo (tipo_test, id_escuela, activo)
+) COMMENT='Estadísticas poblacionales para z-scores. Solo calcular si n >= 30';
+
+-- Tabla de Agregaciones: Pre-cálculo de métricas grupales para reportes rápidos
+-- Se actualiza mediante trigger o cron job
+CREATE TABLE IF NOT EXISTS `Agregaciones` (
+    `id_agregacion` INT AUTO_INCREMENT PRIMARY KEY,
+    `tipo_grupo` ENUM('curso','escuela') NOT NULL,
+    `id_grupo` INT NOT NULL COMMENT 'id_curso o id_escuela',
+    `tipo_test` ENUM('estres','ansiedad') NOT NULL,
+    `periodo` ENUM('semanal','mensual','trimestral','anual') NOT NULL,
+    `fecha_inicio` DATE NOT NULL,
+    `fecha_fin` DATE NOT NULL,
+    
+    -- Estadísticas básicas
+    `promedio` DECIMAL(10,2) NOT NULL,
+    `promedio_porcentaje` DECIMAL(5,2) NOT NULL,
+    `desviacion` DECIMAL(10,2) NOT NULL,
+    `mediana` DECIMAL(10,2) NULL,
+    
+    -- Conteos
+    `num_aplicaciones` INT NOT NULL,
+    `num_estudiantes` INT NOT NULL,
+    `num_estudiantes_riesgo` INT DEFAULT 0 COMMENT 'Con nivel alto o severo',
+    `num_riesgo_emergente` INT DEFAULT 0 COMMENT 'Subieron 2+ niveles en <14 días',
+    
+    -- Distribución de niveles
+    `nivel_predominante` ENUM('normal','leve','moderado','alto','severo') NOT NULL,
+    `dist_normal` INT DEFAULT 0,
+    `dist_leve` INT DEFAULT 0,
+    `dist_moderado` INT DEFAULT 0,
+    `dist_alto` INT DEFAULT 0,
+    `dist_severo` INT DEFAULT 0,
+    
+    -- Cambios
+    `cambio_vs_periodo_anterior` DECIMAL(6,2) NULL COMMENT 'Cambio porcentual de promedio',
+    
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_grupo_tipo_periodo (tipo_grupo, id_grupo, tipo_test, periodo, fecha_inicio)
+) COMMENT='Agregaciones pre-calculadas para reportes de curso y escuela';

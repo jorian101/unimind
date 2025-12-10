@@ -554,6 +554,17 @@
   display: inline-block;
 }
 
+.profile-role {
+  font-size: 0.85em;
+  color: var(--var-700);
+  margin-right: 8px;
+  padding: 4px 8px;
+  background-color: var(--bg-200);
+  border-radius: 12px;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
 .profile-icon {
   width: 35px;
   height: 35px;

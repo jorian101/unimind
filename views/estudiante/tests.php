@@ -22,7 +22,7 @@ renderPageHeader();
     </div>
 </div>
 
-<!-- Toast notification: se mostrará al completar un test (reemplaza el modal anterior) -->
+<!-- Toast notification: se mostrará al completar un test -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -87,7 +87,47 @@ function renderTests(tests) {
         return;
     }
     
-    const testsHTML = tests.map(test => {
+    // Filtrar solo tests NO completados
+    const testsPendientes = tests.filter(test => {
+        return test.completado !== true && test.completado !== 1;
+    });
+    
+    if (testsPendientes.length === 0) {
+        container.innerHTML = `
+            <div class="no-tests">
+                <i class="fas fa-check-circle"></i>
+                <p>¡Felicidades! Has completado todas las evaluaciones sugeridas</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Categorizar tests por tipo
+    const testsPorTipo = {
+        'estres': [],
+        'ansiedad': [],
+        'depresion': [],
+        'burnout': [],
+        'otros': []
+    };
+    
+    testsPendientes.forEach(test => {
+        const nombre = test.nombre.toLowerCase();
+        if (nombre.includes('estrés') || nombre.includes('estres')) {
+            testsPorTipo.estres.push(test);
+        } else if (nombre.includes('ansiedad')) {
+            testsPorTipo.ansiedad.push(test);
+        } else if (nombre.includes('depresión') || nombre.includes('depresion')) {
+            testsPorTipo.depresion.push(test);
+        } else if (nombre.includes('burnout')) {
+            testsPorTipo.burnout.push(test);
+        } else {
+            testsPorTipo.otros.push(test);
+        }
+    });
+    
+    // Función para generar HTML de un test
+    const generarTestHTML = (test) => {
         const tiempoEstimado = Math.ceil(test.num_items / 2);
         let icon = 'fa-clipboard-list';
         const nombre = test.nombre.toLowerCase();
@@ -103,34 +143,15 @@ function renderTests(tests) {
             icon = 'fa-fire';
         }
         
-        // Determinar si está completado
-        const completado = test.completado === true || test.completado === 1;
-        const completadoClass = completado ? 'test-completado' : '';
-        
-        // Definir el estado del test
-        let statusText = 'Disponible';
-        let statusClass = 'pending';
-        
-        if (completado) {
-            statusText = 'Completado';
-            statusClass = 'completed';
-        }
-
-        const buttonText = completado ? 'Ver Historial' : 'Iniciar Test';
-        const buttonIcon = completado ? 'fa-history' : 'fa-play';
-        
-        // Ya no mostramos información de sugerencia (Sugerido por profesor)
-        let infoSugerencia = '';
+        // Solo mostramos tests pendientes, no hay necesidad de verificar estado completado
         
         return `
-            <div class="test-item ${completadoClass}">
+            <div class="test-item">
                 <div class="test-header">
                     <h3><i class="fas ${icon}"></i> ${escapeHtml(test.nombre)}</h3>
-                    <span class="status ${statusClass}">${statusText}</span>
                 </div>
                 <div class="test-description">
                     <p>${escapeHtml(test.descripcion || 'Test de evaluación psicológica')}</p>
-                    ${infoSugerencia}
                     <div class="test-details">
                         <span class="detail"><i class="fas fa-list"></i> ${test.num_items} ítems</span>
                         <span class="detail"><i class="fas fa-clock"></i> ~${tiempoEstimado} min</span>
@@ -142,16 +163,43 @@ function renderTests(tests) {
                         data-id="${test.id_test}"
                         data-name="${escapeHtml(test.nombre)}"
                         data-questions="${test.num_items}"
-                        data-completado="${completado}"
                         data-sugerencia="${test.id_sugerencia || ''}">
-                        <i class="fas ${buttonIcon}"></i> ${buttonText}
+                        <i class="fas fa-play"></i> Iniciar Test
                     </button>
                 </div>
             </div>
         `;
-    }).join('');
+    };
     
-    container.innerHTML = testsHTML;
+    // Generar HTML con secciones
+    let sectionsHTML = '';
+    
+    const secciones = [
+        { key: 'estres', titulo: 'Evaluaciones de Estrés', icon: 'fa-chart-bar' },
+        { key: 'ansiedad', titulo: 'Evaluaciones de Ansiedad', icon: 'fa-brain' },
+        { key: 'depresion', titulo: 'Evaluaciones de Depresión', icon: 'fa-heart-broken' },
+        { key: 'burnout', titulo: 'Evaluaciones de Burnout', icon: 'fa-fire' },
+        { key: 'otros', titulo: 'Otras Evaluaciones', icon: 'fa-clipboard-list' }
+    ];
+    
+    secciones.forEach(seccion => {
+        const testsSeccion = testsPorTipo[seccion.key];
+        if (testsSeccion.length > 0) {
+            sectionsHTML += `
+                <div class="test-section">
+                    <h2 class="section-title">
+                        <i class="fas ${seccion.icon}"></i>
+                        ${seccion.titulo}
+                    </h2>
+                    <div class="test-section-content">
+                        ${testsSeccion.map(generarTestHTML).join('')}
+                    </div>
+                </div>
+            `;
+        }
+    });
+    
+    container.innerHTML = sectionsHTML;
     
     // Agregar event listeners a los botones
     container.querySelectorAll('.iniciar-test').forEach(button => {
@@ -159,20 +207,14 @@ function renderTests(tests) {
             const testId = button.dataset.id;
             const testName = encodeURIComponent(button.dataset.name);
             const questions = button.dataset.questions;
-            const completado = button.dataset.completado === 'true';
             const sugerencia = button.dataset.sugerencia || '';
             
-            // Si ya está completado, ir al historial; si no, iniciar test
-            if (completado) {
-                window.location.href = `?role=estudiante&page=historial`;
-            } else {
-                // Redirige al formulario con los parámetros del test seleccionado
-                let url = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
-                if (sugerencia) {
-                    url += `&id_sugerencia=${sugerencia}`;
-                }
-                window.location.href = url;
+            // Redirigir al formulario para iniciar el test
+            let url = `?role=estudiante&page=formulario&test_id=${testId}&test_name=${testName}&questions=${questions}`;
+            if (sugerencia) {
+                url += `&id_sugerencia=${sugerencia}`;
             }
+            window.location.href = url;
         });
     });
 }
@@ -279,6 +321,8 @@ function mostrarNotificacion(mensaje, tipo = 'info', actionLabel = null, actionC
         console.warn('Toast no está disponible');
     }
 }
+
+
 </script>
 
 <style>

@@ -75,12 +75,7 @@ echo '<link rel="stylesheet" href="' . $baseUrl . '/views/administrador/cursos_e
               <option value="<?= htmlspecialchars($esc['nombre_escuela']) ?>"><?= htmlspecialchars($esc['nombre_escuela']) ?></option>
               <?php endforeach; ?>
             </select>
-            <select id="filterProfesor" class="usuarios-search-input filter-select">
-              <option value="">Todos los profesores</option>
-              <?php foreach ($profesores as $p): ?>
-              <option value="<?= htmlspecialchars($p['nombre'] . ' ' . $p['apellido']) ?>"><?= htmlspecialchars($p['nombre'] . ' ' . $p['apellido']) ?></option>
-              <?php endforeach; ?>
-            </select>
+            <!-- Selector de profesor eliminado según solicitud -->
           </div>
         </div>
         <table class="cu-table">
@@ -95,9 +90,9 @@ echo '<link rel="stylesheet" href="' . $baseUrl . '/views/administrador/cursos_e
           <tbody id="cursosTableBody">
             <?php foreach ($cursos as $c): ?>
             <tr>
-              <td><?= htmlspecialchars($c['nombre_curso']) ?></td>
-              <td><?= htmlspecialchars($c['nombre_escuela']) ?></td>
-              <td><?= htmlspecialchars($c['profesor_nombre'] . ' ' . $c['profesor_apellido']) ?></td>
+              <td><?= htmlspecialchars($c['nombre_curso'] ?? '') ?></td>
+              <td><?= htmlspecialchars($c['nombre_escuela'] ?? '') ?></td>
+              <td><?= htmlspecialchars( ( ($c['profesor_nombre'] ?? '') . ' ' . ($c['profesor_apellido'] ?? '') ) ) ?></td>
               <td>
                 <a href="#" class="action-btn primary editar-curso" data-id="<?= $c['id_curso'] ?>">Editar</a>
                 <a href="#" class="action-btn secondary eliminar-curso" data-id="<?= $c['id_curso'] ?>">Eliminar</a>
@@ -248,7 +243,6 @@ function filterEscuelasTable() {
 function filterCursosTable() {
   const searchTerm = document.getElementById('searchCursos').value.toLowerCase();
   const escuelaFilter = document.getElementById('filterEscuela').value.toLowerCase();
-  const profesorFilter = document.getElementById('filterProfesor').value.toLowerCase();
   const tbody = document.getElementById('cursosTableBody');
   const rows = tbody.getElementsByTagName('tr');
   
@@ -257,12 +251,10 @@ function filterCursosTable() {
     const nombre = row.cells[0].textContent.toLowerCase();
     const escuela = row.cells[1].textContent.toLowerCase();
     const profesor = row.cells[2].textContent.toLowerCase();
-    
     let matchSearch = nombre.includes(searchTerm) || escuela.includes(searchTerm) || profesor.includes(searchTerm);
     let matchEscuela = !escuelaFilter || escuela.includes(escuelaFilter);
-    let matchProfesor = !profesorFilter || profesor.includes(profesorFilter);
-    
-    if (matchSearch && matchEscuela && matchProfesor) {
+
+    if (matchSearch && matchEscuela) {
       row.style.display = '';
     } else {
       row.style.display = 'none';
@@ -286,10 +278,7 @@ if (filterEscuela) {
   filterEscuela.addEventListener('change', filterCursosTable);
 }
 
-const filterProfesor = document.getElementById('filterProfesor');
-if (filterProfesor) {
-  filterProfesor.addEventListener('change', filterCursosTable);
-}
+// El selector de profesor fue eliminado, por lo que no se añade listener.
 
 // ...similar para cursos y edición/eliminación...
 </script>
