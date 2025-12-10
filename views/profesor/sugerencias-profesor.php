@@ -43,7 +43,7 @@ renderPageHeader();
         <div class="sugerencias__filters">
             <div class="sugerencias__search">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Buscar por estudiante, test o curso...">
+                <input type="text" id="searchInput" placeholder="Buscar por test o curso...">
             </div>
             <div class="sugerencias__filter-buttons">
                 <button class="sugerencias__filter-btn sugerencias__filter-btn--active" data-filter="all">
@@ -113,8 +113,17 @@ async function cargarSugerencias() {
 
 function actualizarEstadisticas() {
     const total = sugerencias.length;
-    const completadas = sugerencias.filter(s => s.completado).length;
-    const pendientes = total - completadas;
+    // Contar basándose en el número de estudiantes completados vs total
+    let completadas = 0;
+    let pendientes = 0;
+    
+    sugerencias.forEach(sug => {
+        if (sug.estudiantes_completados === sug.total_estudiantes && sug.total_estudiantes > 0) {
+            completadas++;
+        } else {
+            pendientes++;
+        }
+    });
 
     document.getElementById('totalSugerencias').textContent = total;
     document.getElementById('completadas').textContent = completadas;
@@ -125,15 +134,15 @@ function renderSugerencias() {
     const container = document.getElementById('sugerenciasGrid');
     
     let sugerenciasFiltradas = sugerencias.filter(sug => {
-        if (filtroActual === 'completado' && !sug.completado) return false;
-        if (filtroActual === 'pendiente' && sug.completado) return false;
+        const completada = sug.estudiantes_completados === sug.total_estudiantes && sug.total_estudiantes > 0;
+        
+        if (filtroActual === 'completado' && !completada) return false;
+        if (filtroActual === 'pendiente' && completada) return false;
         if (busqueda) {
             const searchLower = busqueda.toLowerCase();
             const matchTest = sug.nombre_test.toLowerCase().includes(searchLower);
-            const matchEstudiante = sug.nombre_estudiante.toLowerCase().includes(searchLower);
             const matchCurso = (sug.nombre_curso || '').toLowerCase().includes(searchLower);
-            const matchCodigo = (sug.codigo_usuario || '').toLowerCase().includes(searchLower);
-            if (!matchTest && !matchEstudiante && !matchCurso && !matchCodigo) return false;
+            if (!matchTest && !matchCurso) return false;
         }
         return true;
     });
@@ -150,11 +159,12 @@ function renderSugerencias() {
 
     const rowsHTML = sugerenciasFiltradas.map(sug => {
         const fechaSugerencia = formatearFecha(sug.fecha_sugerencia);
-        const fechaUltima = formatearFecha(sug.fecha_ultima_sugerencia);
-        const esMultiple = sug.profesores_ids.length > 1;
-        const estadoClass = sug.completado ? 'sugerencias__status--completado' : 'sugerencias__status--pendiente';
-        const estadoText = sug.completado ? 'Completado' : 'Pendiente';
-        const estadoIcon = sug.completado ? 'fa-check-circle' : 'fa-clock';
+        const completados = sug.estudiantes_completados || 0;
+        const total = sug.total_estudiantes || 0;
+        const completada = completados === total && total > 0;
+        const estadoClass = completada ? 'sugerencias__status--completado' : 'sugerencias__status--pendiente';
+        const estadoText = completada ? 'Completado' : 'Pendiente';
+        const estadoIcon = completada ? 'fa-check-circle' : 'fa-clock';
 
         return `
             <tr class="sugerencias__row">
@@ -165,14 +175,7 @@ function renderSugerencias() {
                         </div>
                         <div>
                             <div class="sugerencias__test-name">${escapeHtml(sug.nombre_test)}</div>
-                            <div class="sugerencias__test-meta">${sug.num_items} ítems</div>
                         </div>
-                    </div>
-                </td>
-                <td class="sugerencias__cell">
-                    <div class="sugerencias__student">
-                        <div class="sugerencias__student-name">${escapeHtml(sug.nombre_estudiante)}</div>
-                        <div class="sugerencias__student-code">${escapeHtml(sug.codigo_usuario)}</div>
                     </div>
                 </td>
                 <td class="sugerencias__cell">
@@ -180,12 +183,20 @@ function renderSugerencias() {
                         <i class="fas fa-book"></i>
                         ${escapeHtml(sug.nombre_curso || 'N/A')}
                     </div>
-                    ${esMultiple ? '<span class="sugerencias__multiple-badge" title="Sugerido por múltiples profesores"><i class="fas fa-users"></i></span>' : ''}
+                </td>
+                <td class="sugerencias__cell">
+                    <div class="sugerencias__progress">
+                        <div class="sugerencias__progress-text">
+                            <strong>${completados}</strong> de <strong>${total}</strong>
+                        </div>
+                        <div class="sugerencias__progress-bar">
+                            <div class="sugerencias__progress-fill" style="width: ${total > 0 ? (completados/total*100) : 0}%"></div>
+                        </div>
+                    </div>
                 </td>
                 <td class="sugerencias__cell">
                     <div class="sugerencias__date">
                         <div class="sugerencias__date-main">${fechaSugerencia}</div>
-                        ${fechaSugerencia !== fechaUltima ? `<div class="sugerencias__date-secondary">Últ: ${fechaUltima}</div>` : ''}
                     </div>
                 </td>
                 <td class="sugerencias__cell">
@@ -195,12 +206,12 @@ function renderSugerencias() {
                     </span>
                 </td>
                 <td class="sugerencias__cell">
-                    <button class="sugerencias__btn-eliminar" 
-                            aria-label="Eliminar sugerencia"
-                            onclick="abrirModalEliminar(${sug.id_sugerencia}, '${escapeHtml(sug.nombre_test).replace(/'/g, "\\'")}', '${escapeHtml(sug.nombre_estudiante).replace(/'/g, "\\'")}', '${escapeHtml(sug.nombre_curso || 'N/A').replace(/'/g, "\\'")}', ${esMultiple})"
-                            title="Eliminar sugerencia">
-                        <i class="fas fa-trash-alt"></i>
-                        <span style="margin-left:0.5rem;">Eliminar</span>
+                    <button class="sugerencias__btn-cancelar" 
+                            aria-label="Cancelar sugerencia"
+                            onclick="abrirModalCancelar(${sug.id_curso}, ${sug.id_test}, '${escapeHtml(sug.nombre_test).replace(/'/g, "\\'")}', '${escapeHtml(sug.nombre_curso || 'N/A').replace(/'/g, "\\'")}')"
+                            title="Cancelar sugerencia">
+                        <i class="fas fa-times-circle"></i>
+                        <span style="margin-left:0.5rem;">Cancelar</span>
                     </button>
                 </td>
             </tr>
@@ -212,8 +223,8 @@ function renderSugerencias() {
             <thead class="sugerencias__table-head">
                 <tr class="sugerencias__row">
                     <th class="sugerencias__table-header">Test</th>
-                    <th class="sugerencias__table-header">Estudiante</th>
                     <th class="sugerencias__table-header">Curso</th>
+                    <th class="sugerencias__table-header">Estudiantes Completados</th>
                     <th class="sugerencias__table-header">Fecha Sugerencia</th>
                     <th class="sugerencias__table-header">Estado</th>
                     <th class="sugerencias__table-header">Acción</th>
@@ -241,12 +252,10 @@ function configurarFiltros() {
     });
 }
 
-function abrirModalEliminar(idSugerencia, nombreTest, nombreEstudiante, nombreCurso, esMultiple) {
-    sugerenciaAEliminar = idSugerencia;
+function abrirModalCancelar(idCurso, idTest, nombreTest, nombreCurso) {
+    sugerenciaAEliminar = { id_curso: idCurso, id_test: idTest };
 
-    const mensaje = esMultiple
-        ? `Se eliminará tu sugerencia del test <strong>${escapeHtml(nombreTest)}</strong> para <strong>${escapeHtml(nombreEstudiante)}</strong>. Otros profesores también sugirieron este test.`
-        : `Se eliminará la sugerencia del test <strong>${escapeHtml(nombreTest)}</strong> para <strong>${escapeHtml(nombreEstudiante)}</strong>.`;
+    const mensaje = `Se cancelará la sugerencia del test <strong>${escapeHtml(nombreTest)}</strong> para el curso <strong>${escapeHtml(nombreCurso)}</strong>. Todos los estudiantes del curso dejarán de ver esta sugerencia.`;
 
     const htmlContent = `
         <p style="font-size: 1rem; line-height: 1.6;">${mensaje}</p>
@@ -256,48 +265,56 @@ function abrirModalEliminar(idSugerencia, nombreTest, nombreEstudiante, nombreCu
     if (window.Modal && typeof window.Modal.show === 'function') {
         window.Modal.show({
             type: 'delete',
-            title: 'Confirmar Eliminación',
+            title: 'Confirmar Cancelación',
             html: htmlContent,
-            confirmText: 'Eliminar',
-            cancelText: 'Cancelar',
+            confirmText: 'Cancelar Sugerencia',
+            cancelText: 'Volver',
             onConfirm: async () => {
                 // onConfirm ejecuta antes de cerrar el modal; delegamos la eliminación
-                await confirmarEliminacion(idSugerencia);
+                await confirmarCancelacion();
             }
         });
     } else {
-        // Fallback: si no hay modal, abrir el antiguo (no existen elementos ahora)
-        if (confirm(`¿Eliminar la sugerencia de ${nombreEstudiante} para el test ${nombreTest}?`)) {
-            confirmarEliminacion(idSugerencia);
+        // Fallback: si no hay modal
+        if (confirm(`¿Cancelar la sugerencia del test ${nombreTest} para el curso ${nombreCurso}?`)) {
+            confirmarCancelacion();
         } else {
             sugerenciaAEliminar = null;
         }
     }
 }
 
-// confirmarEliminacion acepta un id (soporta llamadas directas y desde el modal)
-async function confirmarEliminacion(id) {
-    const idToDelete = id || sugerenciaAEliminar;
-    if (!idToDelete) return;
+// confirmarCancelacion: cancela sugerencia por curso+test
+async function confirmarCancelacion() {
+    if (!sugerenciaAEliminar) return;
+    
+    const { id_curso, id_test } = sugerenciaAEliminar;
+    
     try {
         const base = window.UNIMIND_BASE || '';
         const baseUrl = window.location.origin && window.location.origin !== 'null'
             ? window.location.origin + base
             : base;
-        const response = await fetch(`${baseUrl}/api/sugerencias.php?action=eliminar`, {
-            method: 'POST', headers: {'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify({ id_sugerencia: idToDelete })
+        
+        const response = await fetch(`${baseUrl}/api/sugerencias.php?action=cancelar`, {
+            method: 'POST', 
+            headers: {'Content-Type':'application/json'}, 
+            credentials:'include', 
+            body: JSON.stringify({ id_curso: id_curso, id_test: id_test })
         });
+        
         const result = await response.json();
+        
         if (result.success) {
-            mostrarNotificacion(result.message, 'success');
+            mostrarNotificacion(result.message || 'Sugerencia cancelada correctamente', 'success');
             sugerenciaAEliminar = null;
             await cargarSugerencias();
         } else {
-            mostrarNotificacion('Error: ' + (result.message || 'No se pudo eliminar la sugerencia'), 'error');
+            mostrarNotificacion('Error: ' + (result.message || 'No se pudo cancelar la sugerencia'), 'error');
         }
     } catch (error) {
-        console.error('Error al eliminar sugerencia:', error);
-        mostrarNotificacion('Error de conexión al eliminar la sugerencia', 'error');
+        console.error('Error al cancelar sugerencia:', error);
+        mostrarNotificacion('Error de conexión al cancelar la sugerencia', 'error');
     }
 }
 

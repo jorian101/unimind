@@ -40,80 +40,48 @@ class SugerenciasController {
     // ========================================
 
     /**
-     * Obtener sugerencias de un profesor
+     * Obtener sugerencias de un profesor (vista agregada por test+curso)
      */
     public function getSugerenciasProfesor(int $profesorId): array {
         $conn = Database::getInstance()->getConnection();
         
+        // Query optimizada usando Sugerencias_Curso (nueva tabla que trackea sugerencias por curso)
         $stmt = $conn->prepare("
             SELECT 
-                s.id_sugerencia,
-                s.id_estudiante,
-                s.id_test,
-                s.profesores_ids,
-                s.cursos_ids,
-                s.fecha_sugerencia,
-                s.fecha_ultima_sugerencia,
-                s.estado,
+                sc.id_curso,
+                sc.id_test,
+                sc.fecha_sugerencia,
                 t.nombre AS nombre_test,
                 t.descripcion AS descripcion_test,
-                t.num_items,
-                CONCAT(u.nombre, ' ', u.apellido) AS nombre_estudiante,
-                u.codigo_usuario,
-                NULL AS nombre_curso,
-                (SELECT COUNT(*) 
-                 FROM Aplicaciones a 
-                 WHERE a.id_usuario = s.id_estudiante 
-                   AND a.id_test = s.id_test 
-                   AND a.puntuacion_total IS NOT NULL) AS completado
-            FROM Sugerencias s
-            INNER JOIN Tests t ON s.id_test = t.id_test
-            INNER JOIN Usuarios u ON s.id_estudiante = u.id_usuario
-            WHERE JSON_CONTAINS(s.profesores_ids, JSON_ARRAY(?))
-            ORDER BY s.fecha_ultima_sugerencia DESC
+                c.nombre_curso,
+                COUNT(DISTINCT uc.id_usuario) AS total_estudiantes,
+                COUNT(DISTINCT CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM Aplicaciones a 
+                        WHERE a.id_usuario = uc.id_usuario 
+                          AND a.id_test = sc.id_test 
+                          AND a.puntuacion_total IS NOT NULL
+                    ) THEN uc.id_usuario 
+                END) AS estudiantes_completados,
+                'Activo' AS estado
+            FROM Sugerencias_Curso sc
+            INNER JOIN Tests t ON sc.id_test = t.id_test
+            INNER JOIN Cursos c ON sc.id_curso = c.id_curso
+            INNER JOIN Usuario_Curso uc ON uc.id_curso = sc.id_curso
+            WHERE sc.id_profesor = ?
+            GROUP BY sc.id_curso, sc.id_test, sc.fecha_sugerencia, t.nombre, t.descripcion, c.nombre_curso
+            ORDER BY sc.fecha_sugerencia DESC
         ");
         
         $stmt->execute([$profesorId]);
         $sugerencias = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Formatear datos y preparar mapeo de cursos
-        $all_course_ids = [];
+        // Convertir a enteros y formato
         foreach ($sugerencias as &$sug) {
-            $sug['profesores_ids'] = json_decode($sug['profesores_ids'], true);
-            $sug['cursos_ids'] = json_decode($sug['cursos_ids'], true);
-            if (is_array($sug['cursos_ids'])) {
-                foreach ($sug['cursos_ids'] as $cid) {
-                    $all_course_ids[] = (int)$cid;
-                }
-            }
-            $sug['completado'] = (int)$sug['completado'] > 0;
-        }
-
-        // Obtener nombres de cursos
-        $course_names_map = [];
-        $all_course_ids = array_values(array_unique(array_filter($all_course_ids)));
-        if (count($all_course_ids) > 0) {
-            $placeholders = implode(',', array_fill(0, count($all_course_ids), '?'));
-            $stmtCourses = $conn->prepare("SELECT id_curso, nombre_curso FROM Cursos WHERE id_curso IN ($placeholders)");
-            $stmtCourses->execute($all_course_ids);
-            $courses = $stmtCourses->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($courses as $c) {
-                $course_names_map[(int)$c['id_curso']] = $c['nombre_curso'];
-            }
-        }
-
-        // Adjuntar nombres de cursos
-        foreach ($sugerencias as &$sug) {
-            $names = [];
-            if (is_array($sug['cursos_ids'])) {
-                foreach ($sug['cursos_ids'] as $cid) {
-                    $cidInt = (int)$cid;
-                    if (isset($course_names_map[$cidInt])) {
-                        $names[] = $course_names_map[$cidInt];
-                    }
-                }
-            }
-            $sug['nombre_curso'] = count($names) ? implode(', ', $names) : null;
+            $sug['id_curso'] = (int)$sug['id_curso'];
+            $sug['id_test'] = (int)$sug['id_test'];
+            $sug['total_estudiantes'] = (int)$sug['total_estudiantes'];
+            $sug['estudiantes_completados'] = (int)$sug['estudiantes_completados'];
         }
         
         return $sugerencias;
@@ -245,6 +213,121 @@ class SugerenciasController {
     }
 
     /**
+     * API: POST cancelar sugerencia por curso+test
+     */
+    public function handleApiCancelar(int $profesorId): void {
+        header('Content-Type: application/json');
+        
+        try {
+            $payload = json_decode(file_get_contents('php://input'), true);
+            
+            if (!isset($payload['id_curso']) || !isset($payload['id_test'])) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'ID de curso e ID de test son requeridos'
+                ]);
+                return;
+            }
+            
+            $id_curso = (int)$payload['id_curso'];
+            $id_test = (int)$payload['id_test'];
+            $conn = Database::getInstance()->getConnection();
+            
+            // Verificar que la sugerencia existe y pertenece al profesor
+            $stmt = $conn->prepare("
+                SELECT id_sugerencia_curso 
+                FROM Sugerencias_Curso 
+                WHERE id_curso = ? AND id_test = ? AND id_profesor = ?
+            ");
+            $stmt->execute([$id_curso, $id_test, $profesorId]);
+            $sugerencia = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$sugerencia) {
+                http_response_code(404);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Sugerencia no encontrada o no autorizada'
+                ]);
+                return;
+            }
+            
+            // Iniciar transacción
+            $conn->beginTransaction();
+            
+            try {
+                // 1. Eliminar el registro de Sugerencias_Curso
+                $stmt = $conn->prepare("
+                    DELETE FROM Sugerencias_Curso 
+                    WHERE id_curso = ? AND id_test = ? AND id_profesor = ?
+                ");
+                $stmt->execute([$id_curso, $id_test, $profesorId]);
+                
+                // 2. Obtener estudiantes del curso
+                $stmt = $conn->prepare("SELECT id_usuario FROM Usuario_Curso WHERE id_curso = ?");
+                $stmt->execute([$id_curso]);
+                $estudiantes = $stmt->fetchAll(PDO::FETCH_COLUMN);
+                
+                // 3. Para cada estudiante, actualizar o eliminar registro en Sugerencias
+                foreach ($estudiantes as $id_estudiante) {
+                    $stmt = $conn->prepare("
+                        SELECT id_sugerencia, profesores_ids, cursos_ids 
+                        FROM Sugerencias 
+                        WHERE id_estudiante = ? AND id_test = ?
+                    ");
+                    $stmt->execute([$id_estudiante, $id_test]);
+                    $sug = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($sug) {
+                        $profesores_ids = json_decode($sug['profesores_ids'], true);
+                        $cursos_ids = json_decode($sug['cursos_ids'], true);
+                        
+                        // Remover este profesor y curso
+                        $nuevos_profesores = array_values(array_filter($profesores_ids, fn($id) => $id != $profesorId));
+                        $nuevos_cursos = array_values(array_filter($cursos_ids, fn($id) => $id != $id_curso));
+                        
+                        if (empty($nuevos_profesores) || empty($nuevos_cursos)) {
+                            // Si no quedan profesores/cursos, eliminar sugerencia
+                            $stmt = $conn->prepare("DELETE FROM Sugerencias WHERE id_sugerencia = ?");
+                            $stmt->execute([$sug['id_sugerencia']]);
+                        } else {
+                            // Actualizar arrays
+                            $stmt = $conn->prepare("
+                                UPDATE Sugerencias 
+                                SET profesores_ids = ?, cursos_ids = ?
+                                WHERE id_sugerencia = ?
+                            ");
+                            $stmt->execute([
+                                json_encode($nuevos_profesores),
+                                json_encode($nuevos_cursos),
+                                $sug['id_sugerencia']
+                            ]);
+                        }
+                    }
+                }
+                
+                $conn->commit();
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Sugerencia cancelada correctamente para todo el curso'
+                ]);
+                
+            } catch (Exception $e) {
+                $conn->rollBack();
+                throw $e;
+            }
+            
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Error al cancelar sugerencia: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Router principal para requests API
      */
     public function handleApiRequest(): void {
@@ -263,6 +346,12 @@ class SugerenciasController {
         // DELETE o POST: Eliminar sugerencia
         if (($method === 'DELETE') || ($method === 'POST' && $action === 'eliminar')) {
             $this->handleApiEliminar($profesorId);
+            return;
+        }
+
+        // POST: Cancelar sugerencia por curso+test
+        if ($method === 'POST' && $action === 'cancelar') {
+            $this->handleApiCancelar($profesorId);
             return;
         }
 
