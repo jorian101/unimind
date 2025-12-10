@@ -334,3 +334,363 @@
     border-radius: 10px;
 }
 
+/* Modal Ver Usuario - Diseño detallado */
+.modal-ver-usuario {
+    max-width: 800px;
+}
+
+.ver-usuario-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.ver-usuario-section {
+    background: var(--bg-100);
+    border: 1px solid var(--bg-500);
+    border-radius: 10px;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.ver-usuario-section:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+}
+
+.ver-usuario-section h3 {
+    color: var(--pri-500);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 2px solid var(--bg-500);
+    padding-bottom: 0.75rem;
+}
+
+.ver-usuario-section h3 i {
+    color: var(--acc-700);
+    font-size: 1rem;
+}
+
+.ver-usuario-field {
+    margin-bottom: 1rem;
+}
+
+.ver-usuario-field:last-child {
+    margin-bottom: 0;
+}
+
+.ver-usuario-field label {
+    display: block;
+    font-weight: 600;
+    color: var(--var-700);
+    font-size: 0.85rem;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ver-usuario-field p {
+    margin: 0;
+    color: var(--pri-500);
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-200);
+    border-radius: 6px;
+    border-left: 3px solid var(--acc-500);
+}
+
+.ver-usuario-field p.empty {
+    color: var(--var-700);
+    font-style: italic;
+    opacity: 0.7;
+    border-left-color: var(--bg-500);
+}
+
+.ver-usuario-full {
+    grid-column: 1 / -1;
+}
+
+.ver-usuario-badge {
+    display: inline-block;
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: var(--acc-100);
+    color: var(--acc-700);
+    margin-top: 0.25rem;
+}
+
+.ver-usuario-badge.cargo {
+    background: var(--pri-100);
+    color: var(--pri-700);
+}
+
+@media (max-width: 767px) {
+    .modal-ver-usuario {
+        max-width: 95%;
+    }
+    
+    .ver-usuario-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .ver-usuario-section {
+        padding: 1rem;
+    }
+}
+
+/* Estilos para métricas de estudiante */
+.metrics-section {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, var(--bg-100) 0%, var(--bg-200) 100%);
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.metric-card {
+    background: var(--bg-100);
+    border: 1px solid var(--bg-500);
+    border-radius: 10px;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.metric-card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.metric-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--pri-500);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin: 0.75rem 0;
+}
+
+.metric-value.estres {
+    color: var(--pri-600);
+}
+
+.metric-value.ansiedad {
+    color: var(--acc-700);
+}
+
+.metric-level {
+    display: inline-block;
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.metric-level.bajo {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.metric-level.moderado {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.metric-level.alto {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.metric-bar {
+    height: 12px;
+    background: var(--bg-300);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+
+.metric-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.8s ease-out;
+}
+
+.metric-bar-fill.estres {
+    background: linear-gradient(90deg, var(--pri-500), var(--pri-700));
+}
+
+.metric-bar-fill.ansiedad {
+    background: linear-gradient(90deg, var(--acc-500), var(--acc-700));
+}
+
+.metric-comparison {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--var-700);
+    margin-top: 0.5rem;
+}
+
+.metric-trend {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 600;
+}
+
+.metric-trend.mejorando {
+    color: #059669;
+}
+
+.metric-trend.aumentando {
+    color: #dc2626;
+}
+
+.metric-trend.neutral {
+    color: var(--var-700);
+}
+
+.metric-trend i {
+    font-size: 1rem;
+}
+
+/* Mini gráfica de barras histórica */
+.metric-history {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    height: 80px;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: var(--bg-200);
+    border-radius: 8px;
+}
+
+.history-bar {
+    flex: 1;
+    background: var(--bg-400);
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    min-height: 10px;
+    transition: all 0.3s ease;
+}
+
+.history-bar:hover {
+    opacity: 0.8;
+}
+
+.history-bar.estres {
+    background: var(--pri-400);
+}
+
+.history-bar.ansiedad {
+    background: var(--acc-500);
+}
+
+.history-bar-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    margin-bottom: 5px;
+}
+
+.history-bar:hover .history-bar-tooltip {
+    opacity: 1;
+}
+
+/* Resumen de métricas */
+.metrics-summary {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.summary-item {
+    text-align: center;
+    padding: 1rem;
+    background: var(--bg-100);
+    border: 1px solid var(--bg-500);
+    border-radius: 8px;
+}
+
+.summary-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--pri-500);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.summary-label {
+    font-size: 0.85rem;
+    color: var(--var-700);
+    font-weight: 500;
+}
+
+.no-metrics-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    color: var(--var-700);
+    font-style: italic;
+}
+
+@media (max-width: 767px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .metrics-summary {
+        grid-template-columns: 1fr;
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+    }
+    
+    .metric-history {
+        height: 60px;
+    }
+}
+
