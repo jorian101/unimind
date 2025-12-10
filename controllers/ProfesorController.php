@@ -116,13 +116,20 @@ class ProfesorController {
 
                 $distribution = ['Bajo' => 0, 'Moderado' => 0, 'Alto' => 0];
                 foreach ($rows as $r) {
-                    $nivel = $r['nivel_riesgo'] ?? '';
+                    $nivel = strtolower($r['nivel_riesgo'] ?? '');
                     $cnt = (int) $r['conteo'];
-                    if (stripos($nivel, 'bajo') !== false || stripos($nivel, 'mínimo') !== false) {
+                    
+                    // Mapear todos los posibles valores a las 3 categorías
+                    if (stripos($nivel, 'bajo') !== false || 
+                        stripos($nivel, 'mínimo') !== false || 
+                        stripos($nivel, 'normal') !== false ||
+                        $nivel === 'leve') {
                         $distribution['Bajo'] += $cnt;
-                    } elseif (stripos($nivel, 'moderado') !== false || stripos($nivel, 'medio') !== false) {
+                    } elseif (stripos($nivel, 'moderado') !== false || 
+                              stripos($nivel, 'medio') !== false) {
                         $distribution['Moderado'] += $cnt;
-                    } elseif (stripos($nivel, 'alto') !== false || stripos($nivel, 'severo') !== false) {
+                    } elseif (stripos($nivel, 'alto') !== false || 
+                              stripos($nivel, 'severo') !== false) {
                         $distribution['Alto'] += $cnt;
                     }
                 }

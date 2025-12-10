@@ -73,10 +73,21 @@
               date,
               value: vals.reduce((a, b) => a + b, 0) / vals.length,
             }));
+
+            // Aggregate distribution from all courses
+            const aggDistribution = { Bajo: 0, Moderado: 0, Alto: 0 };
+            courses.forEach((c) => {
+              if (c.distribution) {
+                aggDistribution.Bajo += c.distribution.Bajo || 0;
+                aggDistribution.Moderado += c.distribution.Moderado || 0;
+                aggDistribution.Alto += c.distribution.Alto || 0;
+              }
+            });
+
             course = {
-              nombre_curso: "Todas las escuelas",
+              nombre_curso: "Todos los cursos",
               series: aggSeries,
-              distribution: { Bajo: 0, Moderado: 0, Alto: 0 },
+              distribution: aggDistribution,
               avg_score: null,
             };
           } else {
