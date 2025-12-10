@@ -762,6 +762,15 @@
   padding: 1rem;
   backdrop-filter: blur(4px);
   animation: fadeIn 0.3s ease;
+  overflow-y: auto;
+  /* Ocultar scrollbar pero mantener funcionalidad */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+/* Ocultar scrollbar en Chrome/Safari/Opera */
+.modal-overlay::-webkit-scrollbar {
+  display: none;
 }
 @keyframes fadeIn {
   from {
@@ -778,8 +787,7 @@
   width: 100%;
   box-shadow: 0 20px 60px rgba(112, 0, 30, 0.3);
   animation: slideUp 0.4s ease;
-  max-height: 90vh;
-  overflow-y: auto;
+  margin: auto;
 }
 @keyframes slideUp {
   from {

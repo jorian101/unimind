@@ -36,6 +36,7 @@ function getSidebarConfig($role, $currentPage = null) {
             'title' => 'UniMind',
             'menu' => [
                 ['icon' => 'fas fa-chart-line', 'label' => 'Dashboard', 'page' => 'dashboard-profesor'],
+                ['icon' => 'fas fa-book', 'label' => 'Mis Cursos', 'page' => 'cursos-profesor'],
                 ['icon' => 'fas fa-clipboard-list', 'label' => 'Tests', 'page' => 'tests-profesor'],
                 ['icon' => 'fas fa-paper-plane', 'label' => 'Mis Sugerencias', 'page' => 'sugerencias-profesor'],
                 ['icon' => 'fas fa-bell', 'label' => 'Notificaciones', 'page' => 'notificaciones'],            

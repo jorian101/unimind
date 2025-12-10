@@ -554,12 +554,13 @@ async function verDetalles(idCurso, idTest, nombreTest, nombreCurso) {
         
         document.body.appendChild(modalOverlay);
         
+        // Bloquear scroll del body cuando el modal está abierto
+        document.body.style.overflow = 'hidden';
+        
         // Pequeño delay para animación
         setTimeout(() => {
             modalOverlay.style.display = 'flex';
-        }, 10);
-        
-    } catch (error) {
+        }, 10);    } catch (error) {
         console.error('Error al cargar detalles:', error);
         mostrarNotificacion('Error al cargar los detalles: ' + error.message, 'error');
     }
@@ -569,6 +570,8 @@ function cerrarModalDetalles() {
     const modal = document.getElementById('detallesModal');
     if (modal) {
         modal.style.display = 'none';
+        // Restaurar scroll del body
+        document.body.style.overflow = 'auto';
         setTimeout(() => modal.remove(), 300);
     }
 }
