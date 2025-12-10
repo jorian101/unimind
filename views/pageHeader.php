@@ -153,8 +153,11 @@ function renderPageHeader($title = null, $breadcrumb = null) {
                 <h1 class="page-header__title">' . htmlspecialchars($title) . '</h1>
             </div>
         </div>
-        <div class="page-header__actions" id="page-header-actions"></div>
+        <div class="page-header__actions" id="page-header-actions">
+
+        </div>
     </header>
+    <script src="public/js/notifications.js"></script>
     ';
 }
 ?>

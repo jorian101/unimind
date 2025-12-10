@@ -2,7 +2,7 @@
 require_once dirname(__DIR__) . '/utils/sidebar-config.php';
 
 $currentRole = $_GET['role'] ?? 'estudiante';
-$currentPage = $_GET['page'] ?? ($currentRole === 'estudiante' ? 'inicio' : 'dashboard');
+$currentPage = $_GET['page'] ?? 'dashboard';
 $sidebarProps = getSidebarConfig($currentRole, $currentPage);
 ?>
 
@@ -40,13 +40,6 @@ $sidebarProps = getSidebarConfig($currentRole, $currentPage);
         </ul>
     </div>
     
-    <!-- Selector de roles para pruebas (BORRAR LUEGO) -->
-    <div class="role-selector" style="background: #fff; padding: 10px; margin: 10px;">
-        <select id="roleSelector" style="width: 100%; padding: 5px;">
-            <option value="estudiante" <?php echo $currentRole === 'estudiante' ? 'selected' : ''; ?>>Estudiante</option>
-            <option value="profesor" <?php echo $currentRole === 'profesor' ? 'selected' : ''; ?>>Profesor</option>
-            <option value="administrador" <?php echo $currentRole === 'administrador' ? 'selected' : ''; ?>>Administrador</option>
-        </select>
-    </div>
+    <!-- Role selector removed: not needed anymore -->
 </aside>
 <div class="sidebar-overlay" id="sidebar-overlay"></div>

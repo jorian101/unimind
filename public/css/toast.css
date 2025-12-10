@@ -1,0 +1,213 @@
+.unimind-toast-container {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+  max-width: 420px;
+}
+
+.unimind-toast-position-top-right {
+  top: 20px;
+  right: 20px;
+}
+
+.unimind-toast-position-top-left {
+  top: 20px;
+  left: 20px;
+}
+
+.unimind-toast-position-bottom-right {
+  bottom: 20px;
+  right: 20px;
+}
+
+.unimind-toast-position-bottom-left {
+  bottom: 20px;
+  left: 20px;
+}
+
+.unimind-toast {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: auto;
+  animation: slideIn 0.3s ease;
+  max-width: 420px;
+  min-width: 300px;
+}
+
+.unimind-toast.unimind-toast-show {
+  animation: slideIn 0.3s ease;
+}
+
+.unimind-toast.unimind-toast-hide {
+  animation: slideIn 0.3s ease reverse;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Colores de borde según tipo */
+.unimind-toast-success {
+  border-left: 4px solid #10b981;
+}
+
+.unimind-toast-error {
+  border-left: 4px solid #ef4444;
+}
+
+.unimind-toast-warning {
+  border-left: 4px solid #f59e0b;
+}
+
+.unimind-toast-info {
+  border-left: 4px solid #3b82f6;
+}
+
+.unimind-toast-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.unimind-toast-icon {
+  font-size: 1.125rem;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.unimind-toast-success .unimind-toast-icon {
+  color: #10b981;
+}
+
+.unimind-toast-error .unimind-toast-icon {
+  color: #ef4444;
+}
+
+.unimind-toast-warning .unimind-toast-icon {
+  color: #f59e0b;
+}
+
+.unimind-toast-info .unimind-toast-icon {
+  color: #3b82f6;
+}
+
+.unimind-toast-text {
+  flex: 1;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+.unimind-toast-action {
+  background: transparent;
+  border: none;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.unimind-toast-success .unimind-toast-action {
+  color: var(--success-600, #059669);
+}
+
+.unimind-toast-success .unimind-toast-action:hover {
+  background: var(--success-100, #d1fae5);
+}
+
+.unimind-toast-error .unimind-toast-action {
+  color: var(--danger-600, #dc2626);
+}
+
+.unimind-toast-error .unimind-toast-action:hover {
+  background: var(--danger-100, #fee2e2);
+}
+
+.unimind-toast-warning .unimind-toast-action {
+  color: var(--warning-600, #d97706);
+}
+
+.unimind-toast-warning .unimind-toast-action:hover {
+  background: var(--warning-100, #fef3c7);
+}
+
+.unimind-toast-info .unimind-toast-action {
+  color: var(--pri-600, #2563eb);
+}
+
+.unimind-toast-info .unimind-toast-action:hover {
+  background: var(--pri-100, #dbeafe);
+}
+
+.unimind-toast-close {
+  background: transparent;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.unimind-toast-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.unimind-toast-close i {
+  font-size: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .unimind-toast-container {
+    left: 10px;
+    right: 10px;
+    max-width: calc(100% - 20px);
+  }
+
+  .unimind-toast {
+    min-width: auto;
+    width: 100%;
+    padding: 0.875rem 1rem;
+  }
+
+  .unimind-toast-inner {
+    gap: 0.5rem;
+  }
+
+  .unimind-toast-text {
+    font-size: 0.875rem;
+  }
+
+  .unimind-toast-icon {
+    font-size: 1rem;
+  }
+
+  .unimind-toast-action {
+    font-size: 0.8125rem;
+    padding: 0.3125rem 0.625rem;
+  }
+}

@@ -1,6 +1,90 @@
-document.addEventListener("DOMContentLoaded", function () {
-  console.log("JavaScript cargado correctamente");
+// ============================================================================
+// SERVICE WORKER AUTO-UPDATE SYSTEM
+// ============================================================================
+// Sistema que detecta y aplica automáticamente nuevas versiones del SW
+// sin necesidad de usar "Clear Site Data"
+// Mantiene intacta la sesión (cookies, localStorage, IndexedDB)
 
+/* eslint-disable no-console */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      // Registrar el Service Worker (usar base si está definida)
+      const swPath = (window.UNIMIND_BASE || "") + "/sw.js";
+      const registration = await navigator.serviceWorker.register(swPath);
+
+      console.log("[SW] Service Worker registrado exitosamente");
+
+      // Forzar comprobación de actualización inmediatamente
+      try {
+        await registration.update();
+      } catch {
+        // Ignorar errores de update (puede fallar si no hay conexión)
+      }
+
+      // Si hay un SW esperando, activarlo inmediatamente
+      if (registration.waiting) {
+        console.log("[SW] Hay una nueva versión esperando, activando...");
+        registration.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
+
+      // Detectar cuando se instala una nueva versión
+      registration.addEventListener("updatefound", () => {
+        const newWorker = registration.installing;
+        if (!newWorker) return;
+
+        console.log("[SW] Nueva versión detectada, instalando...");
+
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed") {
+            // Si hay un controller, es una actualización (no primera instalación)
+            if (navigator.serviceWorker.controller) {
+              console.log(
+                "[SW] Nueva versión instalada, activando automáticamente...",
+              );
+              // Forzar activación inmediata del nuevo SW
+              newWorker.postMessage({ type: "SKIP_WAITING" });
+            } else {
+              console.log("[SW] Primera instalación completada");
+            }
+          }
+        });
+      });
+
+      // Escuchar mensajes del Service Worker
+      navigator.serviceWorker.addEventListener("message", (event) => {
+        const data = event.data || {};
+
+        if (data.type === "NEW_VERSION") {
+          console.log("[SW] Nueva versión activa:", data.version);
+          // Aquí podrías mostrar un toast/notificación al usuario si lo deseas
+          // Por ejemplo: mostrarNotificacion('Nueva versión disponible');
+        }
+      });
+
+      // Auto-reload cuando el SW nuevo tome control
+      // Esto asegura que la página use los nuevos assets sin borrar datos
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshing) return;
+        refreshing = true;
+        console.log(
+          "[SW] Nuevo Service Worker en control, recargando página...",
+        );
+        window.location.reload();
+      });
+    } catch (error) {
+      console.error("[SW] Error en registro de Service Worker:", error);
+    }
+  });
+}
+/* eslint-enable no-console */
+
+// ============================================================================
+// INICIO DEL CÓDIGO ORIGINAL
+// ============================================================================
+
+document.addEventListener("DOMContentLoaded", function () {
   // Get elements and initial state
   const sidebar = document.getElementById("sidebar");
   const body = document.body;
@@ -44,11 +128,8 @@ document.addEventListener("DOMContentLoaded", function () {
   // Función para actualizar los event listeners
   function updateMenuListeners() {
     const menuItems = document.querySelectorAll(".sidebar__item[data-page]");
-    console.log("Items del menú encontrados:", menuItems.length);
 
     menuItems.forEach(function (item, index) {
-      console.log("Procesando item", index, item.dataset);
-
       // Remover listeners previos
       item.replaceWith(item.cloneNode(true));
       const newItem = document.querySelectorAll(".sidebar__item[data-page]")[
@@ -66,8 +147,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const page = this.dataset.page;
         const role = this.dataset.role;
 
-        console.log("CLICK! Navegando a:", page, role);
-
         if (page && role) {
           // Guardar el estado actual del sidebar antes de navegar
           const currentCollapsed = getCurrentSidebarState();
@@ -84,9 +163,19 @@ document.addEventListener("DOMContentLoaded", function () {
             );
           }
 
-          // Agregar parámetro 'from_sidebar=1' para indicar navegación desde sidebar
-          window.location.href =
-            "?role=" + role + "&page=" + page + "&from_sidebar=1";
+          // Construir URL relativa usando la base definida en PHP para evitar problemas con cookies
+          var base = window.UNIMIND_BASE || "";
+          var pagePath =
+            (base ? base : "") +
+            "/index.php?role=" +
+            encodeURIComponent(role) +
+            "&page=" +
+            encodeURIComponent(page) +
+            "&from_sidebar=1";
+          // Asegurarse de que la URL comience con slash
+          if (!pagePath.startsWith("/")) pagePath = "/" + pagePath;
+          // Log para depuración: muestra la URL que se va a cargar
+          window.location.assign(pagePath);
         }
       });
     });
@@ -130,26 +219,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Inicializar listeners
   updateMenuListeners();
 
-  // Role selector
-  const roleSelector = document.getElementById("roleSelector");
-  if (roleSelector) {
-    roleSelector.onchange = function () {
-      // Guardar estado actual antes de cambiar de rol
-      const currentCollapsed = getCurrentSidebarState();
-      localStorage.setItem("sidebarCollapsed", currentCollapsed.toString());
-
-      // Apply visual state immediately
-      if (currentCollapsed) {
-        document.documentElement.classList.add("sidebar-initially-collapsed");
-      } else {
-        document.documentElement.classList.remove(
-          "sidebar-initially-collapsed",
-        );
-      }
-
-      window.location.href = "?role=" + this.value;
-    };
-  }
+  // Role selector removed — role switching is handled via routing/auth (no client selector)
 
   // Sidebar toggle
   const toggle = document.querySelector(".sidebar__menu-toggle");

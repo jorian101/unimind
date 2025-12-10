@@ -1,0 +1,478 @@
+/**
+ * modal.css
+ * Estilos para el sistema de modal reutilizable
+ * Soporta múltiples tipos: confirm, alert, warning, error, success, delete, info, custom
+ */
+
+/* ============================================
+   Overlay del Modal
+   ============================================ */
+.unimind-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.unimind-modal-overlay.modal-open {
+  opacity: 1;
+}
+
+.unimind-modal-overlay.modal-closing {
+  opacity: 0;
+}
+
+/* ============================================
+   Contenedor del Modal
+   ============================================ */
+.unimind-modal {
+  background: var(--bg-100);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transform: scale(0.7);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-open .unimind-modal {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.modal-closing .unimind-modal {
+  transform: scale(0.7);
+  opacity: 0;
+}
+
+/* ============================================
+   Header del Modal
+   ============================================ */
+.unimind-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--bg-400);
+  position: relative;
+}
+
+.unimind-modal-icon {
+  font-size: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.unimind-modal-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+  color: var(--var-900);
+}
+
+.unimind-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--var-700);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.unimind-modal-close:hover {
+  background-color: var(--bg-300);
+  color: var(--var-900);
+}
+
+/* ============================================
+   Body del Modal
+   ============================================ */
+.unimind-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.unimind-modal-body p {
+  margin: 0;
+  color: var(--var-800);
+  line-height: 1.6;
+  font-size: 0.98rem;
+}
+
+.unimind-modal-body p + p {
+  margin-top: 0.75rem;
+}
+
+/* ============================================
+   Footer del Modal
+   ============================================ */
+.unimind-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--bg-400);
+  background-color: var(--bg-300);
+}
+
+/* ============================================
+   Botones
+   ============================================ */
+.unimind-modal-btn {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 100px;
+  justify-content: center;
+}
+
+.unimind-modal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.unimind-modal-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.unimind-modal-btn:not(:disabled):active {
+  transform: translateY(0);
+}
+
+.unimind-modal-btn-cancel {
+  background-color: var(--bg-400);
+  color: var(--var-900);
+}
+
+.unimind-modal-btn-cancel:hover:not(:disabled) {
+  background-color: var(--bg-700);
+}
+
+.unimind-modal-btn-confirm {
+  background-color: var(--pri-500);
+  color: white;
+}
+
+.unimind-modal-btn-confirm:hover:not(:disabled) {
+  background-color: var(--pri-700);
+}
+
+/* ============================================
+   Temas de Colores por Tipo
+   ============================================ */
+
+/* Confirm - Azul */
+.modal-confirm .unimind-modal-icon {
+  color: var(--acc-500);
+}
+
+.modal-confirm .unimind-modal-header {
+  background: linear-gradient(135deg, var(--acc-100) 0%, var(--var-100) 100%);
+  border-bottom-color: var(--acc-300);
+}
+
+/* Alert - Gris/Azul */
+.modal-alert .unimind-modal-icon {
+  color: var(--acc-500);
+}
+
+.modal-alert .unimind-modal-header {
+  background: linear-gradient(135deg, var(--acc-100) 0%, var(--var-100) 100%);
+  border-bottom-color: var(--acc-300);
+}
+
+/* Warning - Amarillo/Naranja */
+.modal-warning .unimind-modal-icon {
+  color: var(--sec-500);
+}
+
+.modal-warning .unimind-modal-header {
+  background: linear-gradient(135deg, var(--sec-100) 0%, var(--bg-100) 100%);
+  border-bottom-color: var(--sec-300);
+}
+
+.modal-warning .unimind-modal-btn-confirm {
+  background-color: var(--sec-500);
+}
+
+.modal-warning .unimind-modal-btn-confirm:hover:not(:disabled) {
+  background-color: var(--sec-700);
+}
+
+/* Error - Rojo */
+.modal-error .unimind-modal-icon {
+  color: var(--pri-300);
+}
+
+.modal-error .unimind-modal-header {
+  background: linear-gradient(135deg, var(--pri-100) 0%, var(--pri-50) 100%);
+  border-bottom-color: var(--pri-200);
+}
+
+.modal-error .unimind-modal-btn-confirm {
+  background-color: var(--pri-300);
+}
+
+.modal-error .unimind-modal-btn-confirm:hover:not(:disabled) {
+  background-color: var(--pri-400);
+}
+
+/* Success - Verde */
+.modal-success .unimind-modal-icon {
+  color: var(--acc-700);
+}
+
+.modal-success .unimind-modal-header {
+  background: linear-gradient(135deg, var(--acc-100) 0%, var(--var-100) 100%);
+  border-bottom-color: var(--acc-300);
+}
+
+.modal-success .unimind-modal-btn-confirm {
+  background-color: var(--acc-700);
+}
+
+.modal-success .unimind-modal-btn-confirm:hover:not(:disabled) {
+  background-color: var(--acc-900);
+}
+
+/* Delete - Rojo intenso (crítico) */
+.modal-delete .unimind-modal-icon {
+  color: var(--pri-300);
+  animation: shake 0.5s ease-in-out;
+}
+
+.modal-delete .unimind-modal-header {
+  background: linear-gradient(135deg, var(--pri-100) 0%, var(--pri-50) 100%);
+  border-bottom-color: var(--pri-200);
+}
+
+.modal-delete .unimind-modal-body {
+  background: var(--pri-50);
+  padding: 2rem 1.5rem;
+}
+
+.modal-delete .unimind-modal-btn-confirm {
+  background-color: var(--pri-300);
+}
+
+.modal-delete .unimind-modal-btn-confirm:hover:not(:disabled) {
+  background-color: var(--pri-500);
+}
+
+/* Info - Azul claro */
+.modal-info .unimind-modal-icon {
+  color: var(--acc-500);
+}
+
+.modal-info .unimind-modal-header {
+  background: linear-gradient(135deg, var(--acc-100) 0%, var(--var-100) 100%);
+  border-bottom-color: var(--acc-300);
+}
+
+/* Custom - Púrpura */
+.modal-custom .unimind-modal-icon {
+  color: var(--var-700);
+}
+
+.modal-custom .unimind-modal-header {
+  background: linear-gradient(135deg, var(--var-300) 0%, var(--var-100) 100%);
+  border-bottom-color: var(--var-500);
+}
+
+/* ============================================
+   Animaciones
+   ============================================ */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (max-width: 640px) {
+  .unimind-modal {
+    width: 95%;
+    max-width: none;
+    border-radius: 8px;
+  }
+
+  .unimind-modal-header {
+    padding: 1rem;
+  }
+
+  .unimind-modal-body {
+    padding: 1rem;
+  }
+
+  .unimind-modal-footer {
+    padding: 1rem;
+    flex-direction: column-reverse;
+  }
+
+  .unimind-modal-btn {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .unimind-modal-icon {
+    font-size: 1.5rem;
+  }
+
+  .unimind-modal-title {
+    font-size: 1.1rem;
+  }
+}
+
+/* ============================================
+   Utilidades adicionales
+   ============================================ */
+
+/* Centrar contenido */
+.unimind-modal-body-center {
+  text-align: center;
+}
+
+/* Lista en el modal */
+.unimind-modal-body ul {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.unimind-modal-body ul li {
+  margin: 0.5rem 0;
+  color: var(--var-700);
+}
+
+/* Input en el modal */
+.unimind-modal-body input,
+.unimind-modal-body textarea,
+.unimind-modal-body select {
+  width: 100%;
+  padding: 0.625rem;
+  border: 1px solid var(--bg-700);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+  transition: border-color 0.2s ease;
+}
+
+.unimind-modal-body input:focus,
+.unimind-modal-body textarea:focus,
+.unimind-modal-body select:focus {
+  outline: none;
+  border-color: var(--acc-500);
+  box-shadow: 0 0 0 3px rgba(0, 129, 150, 0.1);
+}
+
+/* Label en el modal */
+.unimind-modal-body label {
+  display: block;
+  font-weight: 500;
+  color: var(--var-900);
+  margin-bottom: 0.25rem;
+}
+
+/* Código en el modal */
+.unimind-modal-body code {
+  background-color: var(--bg-300);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  color: var(--var-900);
+}
+
+/* Estado de carga en botón */
+.unimind-modal-btn-loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.unimind-modal-btn-loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: 0.5rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Scroll personalizado para el body del modal */
+.unimind-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.unimind-modal-body::-webkit-scrollbar-track {
+  background: var(--bg-300);
+  border-radius: 4px;
+}
+
+.unimind-modal-body::-webkit-scrollbar-thumb {
+  background: var(--bg-900);
+  border-radius: 4px;
+}
+
+.unimind-modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--var-700);
+}

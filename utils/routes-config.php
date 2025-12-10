@@ -33,31 +33,76 @@ return [
             'title' => 'Dashboard Administrativo',
             'breadcrumb' => ['Inicio', 'Dashboard'],
         ],
+        'tests' => [
+            'path' => 'administrador/tests.php',
+            'title' => 'Gestión de Tests',
+            'breadcrumb' => ['Inicio', 'Tests'],
+        ],
         'usuarios' => [
             'path' => 'administrador/usuarios.php',
             'title' => 'Gestión de Usuarios',
             'breadcrumb' => ['Inicio', 'Usuarios'],
+        ],
+        'cursos_escuelas' => [
+            'path' => 'administrador/cursos_escuelas.php',
+            'title' => 'Gestión de Cursos/Escuelas',
+            'breadcrumb' => ['Inicio', 'Cursos/Escuelas'],
         ],
         'reportes' => [
             'path' => 'administrador/reportes.php',
             'title' => 'Reportes y Estadísticas',
             'breadcrumb' => ['Inicio', 'Reportes'],
         ],
-        'config' => [
-            'path' => 'administrador/config.php',
-            'title' => 'Configuración del Sistema',
-            'breadcrumb' => ['Inicio', 'Configuración'],
+        'citas' => [
+            'path' => 'administrador/citas.php',
+            'title' => 'Gestión de Citas',
+            'breadcrumb' => ['Inicio', 'Citas'],
+        ],
+        'notificaciones' => [
+            'path' => 'administrador/notificaciones.php',
+            'title' => 'Notificaciones',
+            'breadcrumb' => ['Inicio', 'Notificaciones'],
+        ],
+        'recomendaciones' => [
+            'path' => 'administrador/recomendaciones.php',
+            'title' => 'Recomendaciones',
+            'breadcrumb' => ['Inicio', 'Recomendaciones'],
+        ],
+        'Notifiaciones' => [
+            'path' => 'administrador/notificaciones.php',
+            'title' => 'Notificaciones',
+            'breadcrumb' => ['Inicio', 'Notificaciones'],
         ],
     ],
 
     // ========================================
-    // RUTAS DE PROFESOR
+    // RUTAS DE DOCENTE
     // ========================================
-    'profesor' => [
+    'docente' => [
         'dashboard-profesor' => [
-            'path' => 'profesor/dashboard-profesor.php',
+            'path' => 'profesor/dashboard.php',
             'title' => 'Dashboard',
             'breadcrumb' => ['Inicio', 'Dashboard'],
+        ],
+        'cursos-profesor' => [
+            'path' => 'profesor/cursos-profesor.php',
+            'title' => 'Mis Cursos',
+            'breadcrumb' => ['Inicio', 'Cursos'],
+        ],
+        'tests-profesor' => [
+            'path' => 'profesor/tests.php',
+            'title' => 'Gestión de Tests',
+            'breadcrumb' => ['Inicio', 'Tests'],
+        ],
+        'sugerencias-profesor' => [
+            'path' => 'profesor/sugerencias-profesor.php',
+            'title' => 'Mis Sugerencias',
+            'breadcrumb' => ['Inicio', 'Sugerencias'],
+        ],
+        'notificaciones' => [
+            'path' => 'profesor/notificaciones.php',
+            'title' => 'Notificaciones',
+            'breadcrumb' => ['Inicio', 'Notificaciones'],
         ],
     ],
 
@@ -151,6 +196,12 @@ return [
             'path' => 'estudiante/calendario-citas.php',
             'title' => 'Calendario de Citas',
             'breadcrumb' => ['Inicio', 'Calendario de Citas'],
+            'layout' => 'unimind',
+        ],
+        'notificaciones' => [
+            'path' => 'estudiante/notificaciones.php',
+            'title' => 'Notificaciones',
+            'breadcrumb' => ['Inicio', 'Notificaciones'],
             'layout' => 'unimind',
         ],
     ],

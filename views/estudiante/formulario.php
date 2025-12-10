@@ -1,46 +1,53 @@
 <?php
 require_once dirname(__DIR__) . '/pageHeader.php';
+require_once __DIR__ . '/../../utils/ModelFactory.php';
 
 // Get test data from URL parameters
-$testId = $_GET['test_id'] ?? 'estres-ansiedad';
-$testName = $_GET['test_name'] ?? 'Test de Estrés y Ansiedad';
-$totalQuestions = (int)($_GET['questions'] ?? 21);
+$testId = $_GET['test_id'] ?? null;
 
-// Sample questions - in a real app, these would come from database
-$questions = [
-    1 => "¿Con qué frecuencia has estado afectado por algo que ha ocurrido inesperadamente?",
-    2 => "¿Con qué frecuencia te has sentido incapaz de controlar las cosas importantes en tu vida?",
-    3 => "¿Con qué frecuencia te has sentido nervioso o estresado?",
-    4 => "¿Con qué frecuencia has manejado con éxito los pequeños problemas irritantes de la vida?",
-    5 => "¿Con qué frecuencia has sentido que has afrontado efectivamente los cambios importantes que han estado ocurriendo en tu vida?",
-    6 => "¿Con qué frecuencia has estado seguro sobre tu capacidad para manejar tus problemas personales?",
-    7 => "¿Con qué frecuencia has sentido que las cosas te van bien?",
-    8 => "¿Con qué frecuencia has sentido que no podías afrontar todas las cosas que tenías que hacer?",
-    9 => "¿Con qué frecuencia has podido controlar las dificultades de tu vida?",
-    10 => "¿Con qué frecuencia te has sentido al control de todo?",
-    11 => "¿Con qué frecuencia te has sentido molesto porque las cosas que te han pasado estaban fuera de tu control?",
-    12 => "¿Con qué frecuencia has encontrado que no podías lidiar con todas las cosas que tenías que hacer?",
-    13 => "¿Con qué frecuencia has sido capaz de controlar la forma en que pasas el tiempo?",
-    14 => "¿Con qué frecuencia has sentido que las dificultades se acumulan tanto que no puedes superarlas?",
-    15 => "¿Te sientes frecuentemente abrumado por las responsabilidades?",
-    16 => "¿Con qué frecuencia experimentas síntomas físicos del estrés?",
-    17 => "¿Te resulta difícil relajarte después del trabajo o estudio?",
-    18 => "¿Con qué frecuencia tienes problemas para dormir debido al estrés?",
-    19 => "¿Te sientes ansioso ante situaciones sociales?",
-    20 => "¿Con qué frecuencia te sientes preocupado por el futuro?",
-    21 => "¿Sientes que tu nivel de estrés afecta tu rendimiento académico o laboral?"
-];
+if (!$testId) {
+    header('Location: ?role=estudiante&page=tests');
+    exit;
+}
 
-$options = [
-    0 => "Nunca",
-    1 => "Casi nunca", 
-    2 => "De vez en cuando",
-    3 => "A menudo",
-    4 => "Muy a menudo"
-];
+// Cargar datos del test usando ModelFactory
+$model = ModelFactory::create('estudiante', 'tests');
+if (!$model) {
+    require_once __DIR__ . '/../../models/estudiante/TestsEstudianteModel.php';
+    $model = new TestsEstudianteModel();
+}
+
+$testInfo = $model->getTestById($testId);
+
+if (!$testInfo) {
+    echo "<script>alert('Test no encontrado'); window.location.href='?role=estudiante&page=tests';</script>";
+    exit;
+}
+
+$items = $model->getItemsByTest($testId);
+$opciones = $model->getOpcionesByTestId($testId); // Obtener opciones filtradas por tipo de escala
+
+// Verificar si existe una Aplicación pendiente para este usuario y test (sugerida por profesor)
+$userId = $_SESSION['id_usuario'] ?? null;
+$pendingAplicacion = null;
+// Prefer id_aplicacion passed via GET (redirect from tests list) otherwise try to detect pending
+$requestedAplicacion = isset($_GET['id_aplicacion']) ? (int)$_GET['id_aplicacion'] : 0;
+if ($requestedAplicacion) {
+    // Basic check: ensure this aplicación belongs to the current user and test
+    $check = $model->getPendingAplicacion($userId, $testId);
+    if ($check && (int)$check['id_aplicacion'] === $requestedAplicacion) {
+        $pendingAplicacion = $check;
+    }
+} else {
+    if ($userId) {
+        $pendingAplicacion = $model->getPendingAplicacion($userId, $testId);
+    }
+}
+
+$testName = $testInfo['nombre'];
+$totalQuestions = count($items);
 
 // El breadcrumb se construye automáticamente desde la configuración
-// Si quieres personalizar el título, puedes pasarlo: renderPageHeader($testName);
 renderPageHeader();
 ?>
 <link rel="stylesheet" href="views/estudiante/formulario.css?v=<?php echo time(); ?>">
@@ -70,8 +77,16 @@ renderPageHeader();
             </div>
         </div>
 
-        <form class="formulario__form" id="testForm" method="POST" action="controllers/submit-test.php">
+        <?php
+        // Construir action absoluto usando base detectado en index.php
+        $basePath = isset($base) ? rtrim($base, '/') : '';
+        $submitAction = $basePath . '/controllers/submit-test.php';
+        ?>
+        <form class="formulario__form" id="testForm" method="POST" action="<?php echo htmlspecialchars($submitAction); ?>">
             <input type="hidden" name="test_id" value="<?php echo htmlspecialchars($testId); ?>">
+            <?php if ($pendingAplicacion): ?>
+                <input type="hidden" name="id_aplicacion" value="<?php echo htmlspecialchars($pendingAplicacion['id_aplicacion']); ?>">
+            <?php endif; ?>
             <input type="hidden" name="test_name" value="<?php echo htmlspecialchars($testName); ?>">
             
             <div class="formulario__progress">
@@ -83,25 +98,28 @@ renderPageHeader();
 
             <!-- Bloque de preguntas con navegación móvil/tablet -->
             <div class="formulario__questions" id="questionsNavigator">
-                <?php foreach ($questions as $index => $question): ?>
-                    <div class="formulario__question-block" data-question="<?php echo $index; ?>" style="<?php echo $index === 1 ? '' : 'display:none;'; ?>">
+                <?php foreach ($items as $index => $item): 
+                    $questionNumber = $index + 1;
+                ?>
+                    <div class="formulario__question-block" data-question="<?php echo $questionNumber; ?>" style="<?php echo $index === 0 ? '' : 'display:none;'; ?>">
                         <div class="formulario__question">
                             <h3 class="formulario__question-title">
-                                <span class="formulario__question-number"><?php echo $index; ?>.</span>
-                                <?php echo htmlspecialchars($question); ?>
+                                <span class="formulario__question-number"><?php echo $questionNumber; ?>.</span>
+                                <?php echo htmlspecialchars($item['texto_item']); ?>
                             </h3>
                             <div class="formulario__options">
-                                <?php foreach ($options as $value => $label): ?>
+                                <?php foreach ($opciones as $opcion): ?>
                                     <label class="formulario__option">
                                         <input 
                                             type="radio" 
-                                            name="question_<?php echo $index; ?>" 
-                                            value="<?php echo $value; ?>"
+                                            name="item_<?php echo $item['id_item']; ?>" 
+                                            value="<?php echo $opcion['id_opcion']; ?>"
                                             class="formulario__option-input"
+                                            data-item-id="<?php echo $item['id_item']; ?>"
                                             required
                                         >
                                         <span class="formulario__option-custom"></span>
-                                        <span class="formulario__option-label"><?php echo htmlspecialchars($label); ?></span>
+                                        <span class="formulario__option-label"><?php echo htmlspecialchars($opcion['texto_opcion']); ?></span>
                                     </label>
                                 <?php endforeach; ?>
                             </div>
@@ -233,18 +251,94 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', setupNavigation);
     setupNavigation();
 
-    // Form submission
-    form.addEventListener('submit', function(e) {
+    // Form submission via AJAX to maintain session
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
         const answered = form.querySelectorAll('input[type="radio"]:checked').length;
         if (answered < totalQuestions) {
-            e.preventDefault();
             alert(`Por favor, responde todas las preguntas. Te faltan ${totalQuestions - answered} preguntas.`);
             return;
         }
-        
+
+        // Mostrar modal de confirmación si está disponible, si no usar confirm nativo
+        let proceed = true;
+        const confirmMessage = '¿Estás seguro que deseas enviar la evaluación? Una vez enviado no podrás modificarlo.';
+        try {
+            if (window.Modal && typeof window.Modal.confirm === 'function') {
+                proceed = await window.Modal.confirm('Confirmar envío', confirmMessage, {
+                    confirmText: 'Enviar',
+                    cancelText: 'Cancelar'
+                });
+            } else {
+                proceed = confirm(confirmMessage);
+            }
+        } catch (err) {
+            console.error('Error mostrando modal de confirmación:', err);
+            proceed = confirm(confirmMessage);
+        }
+
+        if (!proceed) {
+            return;
+        }
+
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        
+        try {
+            // Enviar formulario via AJAX para mantener sesión
+            const formData = new FormData(form);
+            const base = window.UNIMIND_BASE || '';
+            const baseUrl = window.location.origin && window.location.origin !== 'null' 
+                ? window.location.origin + base 
+                : base;
+            
+            const response = await fetch(`${baseUrl}/controllers/submit-test.php`, {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+            
+            let result;
+            try {
+                result = await response.json();
+            } catch (e) {
+                console.error('Error al parsear JSON:', e);
+                throw new Error('Respuesta del servidor no válida');
+            }
+            
+            if (result.success) {
+                // Redirigir con parámetros de resultado en la URL (fallback si sesión falla)
+                const params = new URLSearchParams({
+                    role: 'estudiante',
+                    page: 'tests',
+                    test_completed: '1',
+                    name: result.data.test_name || '',
+                    score: result.data.score || '0',
+                    level: result.data.level || '',
+                    completed_at: result.data.completed_at || ''
+                });
+                window.location.href = `${baseUrl}/index.php?${params.toString()}`;
+            } else {
+                // Si no está autenticado, redirigir al login
+                if (response.status === 401 && result.redirect) {
+                    window.location.href = result.redirect;
+                    return;
+                }
+                throw new Error(result.message || 'Error al enviar el test');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            // Usar modal de error si está disponible
+            if (window.Modal && typeof window.Modal.error === 'function') {
+                try { await window.Modal.error('Error', 'Hubo un error al enviar el test. Por favor, intenta de nuevo.'); } catch (e) { /* ignore */ }
+            } else {
+                alert('Hubo un error al enviar el test. Por favor, intenta de nuevo.');
+            }
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Enviar Evaluación';
+        }
     });
 });
 </script>
