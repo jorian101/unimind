@@ -55,14 +55,29 @@ END //
 -- =============================================
 
 -- Inicia una aplicación de test para un usuario
+-- Ahora acepta un parámetro opcional de origen para tracking
 CREATE PROCEDURE `sp_iniciar_aplicacion`(
     IN p_id_usuario INT,
     IN p_id_test INT,
     OUT p_id_aplicacion INT
 )
 BEGIN
-    INSERT INTO `Aplicaciones` (`id_usuario`, `id_test`)
-    VALUES (p_id_usuario, p_id_test);
+    DECLARE v_origen ENUM('estudiante_voluntario','profesor_sugerencia','sistema_automatico');
+    
+    -- Determinar origen: si existe una sugerencia pendiente, es por sugerencia de profesor
+    SET v_origen = 'estudiante_voluntario';
+    
+    IF EXISTS (
+        SELECT 1 FROM Sugerencias 
+        WHERE id_estudiante = p_id_usuario 
+        AND id_test = p_id_test 
+        AND estado = 'pendiente'
+    ) THEN
+        SET v_origen = 'profesor_sugerencia';
+    END IF;
+    
+    INSERT INTO `Aplicaciones` (`id_usuario`, `id_test`, `origen`)
+    VALUES (p_id_usuario, p_id_test, v_origen);
 
     SET p_id_aplicacion = LAST_INSERT_ID();
     
@@ -1056,4 +1071,145 @@ CREATE PROCEDURE `sp_finalizar_aplicacion_y_calcular_puntuacion`(
 )
 BEGIN
     CALL sp_procesar_aplicacion(p_id_aplicacion);
+END //
+
+-- =============================================
+-- ### Grupo 10: Reportes y Métricas de Profesor
+-- =============================================
+
+-- Procedimiento para obtener historial de sugerencias realizadas por un profesor
+-- Muestra qué tests ha sugerido, a qué cursos, y cuántos estudiantes lo completaron
+DROP PROCEDURE IF EXISTS `sp_obtener_historial_sugerencias_profesor` //
+CREATE PROCEDURE `sp_obtener_historial_sugerencias_profesor`(
+    IN p_id_profesor INT,
+    IN p_limite INT
+)
+BEGIN
+    -- Obtener el historial de sugerencias agrupado por curso, test y fecha
+    SELECT 
+        c.nombre_curso,
+        t.nombre AS nombre_test,
+        t.tipo_test,
+        COUNT(DISTINCT s.id_estudiante) AS estudiantes_sugeridos,
+        COUNT(DISTINCT CASE 
+            WHEN EXISTS (
+                SELECT 1 FROM Aplicaciones a2
+                WHERE a2.id_usuario = s.id_estudiante
+                AND a2.id_test = s.id_test
+                AND a2.completo = TRUE
+                AND a2.fecha_finalizacion >= s.fecha_ultima_sugerencia
+            ) THEN s.id_estudiante 
+        END) AS estudiantes_completaron,
+        MIN(s.fecha_sugerencia) AS primera_sugerencia,
+        MAX(s.fecha_ultima_sugerencia) AS ultima_sugerencia,
+        s.estado
+    FROM Sugerencias s
+    INNER JOIN Tests t ON s.id_test = t.id_test
+    INNER JOIN Usuarios u ON s.id_estudiante = u.id_usuario
+    INNER JOIN Usuario_Curso uc ON u.id_usuario = uc.id_usuario
+    INNER JOIN Cursos c ON uc.id_curso = c.id_curso
+    WHERE c.id_profesor = p_id_profesor
+        AND JSON_CONTAINS(s.profesores_ids, CAST(p_id_profesor AS CHAR), '$')
+    GROUP BY c.id_curso, c.nombre_curso, t.id_test, t.nombre, t.tipo_test, s.estado
+    ORDER BY ultima_sugerencia DESC
+    LIMIT p_limite;
+END //
+
+-- Procedimiento para obtener promedios por curso del profesor
+-- Útil para la tarjeta de "Cursos con niveles altos"
+DROP PROCEDURE IF EXISTS `sp_obtener_promedios_cursos_profesor` //
+CREATE PROCEDURE `sp_obtener_promedios_cursos_profesor`(
+    IN p_id_profesor INT
+)
+BEGIN
+    SELECT 
+        c.id_curso,
+        c.nombre_curso,
+        -- Promedio de estrés
+        (SELECT ROUND(AVG(a.puntuacion_total), 1)
+         FROM Aplicaciones a
+         JOIN Tests t ON a.id_test = t.id_test
+         JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+         WHERE uc.id_curso = c.id_curso
+           AND t.tipo_test = 'estres'
+           AND t.estado_test = 'activo'
+           AND a.completo = TRUE
+           AND a.fecha_finalizacion IS NOT NULL
+        ) AS promedio_estres,
+        -- Promedio de ansiedad
+        (SELECT ROUND(AVG(a.puntuacion_total), 1)
+         FROM Aplicaciones a
+         JOIN Tests t ON a.id_test = t.id_test
+         JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+         WHERE uc.id_curso = c.id_curso
+           AND t.tipo_test = 'ansiedad'
+           AND t.estado_test = 'activo'
+           AND a.completo = TRUE
+           AND a.fecha_finalizacion IS NOT NULL
+        ) AS promedio_ansiedad,
+        -- Conteo de estudiantes del curso
+        (SELECT COUNT(DISTINCT uc2.id_usuario)
+         FROM Usuario_Curso uc2
+         WHERE uc2.id_curso = c.id_curso
+        ) AS total_estudiantes,
+        -- Conteo de estudiantes con nivel alto o severo
+        (SELECT COUNT(DISTINCT a2.id_usuario)
+         FROM Aplicaciones a2
+         JOIN Usuario_Curso uc2 ON a2.id_usuario = uc2.id_usuario
+         WHERE uc2.id_curso = c.id_curso
+           AND a2.nivel_calculado IN ('alto', 'severo')
+           AND a2.completo = TRUE
+        ) AS estudiantes_riesgo
+    FROM Cursos c
+    WHERE c.id_profesor = p_id_profesor
+    ORDER BY 
+        GREATEST(
+            COALESCE((SELECT AVG(a.puntuacion_total)
+                     FROM Aplicaciones a
+                     JOIN Tests t ON a.id_test = t.id_test
+                     JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+                     WHERE uc.id_curso = c.id_curso
+                       AND t.tipo_test = 'estres'
+                       AND t.estado_test = 'activo'
+                       AND a.completo = TRUE), 0),
+            COALESCE((SELECT AVG(a.puntuacion_total)
+                     FROM Aplicaciones a
+                     JOIN Tests t ON a.id_test = t.id_test
+                     JOIN Usuario_Curso uc ON a.id_usuario = uc.id_usuario
+                     WHERE uc.id_curso = c.id_curso
+                       AND t.tipo_test = 'ansiedad'
+                       AND t.estado_test = 'activo'
+                       AND a.completo = TRUE), 0)
+        ) DESC
+    LIMIT 10;
+END //
+
+-- Procedimiento para obtener estadísticas por escuela/facultad del profesor
+-- Devuelve promedios agrupados por facultad para el gráfico de barras
+DROP PROCEDURE IF EXISTS `sp_obtener_metricas_facultades_profesor` //
+CREATE PROCEDURE `sp_obtener_metricas_facultades_profesor`(
+    IN p_id_profesor INT
+)
+BEGIN
+    SELECT 
+        e.id_escuela,
+        e.nombre_escuela,
+        -- Promedio de estrés en la facultad
+        ROUND(AVG(CASE WHEN t.tipo_test = 'estres' THEN a.puntuacion_total END), 1) AS avg_estres,
+        COUNT(DISTINCT CASE WHEN t.tipo_test = 'estres' THEN a.id_aplicacion END) AS count_estres,
+        -- Promedio de ansiedad en la facultad
+        ROUND(AVG(CASE WHEN t.tipo_test = 'ansiedad' THEN a.puntuacion_total END), 1) AS avg_ansiedad,
+        COUNT(DISTINCT CASE WHEN t.tipo_test = 'ansiedad' THEN a.id_aplicacion END) AS count_ansiedad
+    FROM Escuelas e
+    JOIN Cursos c ON c.id_escuela = e.id_escuela
+    JOIN Usuario_Curso uc ON uc.id_curso = c.id_curso
+    JOIN Aplicaciones a ON a.id_usuario = uc.id_usuario
+    JOIN Tests t ON a.id_test = t.id_test
+    WHERE c.id_profesor = p_id_profesor
+      AND a.completo = TRUE
+      AND a.fecha_finalizacion IS NOT NULL
+      AND t.estado_test = 'activo'
+      AND t.tipo_test IN ('estres', 'ansiedad')
+    GROUP BY e.id_escuela, e.nombre_escuela
+    ORDER BY e.nombre_escuela;
 END //

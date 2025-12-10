@@ -64,6 +64,32 @@ ON DUPLICATE KEY UPDATE
     `color_hex`=VALUES(`color_hex`),
     `orden`=VALUES(`orden`);
 
+-- ============================================
+-- ESTADÍSTICAS POBLACIONALES INICIALES
+-- ============================================
+-- Estas son estimaciones basadas en poblaciones universitarias típicas
+-- Se actualizarán automáticamente con sp_actualizar_estadisticas_poblacionales
+
+-- Estadísticas globales para ESTRÉS (basadas en escala 0-42 para 14 items × 3 pts)
+INSERT INTO `Estadisticas_Poblacionales` (`tipo_test`, `id_escuela`, `media`, `desviacion`, `n_muestral`, `activo`, `fecha_calculo`) VALUES
+('estres', NULL, 21.50, 8.30, 150, TRUE, NOW())
+ON DUPLICATE KEY UPDATE 
+    `media`=VALUES(`media`), 
+    `desviacion`=VALUES(`desviacion`),
+    `n_muestral`=VALUES(`n_muestral`),
+    `activo`=VALUES(`activo`),
+    `fecha_calculo`=VALUES(`fecha_calculo`);
+
+-- Estadísticas globales para ANSIEDAD (basadas en escala 0-42 para 14 items × 3 pts)
+INSERT INTO `Estadisticas_Poblacionales` (`tipo_test`, `id_escuela`, `media`, `desviacion`, `n_muestral`, `activo`, `fecha_calculo`) VALUES
+('ansiedad', NULL, 19.80, 9.10, 150, TRUE, NOW())
+ON DUPLICATE KEY UPDATE 
+    `media`=VALUES(`media`), 
+    `desviacion`=VALUES(`desviacion`),
+    `n_muestral`=VALUES(`n_muestral`),
+    `activo`=VALUES(`activo`),
+    `fecha_calculo`=VALUES(`fecha_calculo`);
+
 -- 1.2 Opciones de Respuesta (Escala Likert 0-3)
 INSERT INTO `Opciones_Respuesta` (`id_opcion`, `texto_opcion`, `valor_puntuacion`) VALUES
 (1, 'Nunca', 0),
@@ -548,45 +574,56 @@ VALUES
 -- ----------------------------------------------------------------
 -- We'll add applications for test 1 (Estrés) in Curso 1 and test 2 (Ansiedad) in Curso 2
 -- Dates span 2025-11-21 .. 2025-12-02 to create time series
+-- Aplicaciones con nuevo campo 'origen' y métricas psicométricas
 
-INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `fecha_aplicacion`, `puntuacion_total`, `resultado_nivel`) VALUES
+INSERT INTO `Aplicaciones` (`id_aplicacion`, `id_usuario`, `id_test`, `client_uuid`, `fecha_aplicacion`, `puntuacion_total`, `resultado_nivel`, `origen`, `completo`, `fecha_finalizacion`, `puntuacion_maxima`, `porcentaje_score`, `nivel_calculado`) VALUES
 -- 2025-11-21
-(11, 4, 1, 'uuid-011', '2025-11-21 09:10:00', 5, 'Bajo'),
-(12, 9, 2, 'uuid-012', '2025-11-21 10:30:00', 11, 'Moderado'),
+(11, 4, 1, 'uuid-011', '2025-11-21 09:10:00', 5, 'Bajo', 'estudiante_voluntario', TRUE, '2025-11-21 09:25:00', 42, 11.90, 'normal'),
+(12, 9, 2, 'uuid-012', '2025-11-21 10:30:00', 11, 'Moderado', 'profesor_sugerencia', TRUE, '2025-11-21 10:45:00', 42, 26.19, 'leve'),
 -- 2025-11-22
-(13, 5, 1, 'uuid-013', '2025-11-22 08:45:00', 8, 'Moderado'),
-(14, 10, 2, 'uuid-014', '2025-11-22 11:20:00', 4, 'Bajo'),
+(13, 5, 1, 'uuid-013', '2025-11-22 08:45:00', 8, 'Moderado', 'estudiante_voluntario', TRUE, '2025-11-22 09:00:00', 42, 19.05, 'normal'),
+(14, 10, 2, 'uuid-014', '2025-11-22 11:20:00', 4, 'Bajo', 'estudiante_voluntario', TRUE, '2025-11-22 11:35:00', 42, 9.52, 'normal'),
 -- 2025-11-23
-(15, 6, 1, 'uuid-015', '2025-11-23 13:05:00', 12, 'Alto'),
-(16, 11, 2, 'uuid-016', '2025-11-23 14:40:00', 9, 'Moderado'),
+(15, 6, 1, 'uuid-015', '2025-11-23 13:05:00', 12, 'Alto', 'profesor_sugerencia', TRUE, '2025-11-23 13:20:00', 42, 28.57, 'leve'),
+(16, 11, 2, 'uuid-016', '2025-11-23 14:40:00', 9, 'Moderado', 'estudiante_voluntario', TRUE, '2025-11-23 14:55:00', 42, 21.43, 'leve'),
 -- 2025-11-24
-(17, 7, 1, 'uuid-017', '2025-11-24 09:50:00', 7, 'Moderado'),
-(18, 12, 2, 'uuid-018', '2025-11-24 10:15:00', 2, 'Bajo'),
+(17, 7, 1, 'uuid-017', '2025-11-24 09:50:00', 7, 'Moderado', 'estudiante_voluntario', TRUE, '2025-11-24 10:05:00', 42, 16.67, 'normal'),
+(18, 12, 2, 'uuid-018', '2025-11-24 10:15:00', 2, 'Bajo', 'estudiante_voluntario', TRUE, '2025-11-24 10:30:00', 42, 4.76, 'normal'),
 -- 2025-11-25
-(19, 8, 1, 'uuid-019', '2025-11-25 15:30:00', 14, 'Alto'),
-(20, 13, 2, 'uuid-020', '2025-11-25 16:45:00', 13, 'Alto'),
+(19, 8, 1, 'uuid-019', '2025-11-25 15:30:00', 14, 'Alto', 'profesor_sugerencia', TRUE, '2025-11-25 15:45:00', 42, 33.33, 'leve'),
+(20, 13, 2, 'uuid-020', '2025-11-25 16:45:00', 13, 'Alto', 'estudiante_voluntario', TRUE, '2025-11-25 17:00:00', 42, 30.95, 'leve'),
 -- 2025-11-26
-(21, 4, 1, 'uuid-021', '2025-11-26 09:05:00', 6, 'Bajo'),
-(22, 9, 2, 'uuid-022', '2025-11-26 11:10:00', 10, 'Moderado'),
+(21, 4, 1, 'uuid-021', '2025-11-26 09:05:00', 6, 'Bajo', 'estudiante_voluntario', TRUE, '2025-11-26 09:20:00', 42, 14.29, 'normal'),
+(22, 9, 2, 'uuid-022', '2025-11-26 11:10:00', 10, 'Moderado', 'estudiante_voluntario', TRUE, '2025-11-26 11:25:00', 42, 23.81, 'leve'),
 -- 2025-11-27
-(23, 5, 1, 'uuid-023', '2025-11-27 08:30:00', 9, 'Moderado'),
-(24, 10, 2, 'uuid-024', '2025-11-27 12:00:00', 5, 'Bajo'),
+(23, 5, 1, 'uuid-023', '2025-11-27 08:30:00', 9, 'Moderado', 'estudiante_voluntario', TRUE, '2025-11-27 08:45:00', 42, 21.43, 'leve'),
+(24, 10, 2, 'uuid-024', '2025-11-27 12:00:00', 5, 'Bajo', 'estudiante_voluntario', TRUE, '2025-11-27 12:15:00', 42, 11.90, 'normal'),
 -- 2025-11-28
-(25, 6, 1, 'uuid-025', '2025-11-28 14:20:00', 11, 'Alto'),
-(26, 11, 2, 'uuid-026', '2025-11-28 15:55:00', 7, 'Moderado'),
+(25, 6, 1, 'uuid-025', '2025-11-28 14:20:00', 11, 'Alto', 'estudiante_voluntario', TRUE, '2025-11-28 14:35:00', 42, 26.19, 'leve'),
+(26, 11, 2, 'uuid-026', '2025-11-28 15:55:00', 7, 'Moderado', 'profesor_sugerencia', TRUE, '2025-11-28 16:10:00', 42, 16.67, 'leve'),
 -- 2025-11-29
-(27, 7, 1, 'uuid-027', '2025-11-29 09:40:00', 4, 'Bajo'),
-(28, 12, 2, 'uuid-028', '2025-11-29 10:50:00', 3, 'Bajo'),
+(27, 7, 1, 'uuid-027', '2025-11-29 09:40:00', 4, 'Bajo', 'estudiante_voluntario', TRUE, '2025-11-29 09:55:00', 42, 9.52, 'normal'),
+(28, 12, 2, 'uuid-028', '2025-11-29 10:50:00', 3, 'Bajo', 'estudiante_voluntario', TRUE, '2025-11-29 11:05:00', 42, 7.14, 'normal'),
 -- 2025-11-30
-(29, 8, 1, 'uuid-029', '2025-11-30 16:10:00', 13, 'Alto'),
-(30, 13, 2, 'uuid-030', '2025-11-30 17:25:00', 12, 'Alto'),
+(29, 8, 1, 'uuid-029', '2025-11-30 16:10:00', 13, 'Alto', 'estudiante_voluntario', TRUE, '2025-11-30 16:25:00', 42, 30.95, 'leve'),
+(30, 13, 2, 'uuid-030', '2025-11-30 17:25:00', 12, 'Alto', 'estudiante_voluntario', TRUE, '2025-11-30 17:40:00', 42, 28.57, 'leve'),
 -- 2025-12-01
-(31, 4, 1, 'uuid-031', '2025-12-01 09:00:00', 8, 'Moderado'),
-(32, 9, 2, 'uuid-032', '2025-12-01 11:30:00', 6, 'Moderado'),
+(31, 4, 1, 'uuid-031', '2025-12-01 09:00:00', 8, 'Moderado', 'estudiante_voluntario', TRUE, '2025-12-01 09:15:00', 42, 19.05, 'normal'),
+(32, 9, 2, 'uuid-032', '2025-12-01 11:30:00', 6, 'Moderado', 'estudiante_voluntario', TRUE, '2025-12-01 11:45:00', 42, 14.29, 'normal'),
 -- 2025-12-02
-(33, 5, 1, 'uuid-033', '2025-12-02 08:15:00', 10, 'Moderado'),
-(34, 10, 2, 'uuid-034', '2025-12-02 12:45:00', 2, 'Bajo')
-ON DUPLICATE KEY UPDATE client_uuid=VALUES(client_uuid), puntuacion_total=VALUES(puntuacion_total), resultado_nivel=VALUES(resultado_nivel), fecha_aplicacion=VALUES(fecha_aplicacion);
+(33, 5, 1, 'uuid-033', '2025-12-02 08:15:00', 10, 'Moderado', 'profesor_sugerencia', TRUE, '2025-12-02 08:30:00', 42, 23.81, 'leve'),
+(34, 10, 2, 'uuid-034', '2025-12-02 12:45:00', 2, 'Bajo', 'estudiante_voluntario', TRUE, '2025-12-02 13:00:00', 42, 4.76, 'normal')
+ON DUPLICATE KEY UPDATE 
+    client_uuid=VALUES(client_uuid), 
+    puntuacion_total=VALUES(puntuacion_total), 
+    resultado_nivel=VALUES(resultado_nivel), 
+    fecha_aplicacion=VALUES(fecha_aplicacion),
+    origen=VALUES(origen),
+    completo=VALUES(completo),
+    fecha_finalizacion=VALUES(fecha_finalizacion),
+    puntuacion_maxima=VALUES(puntuacion_maxima),
+    porcentaje_score=VALUES(porcentaje_score),
+    nivel_calculado=VALUES(nivel_calculado);
 
 -- Notificaciones de ejemplo para usuarios
 INSERT INTO `Notificaciones` (`id_usuario`, `titulo`, `mensaje`, `tipo`, `estado`, `fecha_creacion`) VALUES

@@ -140,7 +140,8 @@ CREATE TABLE `Aplicaciones` (
     `completo` BOOLEAN DEFAULT TRUE COMMENT 'Siempre TRUE (formulario valida 100% respuestas)',
     `es_primera_aplicacion` BOOLEAN DEFAULT FALSE COMMENT 'TRUE si es la primera del tipo_test',
     
-    -- Metadatos
+    -- Metadatos de origen
+    `origen` ENUM('estudiante_voluntario','profesor_sugerencia','sistema_automatico') DEFAULT 'estudiante_voluntario' COMMENT 'Origen de la aplicación del test',
     `fecha_finalizacion` DATETIME NULL COMMENT 'Fecha de finalización del test',
     `notas_calculo` TEXT NULL COMMENT 'Log breve de cálculos: baremo usado, z-score, flags especiales',
     
