@@ -93,16 +93,32 @@ class CitasController {
     // ========================================
 
     /**
-     * API Admin: GET citas por fecha
-     * Query params: ?fecha=YYYY-MM-DD
+     * API Admin: GET citas por fecha o rango
+     * Query params: ?fecha=YYYY-MM-DD o ?desde=YYYY-MM-DD&hasta=YYYY-MM-DD
      */
     public function handleApiAdminGet(): void {
         header('Content-Type: application/json');
-        
         try {
-            $fecha = $_GET['fecha'] ?? date('Y-m-d');
-            $citas = $this->getCitasPorFecha($fecha);
-            
+            $conn = Database::getInstance()->getConnection();
+            $citas = [];
+            if (isset($_GET['desde']) && isset($_GET['hasta'])) {
+                // Rango de fechas
+                $desde = $_GET['desde'];
+                $hasta = $_GET['hasta'];
+                $stmt = $conn->prepare('
+                    SELECT c.id_cita, c.fecha_cita, c.motivo, c.estado, u.nombre, u.apellido
+                    FROM Citas c
+                    JOIN Usuarios u ON c.id_alumno = u.id_usuario
+                    WHERE DATE(c.fecha_cita) BETWEEN ? AND ?
+                    ORDER BY c.fecha_cita ASC
+                ');
+                $stmt->execute([$desde, $hasta]);
+                $citas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } else {
+                // Solo una fecha
+                $fecha = $_GET['fecha'] ?? date('Y-m-d');
+                $citas = $this->getCitasPorFecha($fecha);
+            }
             // Formatear para FullCalendar
             $citasFormateadas = [];
             foreach ($citas as $row) {
@@ -114,9 +130,7 @@ class CitasController {
                     'estado' => $row['estado']
                 ];
             }
-            
             echo json_encode($citasFormateadas);
-            
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Error al obtener citas: ' . $e->getMessage()]);

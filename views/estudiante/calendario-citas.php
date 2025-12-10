@@ -14,6 +14,7 @@ require_once __DIR__ . '/../../utils/asset-version.php';
 		<button id="btn-hoy" class="citas-btn info">Hoy</button>
 	</div>
 	<div class="citas-calendar">
+		<!-- Título y botones de mes eliminados para estudiante -->
 		<div id="calendar"></div>
 	</div>
 	<div class="citas-details" id="citas-details">
@@ -80,18 +81,23 @@ function fetchCitas() {
 }
 
 function renderCalendar(events) {
+	// Agrupar por día y contar citas
+	const conteoPorDia = {};
+	events.forEach(cita => {
+		const fecha = cita.fecha_cita.slice(0, 10);
+		conteoPorDia[fecha] = (conteoPorDia[fecha] || 0) + 1;
+	});
+	const eventos = Object.entries(conteoPorDia).map(([fecha, cantidad]) => ({
+		title: cantidad + ' cita' + (cantidad > 1 ? 's' : ''),
+		start: fecha
+	}));
 	const calendar = new FullCalendar.Calendar(calendarEl, {
 		initialView: 'dayGridMonth',
 		locale: 'es',
 		height: 600,
 		contentHeight: 600,
 		aspectRatio: 1.7,
-		events: events.map(cita => ({
-			id: cita.id_cita,
-			title: cita.motivo,
-			start: cita.fecha_cita,
-			estado: cita.estado
-		})),
+		events: eventos,
 		eventClick: function(info) {
 			resaltarDia(info.event.start);
 			mostrarCitasDelDia(info.event.start);
@@ -115,6 +121,18 @@ function resaltarDia(fecha) {
 }
 
 function mostrarCitasDelDia(fecha) {
+	if (!fecha) {
+		// Mostrar todas las citas del mes actual
+		const hoy = new Date();
+		const mes = hoy.getMonth() + 1;
+		const anio = hoy.getFullYear();
+		const primerDia = `${anio}-${mes.toString().padStart(2, '0')}-01`;
+		const ultimoDia = new Date(anio, mes, 0).getDate();
+		const ultimoDiaStr = `${anio}-${mes.toString().padStart(2, '0')}-${ultimoDia}`;
+		const citasMes = eventosCitas.filter(c => c.fecha_cita >= primerDia && c.fecha_cita <= ultimoDiaStr);
+		renderCitasFiltradas(citasMes);
+		return;
+	}
 	const dia = fecha.toISOString().slice(0, 10);
 	const citasDia = eventosCitas.filter(c => c.fecha_cita.startsWith(dia));
 	renderCitasFiltradas(citasDia);
@@ -216,10 +234,8 @@ function cargarCitas() {
 	fetchCitas().then(citas => {
 		eventosCitas = citas;
 		renderCalendar(citas);
-		// Mostrar citas del día actual
-		const hoy = new Date();
-		resaltarDia(hoy);
-		mostrarCitasDelDia(hoy);
+		// Mostrar todas las citas del mes al cargar (sin selección)
+		mostrarCitasDelDia(null);
 	});
 }
 
