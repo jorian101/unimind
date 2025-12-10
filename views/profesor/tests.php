@@ -67,10 +67,12 @@ renderPageHeader();
 <script>
 let testSeleccionado = null;
 let cursosDisponibles = [];
+let restriccionesPorCurso = {}; // Map: id_curso -> array de id_test restringidos
 
 document.addEventListener('DOMContentLoaded', function() {
     cargarTests();
     cargarCursosProfesor();
+    cargarRestricciones();
 });
 
 /**
@@ -300,6 +302,31 @@ async function cargarCursosProfesor() {
 }
 
 /**
+ * Cargar restricciones de tests (tests que no se pueden sugerir en el próximo mes)
+ */
+async function cargarRestricciones() {
+    try {
+        const base = window.UNIMIND_BASE || '';
+        const baseUrl = window.location.origin && window.location.origin !== 'null'
+            ? window.location.origin + base
+            : base;
+
+        const url = `${baseUrl}/api/tests-restricciones.php`;
+        const resp = await fetch(url, { credentials: 'include' });
+        
+        if (resp && resp.ok) {
+            const json = await resp.json();
+            if (json && json.success && json.data) {
+                restriccionesPorCurso = json.data;
+                console.log('Restricciones cargadas:', restriccionesPorCurso);
+            }
+        }
+    } catch (error) {
+        console.error('Error al cargar restricciones:', error);
+    }
+}
+
+/**
  * Abrir modal para sugerir test
  */
 function abrirModalSugerir(idTest, nombreTest, descripcionTest) {
@@ -309,13 +336,39 @@ function abrirModalSugerir(idTest, nombreTest, descripcionTest) {
     document.getElementById('testNombreModal').textContent = nombreTest;
     document.getElementById('testDescripcionModal').textContent = descripcionTest || 'Sin descripción';
     
-    // Cargar cursos en el select
+    // Cargar cursos en el select, filtrando los que tienen restricción para este test
     const selectCurso = document.getElementById('selectCurso');
     if (cursosDisponibles.length > 0) {
-        selectCurso.innerHTML = '<option value="">Selecciona un curso...</option>' +
-            cursosDisponibles.map(curso => 
-                `<option value="${curso.id_curso}">${escapeHtml(curso.nombre_curso)}</option>`
-            ).join('');
+        let opciones = '<option value="">Selecciona un curso...</option>';
+        
+        cursosDisponibles.forEach(curso => {
+            const idCurso = curso.id_curso;
+            const restricciones = restriccionesPorCurso[idCurso];
+            
+            // Verificar si este test está restringido para este curso
+            let testRestringido = false;
+            let diasRestantes = 0;
+            
+            if (restricciones && restricciones.tests_restringidos) {
+                const restriccionTest = restricciones.tests_restringidos.find(r => r.id_test == idTest);
+                if (restriccionTest) {
+                    testRestringido = true;
+                    diasRestantes = restriccionTest.dias_restantes;
+                }
+            }
+            
+            if (testRestringido) {
+                // Curso con restricción: deshabilitado y con tooltip
+                opciones += `<option value="${idCurso}" disabled title="Ya sugeriste este test hace menos de 1 mes. Espera ${diasRestantes} días más.">
+                    ${escapeHtml(curso.nombre_curso)} (Disponible en ${diasRestantes} días)
+                </option>`;
+            } else {
+                // Curso disponible
+                opciones += `<option value="${idCurso}">${escapeHtml(curso.nombre_curso)}</option>`;
+            }
+        });
+        
+        selectCurso.innerHTML = opciones;
     } else {
         selectCurso.innerHTML = '<option value="">No hay cursos asignados</option>';
     }
@@ -375,11 +428,30 @@ async function confirmarSugerencia() {
                 'success'
             );
             cerrarModalSugerir();
+            // Recargar restricciones después de sugerir
+            await cargarRestricciones();
         } else {
-            mostrarNotificacion(
-                'Error: ' + (result.message || 'No se pudo sugerir el test'),
-                'error'
-            );
+            // Manejo especial para error de restricción temporal
+            if (result.error_code === 'RESTRICCION_TEMPORAL') {
+                const diasRestantes = result.data?.dias_restantes || 0;
+                const puedeDesde = result.data?.puede_sugerir_desde || '';
+                
+                let mensajeDetallado = `No puedes sugerir este test al curso seleccionado hasta que pase 1 mes desde la última sugerencia.`;
+                if (diasRestantes > 0) {
+                    mensajeDetallado += ` Faltan ${diasRestantes} día(s).`;
+                }
+                if (puedeDesde) {
+                    const fechaFormateada = new Date(puedeDesde).toLocaleDateString('es-ES');
+                    mensajeDetallado += ` Podrás sugerirlo nuevamente desde el ${fechaFormateada}.`;
+                }
+                
+                mostrarNotificacion(mensajeDetallado, 'warning');
+            } else {
+                mostrarNotificacion(
+                    'Error: ' + (result.message || 'No se pudo sugerir el test'),
+                    'error'
+                );
+            }
         }
     } catch (error) {
         console.error('Error al sugerir test:', error);

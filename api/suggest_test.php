@@ -104,6 +104,23 @@ try {
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $stmt->closeCursor();
 
+    // Verificar si hay error de restricción temporal (1 mes)
+    if (isset($result['Mensaje']) && $result['Mensaje'] === 'ERROR_RESTRICCION_TEMPORAL') {
+        http_response_code(400);
+        $dias_restantes = isset($result['dias_restantes']) ? (int)$result['dias_restantes'] : 0;
+        $puede_sugerir_desde = isset($result['puede_sugerir_desde']) ? $result['puede_sugerir_desde'] : '';
+        
+        $response['success'] = false;
+        $response['message'] = "No puedes sugerir el mismo test al mismo curso hasta que pase 1 mes desde la última sugerencia.";
+        $response['error_code'] = 'RESTRICCION_TEMPORAL';
+        $response['data'] = [
+            'dias_restantes' => $dias_restantes,
+            'puede_sugerir_desde' => $puede_sugerir_desde
+        ];
+        echo json_encode($response);
+        exit;
+    }
+
     $count = isset($result['estudiantes_afectados']) ? (int)$result['estudiantes_afectados'] : 0;
 
     $response['success'] = true;

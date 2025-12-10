@@ -501,9 +501,36 @@ CREATE PROCEDURE sp_sugerir_test(
     IN p_id_test INT,
     IN p_id_profesor INT
 )
-BEGIN
+sp_sugerir_test_label: BEGIN
     DECLARE v_estudiantes_afectados INT DEFAULT 0;
     DECLARE v_estudiantes_reusados INT DEFAULT 0;
+    DECLARE v_ultima_sugerencia_fecha DATETIME;
+    DECLARE v_dias_desde_ultima INT;
+
+    -- Verificar si existe una sugerencia del mismo test al mismo curso en el último mes
+    SELECT MAX(fecha_sugerencia) INTO v_ultima_sugerencia_fecha
+    FROM Sugerencias_Curso
+    WHERE id_curso = p_id_curso 
+      AND id_test = p_id_test
+      AND fecha_sugerencia >= DATE_SUB(NOW(), INTERVAL 1 MONTH);
+    
+    -- Si existe una sugerencia reciente (menos de 30 días), retornar error
+    IF v_ultima_sugerencia_fecha IS NOT NULL THEN
+        SET v_dias_desde_ultima = DATEDIFF(NOW(), v_ultima_sugerencia_fecha);
+        
+        -- Retornar mensaje de error con información de cuándo puede volver a sugerir
+        SELECT 
+            'ERROR_RESTRICCION_TEMPORAL' AS Mensaje,
+            0 AS estudiantes_afectados,
+            v_dias_desde_ultima AS dias_desde_ultima_sugerencia,
+            (30 - v_dias_desde_ultima) AS dias_restantes,
+            DATE_ADD(v_ultima_sugerencia_fecha, INTERVAL 1 MONTH) AS puede_sugerir_desde;
+        LEAVE sp_sugerir_test_label;
+    END IF;
+
+    -- Registrar la sugerencia a nivel de curso
+    INSERT INTO Sugerencias_Curso (id_curso, id_test, id_profesor, fecha_sugerencia)
+    VALUES (p_id_curso, p_id_test, p_id_profesor, NOW());
 
     -- Insertar o actualizar sugerencias para todos los estudiantes del curso
     -- Utiliza INSERT ... ON DUPLICATE KEY UPDATE para manejar sugerencias nuevas y existentes

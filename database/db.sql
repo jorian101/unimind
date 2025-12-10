@@ -194,6 +194,20 @@ CREATE TABLE IF NOT EXISTS `Sugerencias` (
     UNIQUE KEY `uk_estudiante_test` (`id_estudiante`, `id_test`)
 );
 
+-- Tabla para controlar las sugerencias a nivel de curso (restricción de 1 mes)
+-- Registra cada vez que un profesor sugiere un test a un curso completo
+CREATE TABLE IF NOT EXISTS `Sugerencias_Curso` (
+    `id_sugerencia_curso` INT AUTO_INCREMENT PRIMARY KEY,
+    `id_curso` INT NOT NULL,
+    `id_test` INT NOT NULL,
+    `id_profesor` INT NOT NULL,
+    `fecha_sugerencia` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`id_curso`) REFERENCES `Cursos`(`id_curso`) ON DELETE CASCADE,
+    FOREIGN KEY (`id_test`) REFERENCES `Tests`(`id_test`) ON DELETE CASCADE,
+    FOREIGN KEY (`id_profesor`) REFERENCES `Usuarios`(`id_usuario`) ON DELETE CASCADE,
+    INDEX `idx_curso_test_fecha` (`id_curso`, `id_test`, `fecha_sugerencia`)
+);
+
 -- Tabla para registrar intentos de sincronización desde PWA
 CREATE TABLE IF NOT EXISTS `sync_logs` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
