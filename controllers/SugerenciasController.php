@@ -131,11 +131,18 @@ class SugerenciasController {
         
         try {
             $sugerencias = $this->getSugerenciasProfesor($profesorId);
-            echo json_encode(['sugerencias' => $sugerencias, 'Mensaje' => 'Sugerencias obtenidas correctamente']);
+            echo json_encode([
+                'success' => true,
+                'data' => $sugerencias,
+                'message' => 'Sugerencias obtenidas correctamente'
+            ]);
             
         } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode(['error' => 'Error al obtener sugerencias: ' . $e->getMessage()]);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Error al obtener sugerencias: ' . $e->getMessage()
+            ]);
         }
     }
 
@@ -150,7 +157,10 @@ class SugerenciasController {
             
             if (!isset($payload['id_sugerencia'])) {
                 http_response_code(400);
-                echo json_encode(['error' => 'ID de sugerencia no proporcionado']);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'ID de sugerencia no proporcionado'
+                ]);
                 return;
             }
             
@@ -168,7 +178,10 @@ class SugerenciasController {
             
             if (!$sugerencia) {
                 http_response_code(404);
-                echo json_encode(['error' => 'Sugerencia no encontrada']);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Sugerencia no encontrada'
+                ]);
                 return;
             }
             
@@ -178,7 +191,10 @@ class SugerenciasController {
             // Verificar que el profesor actual esté en la lista
             if (!in_array($profesorId, $profesores_ids)) {
                 http_response_code(403);
-                echo json_encode(['error' => 'No autorizado para eliminar esta sugerencia']);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'No autorizado para eliminar esta sugerencia'
+                ]);
                 return;
             }
             
@@ -187,7 +203,10 @@ class SugerenciasController {
                 $stmt = $conn->prepare("DELETE FROM Sugerencias WHERE id_sugerencia = ?");
                 $stmt->execute([$id_sugerencia]);
                 
-                echo json_encode(['Mensaje' => 'Sugerencia eliminada completamente']);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Sugerencia eliminada completamente'
+                ]);
             } else {
                 // Si hay múltiples profesores, solo remover este profesor de los arrays
                 $nuevos_profesores = array_values(array_filter($profesores_ids, fn($id) => $id != $profesorId));
@@ -210,12 +229,18 @@ class SugerenciasController {
                     $id_sugerencia
                 ]);
                 
-                echo json_encode(['Mensaje' => 'Tu sugerencia fue removida. Otros profesores aún tienen este test sugerido.']);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Tu sugerencia fue removida. Otros profesores aún tienen este test sugerido.'
+                ]);
             }
             
         } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode(['error' => 'Error al eliminar sugerencia: ' . $e->getMessage()]);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Error al eliminar sugerencia: ' . $e->getMessage()
+            ]);
         }
     }
 
@@ -244,6 +269,9 @@ class SugerenciasController {
         // Acción no válida
         http_response_code(400);
         header('Content-Type: application/json');
-        echo json_encode(['error' => 'Acción no válida']);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Acción no válida'
+        ]);
     }
 }
