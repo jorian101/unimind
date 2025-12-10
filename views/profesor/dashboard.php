@@ -67,6 +67,10 @@ window.UnimindData.tests = <?php echo json_encode(['estres' => intval($test_ids[
                         <p style="margin:4px 0 0 0; color:#6b7280;">Cursos que requieren atención prioritaria</p>
                     </div>
                 </div>
+                <div id="riskSummary" style="margin-top:12px; padding:8px; background:#fef2f2; border-radius:6px; display:none;">
+                    <div style="font-size:1.5rem; font-weight:700; color:#dc2626;"><span id="totalRiskCount">0</span></div>
+                    <div style="font-size:0.8rem; color:#6b7280;">estudiantes en riesgo</div>
+                </div>
                 <div style="margin-top:12px; text-align:right;"><button id="openHighLevelsModal" class="btn btn-link" style="color:#b91c1c; text-decoration:none; background:none; border:none; cursor:pointer;">Ver detalles</button></div>
             </div>
         </div>
@@ -97,7 +101,31 @@ window.UnimindData.tests = <?php echo json_encode(['estres' => intval($test_ids[
             </div>
         </div>
 
-        <!-- Botón 'Administrar tests' eliminado por solicitud -->
+        <!-- Historial de Sugerencias -->
+        <div class="card" style="background:#fff; border-radius:12px; padding:18px; box-shadow:0 2px 12px #0001; margin-bottom:28px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h2 style="margin:0; color:#111827; font-size:1.1rem;">Historial de Sugerencias</h2>
+                <button id="refreshHistorialBtn" class="btn btn-secondary" style="padding:6px 12px; border-radius:8px; font-size:0.9rem;">Refrescar</button>
+            </div>
+            <div id="historialTableWrap" style="overflow-x:auto;">
+                <table id="historialTable" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                    <thead>
+                        <tr style="background:#f3f4f6;">
+                            <th style="padding:8px; text-align:left;">Curso</th>
+                            <th style="padding:8px; text-align:left;">Test</th>
+                            <th style="padding:8px; text-align:center;">Estudiantes Sugeridos</th>
+                            <th style="padding:8px; text-align:center;">Completaron</th>
+                            <th style="padding:8px; text-align:center;">Tasa Completitud</th>
+                            <th style="padding:8px; text-align:center;">Estado</th>
+                            <th style="padding:8px; text-align:left;">Última Sugerencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="7" style="padding:12px; text-align:center; color:#888;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -145,6 +173,8 @@ window.UnimindData.tests = <?php echo json_encode(['estres' => intval($test_ids[
                 <thead>
                     <tr style="background:#f3f4f6;">
                         <th style="padding:8px; text-align:left;">Curso</th>
+                        <th style="padding:8px; text-align:center;">Estudiantes</th>
+                        <th style="padding:8px; text-align:center;">En Riesgo</th>
                         <th style="padding:8px; text-align:center;">Promedio Estrés</th>
                         <th style="padding:8px; text-align:center;">Promedio Ansiedad</th>
                     </tr>
@@ -165,6 +195,56 @@ window.UnimindData.tests = <?php echo json_encode(['estres' => intval($test_ids[
 document.getElementById('refreshDashboardBtn').addEventListener('click', function() {
     window.location.reload();
 });
+
+// Cargar historial de sugerencias
+function loadHistorial() {
+    const table = document.getElementById('historialTable');
+    if (!table) return;
+    
+    fetch('api/prof_historial.php?limite=10')
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success || !data.data) {
+                table.querySelector('tbody').innerHTML = '<tr><td colspan="7" style="padding:12px; text-align:center; color:#888;">No hay datos disponibles</td></tr>';
+                return;
+            }
+            
+            const rows = data.data.map(item => {
+                const tasa = parseFloat(item.tasa_completitud || 0);
+                const tasaColor = tasa >= 70 ? '#059669' : (tasa >= 40 ? '#f59e0b' : '#dc2626');
+                const estadoBadge = item.estado === 'pendiente' 
+                    ? '<span style="background:#fef3c7; color:#92400e; padding:2px 8px; border-radius:4px; font-size:0.8rem;">Pendiente</span>'
+                    : '<span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:4px; font-size:0.8rem;">Visto</span>';
+                    
+                return `<tr style="border-bottom:1px solid #e5e7eb;">
+                    <td style="padding:8px;">${item.nombre_curso || '-'}</td>
+                    <td style="padding:8px;">${item.nombre_test || '-'}</td>
+                    <td style="padding:8px; text-align:center;">${item.estudiantes_sugeridos || 0}</td>
+                    <td style="padding:8px; text-align:center;">${item.estudiantes_completaron || 0}</td>
+                    <td style="padding:8px; text-align:center;">
+                        <span style="font-weight:600; color:${tasaColor};">${tasa.toFixed(1)}%</span>
+                    </td>
+                    <td style="padding:8px; text-align:center;">${estadoBadge}</td>
+                    <td style="padding:8px;">${item.ultima_sugerencia ? new Date(item.ultima_sugerencia).toLocaleDateString('es-ES', {year: 'numeric', month: 'short', day: 'numeric'}) : '-'}</td>
+                </tr>`;
+            }).join('');
+            
+            table.querySelector('tbody').innerHTML = rows || '<tr><td colspan="7" style="padding:12px; text-align:center; color:#888;">No hay sugerencias registradas</td></tr>';
+        })
+        .catch(err => {
+            console.error('Error cargando historial:', err);
+            table.querySelector('tbody').innerHTML = '<tr><td colspan="7" style="padding:12px; text-align:center; color:#dc2626;">Error al cargar datos</td></tr>';
+        });
+}
+
+// Cargar al inicio
+document.addEventListener('DOMContentLoaded', loadHistorial);
+
+// Botón refrescar historial
+const refreshHistorialBtn = document.getElementById('refreshHistorialBtn');
+if (refreshHistorialBtn) {
+    refreshHistorialBtn.addEventListener('click', loadHistorial);
+}
 </script>
 <script>
 // High Levels Modal logic
@@ -185,22 +265,44 @@ function showHighLevelsModal() {
             if (!data.success || !data.top_courses) {
                 highLevelsMsg.textContent = 'No se pudo obtener los datos.';
                 highLevelsMsg.style.display = 'block';
-                highLevelsTable.querySelector('tbody').innerHTML = '<tr><td colspan="3" style="padding:12px; text-align:center; color:#888;">Sin datos</td></tr>';
+                highLevelsTable.querySelector('tbody').innerHTML = '<tr><td colspan="5" style="padding:12px; text-align:center; color:#888;">Sin datos</td></tr>';
                 return;
             }
-            const rows = data.top_courses.map(row =>
-                `<tr>
-                    <td style=\"padding:8px;\">${row.nombre_curso}</td>
-                    <td style=\"padding:8px; text-align:center; color:#6366f1; font-weight:600;\">${row.promedio_estres ?? '-'}</td>
-                    <td style=\"padding:8px; text-align:center; color:#7c3aed; font-weight:600;\">${row.promedio_ansiedad ?? '-'}</td>
-                </tr>`
-            ).join('');
-            highLevelsTable.querySelector('tbody').innerHTML = rows || '<tr><td colspan="3" style="padding:12px; text-align:center; color:#888;">Sin datos</td></tr>';
+            
+            // Calcular total de estudiantes en riesgo
+            let totalRiesgo = 0;
+            data.top_courses.forEach(row => {
+                totalRiesgo += parseInt(row.estudiantes_riesgo || 0);
+            });
+            
+            // Actualizar el resumen en la tarjeta principal
+            const riskSummary = document.getElementById('riskSummary');
+            const totalRiskCount = document.getElementById('totalRiskCount');
+            if (riskSummary && totalRiskCount) {
+                totalRiskCount.textContent = totalRiesgo;
+                riskSummary.style.display = totalRiesgo > 0 ? 'block' : 'none';
+            }
+            
+            const rows = data.top_courses.map(row => {
+                const riesgo = parseInt(row.estudiantes_riesgo || 0);
+                const total = parseInt(row.total_estudiantes || 0);
+                const pctRiesgo = total > 0 ? Math.round((riesgo / total) * 100) : 0;
+                const riesgoColor = pctRiesgo > 30 ? '#dc2626' : (pctRiesgo > 15 ? '#f59e0b' : '#6b7280');
+                
+                return `<tr>
+                    <td style="padding:8px;">${row.nombre_curso}</td>
+                    <td style="padding:8px; text-align:center;">${total}</td>
+                    <td style="padding:8px; text-align:center; color:${riesgoColor}; font-weight:600;">${riesgo} (${pctRiesgo}%)</td>
+                    <td style="padding:8px; text-align:center; color:#6366f1; font-weight:600;">${row.promedio_estres ?? '-'}</td>
+                    <td style="padding:8px; text-align:center; color:#7c3aed; font-weight:600;">${row.promedio_ansiedad ?? '-'}</td>
+                </tr>`;
+            }).join('');
+            highLevelsTable.querySelector('tbody').innerHTML = rows || '<tr><td colspan="5" style="padding:12px; text-align:center; color:#888;">Sin datos</td></tr>';
         })
         .catch(() => {
             highLevelsMsg.textContent = 'Error al consultar los datos.';
             highLevelsMsg.style.display = 'block';
-            highLevelsTable.querySelector('tbody').innerHTML = '<tr><td colspan="3" style="padding:12px; text-align:center; color:#888;">Sin datos</td></tr>';
+            highLevelsTable.querySelector('tbody').innerHTML = '<tr><td colspan="5" style="padding:12px; text-align:center; color:#888;">Sin datos</td></tr>';
         });
 }
 
