@@ -20,7 +20,7 @@
   background: var(--bg-100, #fff);
   border-radius: 14px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  padding: 1.5rem 1.25rem 1.25rem 1.25rem;
   position: relative;
   min-width: 260px;
   max-width: 98vw;
@@ -66,15 +66,15 @@
 
 /* Modal Form Styles */
 #form-cita div {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   display: flex;
   flex-direction: column;
 }
 #form-cita label {
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
   font-weight: 600;
   color: var(--pri-500, #333);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 #form-cita input[type="text"],
 #form-cita input[type="datetime-local"],
@@ -82,7 +82,7 @@
   padding: 0.6rem 0.9rem;
   border: 1px solid var(--bg-500, #ddd);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--pri-500, #333);
   background: var(--bg-100, #fff);
   font-family: inherit;
@@ -102,19 +102,10 @@
 }
 /* CSS específico para views/administrador/citas.php */
 @import url("../../public/css/theme.css");
-
-/* Use a subtle page background so the white cards stand out */
-body {
-  background-color: var(--bg-300);
-  font-family: var(--font);
-}
 .admin-citas-container {
   /* Match tests container: no rounded card, full-width center, same background */
   color: var(--pri-500);
-  width: calc(100% - 48px);
   max-width: 1400px;
-  margin: 24px auto;
-  padding: 1.5rem;
   background: var(--bg-100);
   min-height: calc(100vh - 80px);
 }
@@ -128,8 +119,8 @@ body {
   flex-wrap: wrap;
 }
 .header-content h1 {
-  font-size: calc(1.25rem + 0.9vw);
-  margin: 0;
+  font-size: calc(1.4rem + 0.8vw);
+  margin: 0 0 0.25rem 0;
   color: var(--pri-500);
   font-weight: 700;
 }
@@ -141,10 +132,10 @@ body {
 /* Filters area similar to tests' filters-section */
 .filters-section {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
   align-items: center;
-  padding: 0.9rem;
+  padding: 0.75rem;
   border-radius: 10px;
   border: 1px solid var(--bg-500);
   background: var(--bg-100);
@@ -156,16 +147,19 @@ body {
 }
 .filters-section select,
 .filters-section input[type="text"] {
-  padding: 8px 12px;
+  padding: 0.6rem 0.9rem;
   border-radius: 8px;
   border: 1px solid var(--bg-500);
   background: var(--bg-100);
+  font-size: 0.9rem;
 }
 .citas-btn {
-  padding: 8px 16px;
+  padding: 0.65rem 1rem;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
 }
 .citas-btn.primary {
   background: var(--acc-500);
@@ -180,13 +174,13 @@ body {
 
 /* Vertical layout: calendar on top, details below */
 .citas-calendar-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 .citas-calendar {
   background: var(--bg-300);
   border-radius: 12px;
   padding: 1rem;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   min-height: 420px;
   display: flex;
   align-items: center;
@@ -198,8 +192,8 @@ body {
 .citas-details {
   background: var(--bg-100);
   border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 .citas-details-title {
   font-size: 1.1rem;
@@ -212,17 +206,21 @@ body {
 .appointments-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.25rem;
+  gap: 1rem;
 }
 .cita-card {
   background: var(--bg-100);
   border: 1px solid var(--bg-500);
   border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
+  transition: box-shadow 0.2s ease;
+}
+.cita-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 .cita-card-header {
   display: flex;
@@ -268,9 +266,10 @@ body {
 }
 .citas-table th,
 .citas-table td {
-  padding: 12px 16px;
+  padding: 0.75rem;
   text-align: left;
   color: var(--var-700);
+  font-size: 0.9rem;
 }
 .citas-table th {
   background: var(--bg-300);
@@ -406,10 +405,6 @@ body {
 
 /* Responsive breakpoints requested and large screens */
 @media (max-width: 374px) {
-  .admin-citas-container {
-    padding: 12px;
-    margin: 12px auto;
-  }
   .header-content h1 {
     font-size: 1.05rem;
   }
@@ -432,9 +427,6 @@ body {
 }
 
 @media (min-width: 375px) and (max-width: 390px) {
-  .admin-citas-container {
-    padding: 14px;
-  }
   .citas-calendar {
     min-height: 420px;
   }
@@ -446,12 +438,49 @@ body {
   }
 }
 
-@media (min-width: 391px) and (max-width: 767px) {
-  .admin-citas-container {
-    padding: 16px;
+/* Responsive - Mobile first approach */
+@media (max-width: 390px) {
+  .header-content h1 {
+    font-size: 1.15rem;
+  }
+  .filters-section {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+  .filters-section label {
+    width: 100%;
+  }
+  .filters-section select,
+  .filters-section input[type="text"] {
+    width: 100%;
+  }
+  .citas-btn {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.85rem;
   }
   .citas-calendar {
-    min-height: 480px;
+    min-height: 380px;
+    padding: 0.75rem;
+  }
+  .citas-details {
+    padding: 0.75rem;
+  }
+  .citas-table {
+    display: table;
+  }
+  .appointments-grid {
+    display: none;
+  }
+  .cita-card {
+    padding: 0.75rem;
+  }
+}
+
+@media (min-width: 391px) and (max-width: 767px) {
+  .citas-calendar {
+    min-height: 420px;
   }
   .citas-table {
     display: table;
@@ -462,11 +491,8 @@ body {
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
-  .admin-citas-container {
-    padding: 20px;
-  }
   .citas-calendar {
-    min-height: 500px;
+    min-height: 460px;
   }
   .appointments-grid {
     display: grid;
@@ -477,55 +503,12 @@ body {
   }
 }
 
-@media (min-width: 1024px) and (max-width: 1439px) {
-  .admin-citas-container {
-    padding: 24px;
-  }
-  .citas-calendar {
-    min-height: 560px;
-  }
+@media (min-width: 1024px) {
   .appointments-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
-}
-
-@media (min-width: 1440px) {
-  .admin-citas-container {
-    padding: 28px;
-  }
-  .citas-calendar {
-    min-height: 620px;
-  }
-  .appointments-grid {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
-  }
-}
-
-@media (min-width: 1600px) {
-  .admin-citas-container {
-    padding: 32px;
-  }
-  .citas-calendar {
-    min-height: 680px;
-  }
-  .appointments-grid {
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 1.5rem;
-  }
-}
-
-@media (min-width: 1920px) {
-  .admin-citas-container {
-    padding: 36px;
-  }
-  .citas-calendar {
-    min-height: 750px;
-  }
-  .appointments-grid {
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-    gap: 1.75rem;
+  .citas-table {
+    display: none;
   }
 }
 

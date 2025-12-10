@@ -29,10 +29,10 @@ $actividad = $reportsController->getActividadReciente(5);
 			<p class="subtitle">Resumen del sistema, métricas y actividad reciente</p>
 		</div>
 		<div class="header-actions">
-			<button class="btn btn-primary" onclick="window.location.href='index.php?role=administrador&page=tests&nuevo=1'">
+			<button class="btn-primary" onclick="window.location.href='index.php?role=administrador&page=tests&nuevo=1'">
 				<i class="fas fa-plus"></i> Crear Test
 			</button>
-			<button class="btn btn-secondary" onclick="window.location.href='index.php?role=administrador&page=reportes'">
+			<button class="btn-secondary" onclick="window.location.href='index.php?role=administrador&page=reportes'">
 				<i class="fas fa-chart-line"></i> Ver Reportes
 			</button>
 		</div>
