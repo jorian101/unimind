@@ -418,7 +418,6 @@
 
 .metrica-value {
   font-size: 2rem;
-  font-weight: 700;
   color: var(--var-900);
   line-height: 1;
   margin-bottom: 0.5rem;
@@ -511,7 +510,6 @@
 
 .stat-card-value {
   font-size: 1.5rem;
-  font-weight: 700;
   color: var(--var-900);
   line-height: 1;
   margin-bottom: 0.25rem;
